@@ -1,0 +1,2 @@
+# GlobalStorage
+Distributed Data Warehouse
