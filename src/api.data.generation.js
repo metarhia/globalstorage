@@ -3,9 +3,9 @@ let fs = require('fs'),
     api = require('./api')('gen', 'common');
 
 const valGens = [
-  () => api.gen.numberGen(0, 1000000),
-  () => api.gen.stringGen({ lengthGen: api.gen.numberGen(1, 10) }),
-  () => api.gen.map(x => x === 1, api.gen.numberGen(1, 3)),
+  api.gen.numberGen(0, 1000000),
+  api.gen.stringGen({ lengthGen: api.gen.numberGen(1, 10) }),
+  api.gen.map(x => x === 1, api.gen.numberGen(1, 3)),
 ];
 
 function writeNObjs(filenames, objCount, sep) {
@@ -37,7 +37,8 @@ function objGen({ fieldnameGen, fieldCountGen, valGen } = {}) {
 }
 
 function randomValue() {
-  return valGens[api.gen.randomNumber(0, valGens.length)].next().value;
+  let x = api.gen.randomNumber(0, valGens.length);
+  return valGens[x].next().value;
 }
 
 function randomValueGen() {
