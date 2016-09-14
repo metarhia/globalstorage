@@ -18,8 +18,9 @@ net.createServer(sock => {
       let res = { type: 'got', data: servers.get(id) };
       return res;
     },
-    getWithRest(id) {
-      let res = { type: 'gotWithRest', data: servers.getWithRest(id) };
+    getExactly(id) {
+      let res = { type: 'gotExactly', data: servers.getExactly(id) };
+      console.log(res);
       return res;
     },
     getAll() {

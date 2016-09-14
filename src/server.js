@@ -1,50 +1,46 @@
-const net = require('net'),
-      { port } = require('./sConfig');
+let net = require('net'),
+    { port, 
+      controllerHost, 
+      controllerPort,
+    } = require('./sConfig');
+
+if (process.argv.length > 2) {
+  port = process.argv[2]
+} if (process.argv.length > 3) { controllerHost = process.argv[3];
+} 
+if (process.argv.length > 4) {
+  controllerPort = process.argv[4];
+}
 
 let api = require('./api')('jstp');
 
-const packSep = '\0',
-      packSepLen = packSep.length;
-
-const server = net.createServer(c => {
-  console.log('client connected');
-  c.on('end', () => {
-    console.log('client disconnected');
-  });
-
-  let dataAll = new Buffer([]);
-
-  c.on('data', data => {
-    dataAll = Buffer.concat([dataAll, data]);
-    let ind = dataAll.indexOf(packSep);
-    if (ind !== -1) {
-      let packet = dataAll.slice(0, ind),
-          packetObj = api.jstp.parse(packet.toString()),
-          res = handler(packetObj);
-      console.log(packetObj.data);
-      dataAll = dataAll.slice(ind + packSepLen);
-      c.write('' + res);
-      c.write('\0');
-    }
-  });
-}).listen(port);
-
-server.on('error', function(err) { throw err; });
-
-server.listen(port, () => console.log('server bound'));
-
 let objs = [];
-
-const handlerFuncs = {
+const handlers = {
   create(data) {
     return objs.push(data);
   },
   get(packet) {
-    return obj[id];
+    return objs[id];
   }
 };
 
-function handler(packet) {
-  return handlerFuncs[packet.type](packet.data);   
-}
+net.createServer(c => {
+  console.log('Client connected');
+  api.jstp.addEventHandlers(c, handlers);
+  c.on('end', () => console.log('client disconnected'));
+}).listen(port);
 
+let client = net.connect(controllerPort, controllerHost, () => {
+  api.jstp.addEventHandlers(client, {
+    added() {},
+    got(server) { console.log(server); },
+    gotAll(servers) { console.log(api.jstp.serialize(servers)); },
+    gotExactly(server) { console.log(server); },
+  });
+  api.jstp.sendEvent(client, 'add', {
+    host: client.localAddress,
+    port,
+  });
+  api.jstp.sendEvent(client, 'getExactly', 2);
+  api.jstp.sendEvent(client, 'getAll');
+});

@@ -1,8 +1,15 @@
-const net = require('net'),
-      vm = require('vm'),
-      { port, remoteHost } = require('./cConfig');
+let net = require('net'),
+    vm = require('vm'),
+    { remotePort, remoteHost } = require('./cConfig');
     
 let api = require('./api')('jstp', 'gen', 'data.generation');
+
+if (process.argv.length > 2) {
+  remotePort = process.argv[2];
+}
+if (process.argv.length > 3) {
+  remoteHost = process.argv[3];
+}
 
 let objects = [],
     config = {
@@ -11,10 +18,7 @@ let objects = [],
     },
     dataAll = '';
 
-const client = net.connect({ 
-  host: remoteHost,
-  port,  
-}, () => {
+const client = net.connect(remotePort, remoteHost, () => {
   setTimeout(spawnObj, 0, client, config, api.data.generation.objGen());  
 });
 

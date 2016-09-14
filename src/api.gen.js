@@ -55,10 +55,10 @@ function randomString({ length, charGen, numGen }) {
 function* map(f, gen) {
   let genRes = gen.next();
   while (!genRes.done) {
-    yield { value: f(genRes.value), done: false };
+    yield f(genRes.value);
     genRes = gen.next();
   }
-  return { value: f(genRes.value), done: true };
+  return f(genRes.value);
 }
 
 function forEach(f, gen) {

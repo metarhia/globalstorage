@@ -23,19 +23,6 @@ let insertFuncs = [
 
 let getFuncs = [
   () => null,
-  (tree) => tree[0],
-  (tree, id) => {
-    do {
-      let z = id % 2;
-      tree = tree[z === 1 ? 1 : 0];
-      id >>= 1;
-    } while (tree.length === 2);
-    return getFuncs[tree.length](tree, id);
-  }
-];
-
-let getWithRestFuncs = [
-  getFuncs[0],
   (tree) => ({ val: tree[0], id: 0 }),
   (tree, id) => {
     let resId = 0,
@@ -47,10 +34,35 @@ let getWithRestFuncs = [
       resId += st2 * z;
       st2 <<= 1;
     } while (tree.length === 2);
-    let res = getWithRestFuncs[tree.length](tree, id); 
+    return { 
+      val: getFuncs[tree.length](tree, id),
+      id: resId,
+    };
+  }
+];
+
+let getExactlyFuncs = [
+  getFuncs[0],
+  (tree, id) => id === 0 
+              ? { val: tree[0], id: 0 }
+              : null,
+  (tree, id) => {
+    let resId = 0,
+        varId = id,
+        st2 = 1;
+    do {
+      let z = varId % 2;
+      tree = tree[z === 1 ? 1 : 0];
+      varId >>= 1;
+      resId += st2 * z;
+      st2 <<= 1;
+    } while (tree.length === 2);
+    let res = getExactlyFuncs[tree.length](tree, varId); 
     if (res !== null) {
       let { val } = res;
-      return { val, id: resId };
+      return id === resId
+           ? { val, id: resId }
+           : null;
     } else {
       return null;
     }
@@ -68,8 +80,8 @@ Tree.prototype.insert = function(id, elem) {
 Tree.prototype.get = function(id) {
   return getFuncs[this.length](this, id);
 }
-Tree.prototype.getWithRest = function(id) {
-  return getWithRestFuncs[this.length](this, id);
+Tree.prototype.getExactly = function(id) {
+  return getExactlyFuncs[this.length](this, id);
 }
 
 function make(arr) {
