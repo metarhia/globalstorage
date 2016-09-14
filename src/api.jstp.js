@@ -26,7 +26,9 @@ let serializeFuncs = {
 };
 
 function serialize(obj) {
-  return Array.isArray(obj)
+  return obj === null
+       ? 'null'
+       : Array.isArray(obj)
        ? serializeFuncs['array'](obj)
        : serializeFuncs[typeof obj](obj);
 }
