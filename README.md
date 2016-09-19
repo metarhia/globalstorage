@@ -1,49 +1,24 @@
 # GlobalStorage
 
-## Концепция
+## The Concept
 
-Это распределенная СУБД для стека технологий [Metarhia](https://github.com/metarhia/Metarhia)
-построенная на следующих принципах:
-* Встраивание в процесс сервера приложений [Impress](https://github.com/metarhia/Impress)
-для того, чтобы избежать лишнего межпроцессового взаимодействия;
-* Глубокая совместимость с сетевым протоколом [JSTP](https://github.com/metarhia/JSTP),
-данные хранятся на диске и памяти в формате, близком протоколу;
-* Формат передачи данных по протоколу и формат хранения могут не содержать
-идентификаторов полей, что уменьшает их размер; значения полей хранятся в
-массивах, которые можно поставить в соответствие полям модели (схеме/метаданным)
-позиционным сопоставлением;
-* Максимальное использование памяти, упреждающее чтение, отложенная запись,
-минимизация преобразования данных;
-* Использование метаданных, специального декларативного формата описания
-предметной области, включая сущности, связи и атрибуты из которого можно
-автоматически построить схему хранения в реляционной СУБД, структуры памяти и
-структуры для бессхемных СУБД, различные GUI, серверное API и т.д.;
-* Реализация движков с одинаковым API доступа к данным на клиенте и на сервере:
-  - имеет движок хранения на сервере;
-  - имеет движки хранения на клиенте (несколько реализаций для разных платформ);
-  - позволяет нескольким серверам объединяться для распределенного хранения;
-  - позволяет нескольким клиентам обмениваться данными в режиме P2P;
-* Синхронизация данных между клиентом и сервером в как в реальном режиме
-времени, так и в отложенном режиме, т.е. возможность работать в онлайне
-(интерактивно вместе с другими пользователями), так и в оффлайне с данными,
-сохраненными в локальном хранилище, и иметь двухстороннюю синхронизацию данных
-с версионностью и ветвлением, как в git;
-* Глобальная унификация структур данных в рамках всех систем, работающих на
-стеке технологий [Metarhia](https://github.com/metarhia/Metarhia), т.е.
-[GlobalStorage](https://github.com/metarhia/GlobalStorage),
-[Impress](https://github.com/metarhia/Impress),
-[JSTP](https://github.com/metarhia/JSTP) и
-[Console](https://github.com/metarhia/Console) через модерируемые распределенные
-репозитории структур данных;
-* Возможность работать с не унифицированными данными, специфическими для
-конкретных систем;
-* GlobalStorage предоставляет абстракцию слоя доступа к данным, т.е. заменяет
-ORM системы, но не обязательно делает мапинг на реляционную модель, хоть такая
-возможность тоже встроена;
-* Данные имеют сквозную идентификацию во всей системе, т.е. вставка данных может
-быть распределенной и не приведет к конфликтам идентификаторов;
-* Достоверность данных обеспечивается их распределенным хранением, версионностью
-и подписыванием версий хешами.
+This is a distributed DBMS for technological stack [Metarhia](https://github.com/metarhia/Metarhia) and it is built with following assumptions:
+* GS is designed to be built-in DBMS, to work inside [Impress Applications Server](https://github.com/metarhia/Impress); it is needed to avoid or minimize interprocess communication to access DB;
+* GS is compatible with JSTP [JavaScript Transfer Protocol](https://github.com/metarhia/JSTP), all data slould be stored, stansmitted, handled and placed in RAM in the same format;
+* All data structures can be reduced to array representation to redice size by removing key names, we can do that with the help of metadata schemas and we can dynamicaly build prototypes from schemas and assign them to arrays, so getters/setters will convert access by name (hash) to assess by position (array);
+* Maximum memory usage, read-ahead and lazy-write, minimizing data conversion;
+* Using metadata everywhere, special declarative format for subject domein representation including fields, relations, and indices so we can automatically build a storage scheme in the relational database, memory structures and  structure for the database, different the GUI, API server, etc.
+* The same API for client-side runtime and server-side runtime:
+  - server-side storage engine;
+  - client-side storage engine (multiple implementations for different platforms including mobile, desktop and browser);
+  - sharding for distributed storage of large data amounts, geo-distribution, save backup copies, access load balancing;
+  - allows user to exchange data in P2P mode;
+* Syncronization between client and server in realtime (close to realtime) and in lazy mode; so applications can work in online and offline (with locally stored data); having bidirectional data sync and hieratchical versioning like git have;
+* Global data structures unification for applications working with [Metarhia](https://github.com/metarhia/Metarhia) technological stack: [GlobalStorage](https://github.com/metarhia/GlobalStorage), [Impress](https://github.com/metarhia/Impress), [JSTP](https://github.com/metarhia/JSTP) and [Console](https://github.com/metarhia/Console) through moderated distributed metadata repositories;
+* Ability to work with non-unified data structures (custom schemas), specific to certain subject domain;
+* GlobalStorage provides DAC (data access layer) abstraction, it substitutes ORM but it does not necessarily make maping on the relational model (though RDBMS are also supported);
+* Data structures have global distributed identification system, so data can be inserted anywhere and will not bring ID  conflicts;
+* Data reliability is provided by distributed storage facilities, so each data structure should have master server and multiple backup and cache servers; using those servers GlobalStorage supports addressing, versioning and branching.
 
 ## Metamodel Definition Language
 
