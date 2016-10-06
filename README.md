@@ -22,11 +22,9 @@ This is a distributed DBMS for technological stack [Metarhia](https://github.com
 
 ## Metamodel Definition Language
 
-Язык описания метамодели. По этому описанию мы динамически строим прототипы и
-можем присвоить такой прототип позиционному массиву, чтобы с ним можно было
-работать как с объектом.
+Using this domain specific language we will describe subject domain in declarative format. To build GUI, API, business-loguic, data structures dynamically in runtime. For example we can build JavaScript prototype and assign it to positional array to access fields by name, so arrays will work like objects.
 
-Пример:
+Example:
 ```js
 {
   code: { type: 'string', primary: true },
@@ -54,23 +52,17 @@ This is a distributed DBMS for technological stack [Metarhia](https://github.com
 }
 ```
 
-Типы данных:
-- Все встроенные типы JavaScript: string, number, boolean, Date
-- Встроенные типы GS: id, uid, tree, ip и другие
-- Типы данных реляционных СУБД: char, int, real, text, money, time, date...
-- Ссылки на другие структуры, определенные в GlobalStorage
-- Ссылки на структуры, определенные в приложении
+Data types:
+- Built-in JavaScript types: string, number, boolean, Date, etc.
+- Global Storage types: id, uid, tree, ip, etc.
+- RDBMS data types: char, int, real, text, money, time, date...
+- Links to other data structures in GlobalStorage
+- Links to other data structures in Application
 
-## JavaScript Query Language
+## JavaScript Query Languaged 
 
-Язык запросов к структурам данных. Описание и примеры данных и запросов лежат в
-отдельном репозитории: [metarhia/JSQL](https://github.com/metarhia/JSQL)
-Реализация JSQL будет частью библиотеки JSTP.
+JSQL is a query language for data structures manipulation. JSQL have syntax for: filter, projection, dataset join and set operations. We have separate repositories for examples and specification: [metarhia/JSQL](https://github.com/metarhia/JSQL) Implementation of JSQL is a part of JSTP library.
 
 ## Distributed Metamodel Repository
 
-Распределенный репозиторий метамоделей
-
 ## Data Access Layer
-
-Слой доступа к данным
