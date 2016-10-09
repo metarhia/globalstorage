@@ -1,0 +1,22 @@
+{
+  "name": "globalstorage",
+  "version": "0.0.1",
+  "author": "Timur Shemsedinov <timur.shemsedinov@gmail.com>",
+  "description": "Global Storege is a Global Distributed Data Warehouse",
+  "keywords": [
+    "database",
+    "storage",
+    "global",
+    "warehouse",
+    "metarhia",
+    "impress",
+    "distributed",
+    "dbms"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/metarhia/GlobalStorage"
+  },
+  "main": "./gs.js",
+  "readmeFilename": "README.md"
+}
