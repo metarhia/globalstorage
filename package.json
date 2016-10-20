@@ -2,7 +2,7 @@
   "name": "globalstorage",
   "version": "0.0.1",
   "author": "Timur Shemsedinov <timur.shemsedinov@gmail.com>",
-  "description": "Global Storege is a Global Distributed Data Warehouse",
+  "description": "Global Storage is a Global Distributed Data Warehouse",
   "keywords": [
     "database",
     "storage",
