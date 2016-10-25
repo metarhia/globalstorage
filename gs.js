@@ -32,7 +32,7 @@ gs.Connection = function() {
 // Close connection
 //   callback - on close connection
 //
-gs.Connection.close = function(callback) {
+gs.Connection.prototype.close = function(callback) {
 
 };
 
