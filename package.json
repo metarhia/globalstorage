@@ -18,5 +18,9 @@
     "url": "https://github.com/metarhia/GlobalStorage"
   },
   "main": "./gs.js",
-  "readmeFilename": "README.md"
+  "readmeFilename": "README.md",
+  "devDependencies": {
+    "eslint": "^3.8.1",
+    "eslint-config-google": "^0.7.0"
+  }
 }
