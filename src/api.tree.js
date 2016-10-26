@@ -8,7 +8,7 @@
 //   3. Node. Two elements (child trees) array inside.
 
 // Funcs that working with Tree based on tree state (array length)
-var insertFuncs, getFuncs, getWithSpecificIdFuncs;
+var insertFuncs, getFuncs, getWithSpecificIdFuncs, toStringFuncs;
 
 function Tree() {}
 
@@ -19,7 +19,8 @@ Tree.prototype.isEmpty = function() {
 };
 
 Tree.prototype.insert = function(id, elem) {
-  return insertFuncs[this.length](this, id, elem);
+  insertFuncs[this.length](this, id, elem);
+  return this;
 };
 
 Tree.prototype.get = function(id) {
@@ -28,6 +29,10 @@ Tree.prototype.get = function(id) {
 
 Tree.prototype.getWithSpecificId = function(id) {
   return getWithSpecificIdFuncs[this.length](this, id);
+};
+
+Tree.prototype.toString = function() {
+  return toStringFuncs[this.length](this);
 };
 
 function make(arr) {
@@ -40,28 +45,43 @@ function empty() { return make([]); }
 
 insertFuncs = [
   function(tree, id, server) {
-    tree.push(server);
-  },
-
-  function(tree, id, server) {
-    var newServer = make([server]),
-        oldServer = make(this[0]);
-    if (id && 1 === 0) {
-      tree[0] = newServer;
-      tree[1] = oldServer;
+    if (id === 0) {
+      tree.push(server);
     } else {
-      tree[0] = oldServer;
-      tree[1] = newServer;
+      var newEmpty = empty(),
+          z = id & 1;
+      id >>= 1;
+      var newWithServer = empty().insert(id, server);
+      if (z === 0) {
+        tree[0] = newWithServer;
+        tree[1] = newEmpty;
+      } else {
+        tree[0] = newEmpty;
+        tree[1] = newWithServer;
+      }
     }
   },
 
   function(tree, id, server) {
+    if (id === 0) {
+      tree[0] = server;
+    } else {
+      var z = id & 1;
+      id >>= 1;
+      tree[0] = make([tree[0]]);
+      tree.push(empty());
+      tree[z].insert(id, server);
+    }
+  },
+
+  function(tree, id, server) {
+    console.log(server);
     while (tree.length === 2) {
-      var z = id && 1;
+      var z = id & 1;
       tree = tree[z];
       id >>= 1;
     }
-    insertFuncs[tree.length](tree, id, server);
+    tree.insert(id, server);
   },
 ];
 
@@ -83,7 +103,7 @@ getFuncs = [
       st2 <<= 1;
     } while (tree.length === 2);
     return {
-      val: getFuncs[tree.length](tree, id),
+      val: getFuncs[tree.length](tree, id).val,
       id: resId,
     };
   },
@@ -118,6 +138,17 @@ getWithSpecificIdFuncs = [
     }
   },
 ];
+
+toStringFuncs = [
+  function() { return 'Empty'; },
+  function(tree) { return tree[0].toString(); },
+  function(tree) {
+    return ['(', tree[0].toString(), ' . ',
+                 tree[1].toString(), ')'].join('');
+  }
+];
+
+
 
 module.exports = {
   make: make,
