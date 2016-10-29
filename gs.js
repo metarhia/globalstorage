@@ -9,10 +9,6 @@ module.exports = gs;
 //
 gs.cache = {};
 
-// Storage hosts infrastructure keyed by serverId
-//
-gs.infrastructure = {};
-
 // Active connections array
 //
 gs.connections = [];
@@ -22,19 +18,22 @@ gs.connections = [];
 //   callback - on connect function(err, connection)
 //
 gs.connect = function(url, callback) {
-  callback(null, new gs.Connection(url));
+  var newConnection = new gs.Connection();
+  callback(newConnection);
 };
 
 // Connection
 //
 gs.Connection = function() {
+
 };
 
 // Close connection
 //   callback - on close connection
 //
 gs.Connection.prototype.close = function(callback) {
-
+  gs.connections.splice(gs.connections.indexOf(this), 1);
+  callback(null);
 };
 
 // Categories cache keyed by category name
@@ -46,7 +45,12 @@ gs.categories = {};
 //   callback - function(err, category)
 //
 gs.Category = function(categoryName, callback) {
-
+  var cat = gs.categories[categoryName];
+  if (!cat) {
+    cat = {};
+    gs.categories[categoryName] = cat;
+  }
+  callback(null, cat);
 };
 
 // Get object from Global Storage
@@ -54,7 +58,7 @@ gs.Category = function(categoryName, callback) {
 //   callback - function(err, object)
 //
 gs.get = function(objectId, callback) {
-
+  callback();
 };
 
 // Create object in Global Storage
@@ -62,7 +66,7 @@ gs.get = function(objectId, callback) {
 //   callback - function(err, objectId)
 //
 gs.new = function(object, callback) {
-
+  callback();
 };
 
 // Update object in Global Storage
@@ -71,7 +75,7 @@ gs.new = function(object, callback) {
 //   callback - function(err)
 //
 gs.update = function(object, callback) {
-
+  callback();
 };
 
 // Delete object in Global Storage
@@ -79,7 +83,7 @@ gs.update = function(object, callback) {
 //   callback - function(err)
 //
 gs.delete = function(objectId, callback) {
-
+  callback();
 };
 
 // Find objects in Global Storage
@@ -87,8 +91,10 @@ gs.delete = function(objectId, callback) {
 //   projection - to be applied after query (optional)
 //   callback - function(err, data)
 //
+// TODO: write more effective implementation of sharding
+//
 gs.find = function(query, projection, callback) {
-
+  callback();
 };
 
 /* Some conceptual examples
