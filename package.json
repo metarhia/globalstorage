@@ -1,6 +1,6 @@
 {
   "name": "globalstorage",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "author": "Timur Shemsedinov <timur.shemsedinov@gmail.com>",
   "description": "Global Storege is a Global Distributed Data Warehouse",
   "keywords": [

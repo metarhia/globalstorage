@@ -22,6 +22,7 @@ gs.connections = [];
 //   callback - on connect function(err, connection)
 //
 gs.connect = function(url, callback) {
+  callback(null, new gs.Connection(url));
 };
 
 // Connection
