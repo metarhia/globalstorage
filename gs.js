@@ -31,11 +31,11 @@ gs.mode = 'closed';
 // Local storage provider
 // implementing interface globalStorageProvider
 //
-gs.storage = null;
+gs.localStorageProvider = null;
 
 gs.open = function(callback) {
-  if (gs.storage) {
-    gs.storage.open(callback);
+  if (gs.localStorageProvider) {
+    gs.localStorageProvider.open(callback);
   } else {
     callback(new Error(NO_STORAGE));
   }
@@ -77,40 +77,40 @@ gs.category = function(name, callback) {
 // Override StorageProvider methods
 
 gs.get = function(objectId, callback) {
-  if (gs.storage) {
-    gs.storage.get(objectId, callback);
+  if (gs.localStorageProvider) {
+    gs.localStorageProvider.get(objectId, callback);
   } else {
     callback(new Error(NO_STORAGE));
   }
 };
 
 gs.create = function(object, callback) {
-  if (gs.storage) {
-    gs.storage.create(object, callback);
+  if (gs.localStorageProvider) {
+    gs.localStorageProvider.create(object, callback);
   } else {
     callback(new Error(NO_STORAGE));
   }
 };
 
 gs.update = function(object, callback) {
-  if (gs.storage) {
-    gs.storage.get(object, callback);
+  if (gs.localStorageProvider) {
+    gs.localStorageProvider.get(object, callback);
   } else {
     callback(new Error(NO_STORAGE));
   }
 };
 
 gs.delete = function(objectId, callback) {
-  if (gs.storage) {
-    gs.storage.get(objectId, callback);
+  if (gs.localStorageProvider) {
+    gs.localStorageProvider.get(objectId, callback);
   } else {
     callback(new Error(NO_STORAGE));
   }
 };
 
 gs.find = function(query, callback) {
-  if (gs.storage) {
-    gs.storage.get(query, callback);
+  if (gs.localStorageProvider) {
+    gs.localStorageProvider.get(query, callback);
   } else {
     callback(new Error(NO_STORAGE));
   }

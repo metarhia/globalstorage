@@ -6,6 +6,9 @@ module.exports = StorageProvider;
 //
 function StorageProvider(options) {
   this.options = options;
+  if (options) {
+    this.connection = options.connection;
+  }
 };
 
 var NOT_IMPLEMENTED = 'Not implemented in abstract interface';

@@ -9,12 +9,12 @@ util.inherits(MongodbProvider, StorageProvider);
 //
 function MongodbProvider(options) {
   StorageProvider.call(this, options);
-  this.connection = options.connection;
-  this.storage = {};
 };
 
 MongodbProvider.prototype.open = function(callback) {
-  this.storage = this.connection.collection('storage');
+  if (this.connection) {
+    this.connection = this.connection.collection('storage');
+  }
   callback();
 };
 
@@ -23,15 +23,15 @@ MongodbProvider.prototype.close = function(callback) {
 };
 
 MongodbProvider.prototype.get = function(objectId, callback) {
-  this.storage.findOne({ objectId: object.objectId }, callback);
+  this.connection.findOne({ objectId: object.objectId }, callback);
 };
 
 MongodbProvider.prototype.create = function(object, callback) {
-  this.storage.insertOne(object, callback);
+  this.connection.insertOne(object, callback);
 };
 
 MongodbProvider.prototype.update = function(object, callback) {
-  this.storage.updateOne(
+  this.connection.updateOne(
     { objectId: object.objectId },
     object,
     { upsert: true, w: 1 }
@@ -39,9 +39,9 @@ MongodbProvider.prototype.update = function(object, callback) {
 };
 
 MongodbProvider.prototype.delete = function(objectId, callback) {
-  this.storage.deleteOne({ objectId: objectId }, callback);
+  this.connection.deleteOne({ objectId: objectId }, callback);
 };
 
 MongodbProvider.prototype.find = function(query, callback) {
-  this.storage.find(query).toArray(callback);
+  this.connection.find(query).toArray(callback);
 };
