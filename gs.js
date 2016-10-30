@@ -2,38 +2,59 @@
 
 // Global Storage API
 
-var gs = {};
+var util = require('util');
+var StorageProvider = require('./provider.js');
+var MongodbProvider = require('./provider.mongodb.js');
+var Connection = require('./connection.js');
+var Category = require('./category.js');
+var NO_STORAGE = 'No storage provider available';
+
+var gs = new StorageProvider();
 module.exports = gs;
+
+gs.StorageProvider = StorageProvider;
+gs.MongodbProvider = MongodbProvider;
+gs.Connection = Connection;
+gs.Category = Category;
 
 // Objects cache keyed by objectId
 //
 gs.cache = {};
 
-// Active connections array
+// Database mode
+//   closed - no one provider is available
+//   offline - local storage provider is available
+//   online - local and connections are available
 //
-gs.connections = [];
+gs.mode = 'closed';
+
+// Local storage provider
+// implementing interface globalStorageProvider
+//
+gs.storage = null;
+
+gs.open = function(callback) {
+  if (gs.storage) {
+    gs.storage.open(callback);
+  } else {
+    callback(new Error(NO_STORAGE));
+  }
+};
+
+// Remote storage provider
+// implementing interface globalStorageProvider
+//
+gs.connections = {};
 
 // Connect to Global Storage server
-//   url - gs://user:password@host:port/database
+//   options - connection parammeters
+//     url - gs://user:password@host:port/database
 //   callback - on connect function(err, connection)
 //
-gs.connect = function(url, callback) {
-  var newConnection = new gs.Connection();
-  callback(newConnection);
-};
-
-// Connection
-//
-gs.Connection = function() {
-
-};
-
-// Close connection
-//   callback - on close connection
-//
-gs.Connection.prototype.close = function(callback) {
-  gs.connections.splice(gs.connections.indexOf(this), 1);
-  callback(null);
+gs.connect = function(options, callback) {
+  var connection = new Connection(options);
+  connection
+  callback(null, connection);
 };
 
 // Categories cache keyed by category name
@@ -44,57 +65,55 @@ gs.categories = {};
 //   categoryName - name of category
 //   callback - function(err, category)
 //
-gs.Category = function(categoryName, callback) {
-  var cat = gs.categories[categoryName];
+gs.category = function(name, callback) {
+  var cat = gs.categories[name];
   if (!cat) {
-    cat = {};
-    gs.categories[categoryName] = cat;
+    cat = new Category(name);
+    gs.categories[name] = cat;
   }
   callback(null, cat);
 };
 
-// Get object from Global Storage
-//   objectId - globally unique object id
-//   callback - function(err, object)
-//
+// Override StorageProvider methods
+
 gs.get = function(objectId, callback) {
-  callback();
+  if (gs.storage) {
+    gs.storage.get(objectId, callback);
+  } else {
+    callback(new Error(NO_STORAGE));
+  }
 };
 
-// Create object in Global Storage
-//   object - object to be stored
-//   callback - function(err, objectId)
-//
-gs.new = function(object, callback) {
-  callback();
+gs.create = function(object, callback) {
+  if (gs.storage) {
+    gs.storage.create(object, callback);
+  } else {
+    callback(new Error(NO_STORAGE));
+  }
 };
 
-// Update object in Global Storage
-//   object - object to be updated
-//   object.id - globally unique object id
-//   callback - function(err)
-//
 gs.update = function(object, callback) {
-  callback();
+  if (gs.storage) {
+    gs.storage.get(object, callback);
+  } else {
+    callback(new Error(NO_STORAGE));
+  }
 };
 
-// Delete object in Global Storage
-//   objectId - globally unique object id
-//   callback - function(err)
-//
 gs.delete = function(objectId, callback) {
-  callback();
+  if (gs.storage) {
+    gs.storage.get(objectId, callback);
+  } else {
+    callback(new Error(NO_STORAGE));
+  }
 };
 
-// Find objects in Global Storage
-//   query - JSQL lambda expression
-//   projection - to be applied after query (optional)
-//   callback - function(err, data)
-//
-// TODO: write more effective implementation of sharding
-//
-gs.find = function(query, projection, callback) {
-  callback();
+gs.find = function(query, callback) {
+  if (gs.storage) {
+    gs.storage.get(query, callback);
+  } else {
+    callback(new Error(NO_STORAGE));
+  }
 };
 
 /* Some conceptual examples
