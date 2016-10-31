@@ -13,7 +13,7 @@ function MongodbProvider(options) {
 
 MongodbProvider.prototype.open = function(callback) {
   if (this.connection) {
-    this.connection = this.connection.collection('storage');
+    this.storage = this.connection.connection.collection('storage');
   }
   callback();
 };
@@ -23,15 +23,15 @@ MongodbProvider.prototype.close = function(callback) {
 };
 
 MongodbProvider.prototype.get = function(objectId, callback) {
-  this.connection.findOne({ objectId: object.objectId }, callback);
+  this.storage.findOne({ objectId: objectId }, callback);
 };
 
 MongodbProvider.prototype.create = function(object, callback) {
-  this.connection.insertOne(object, callback);
+  this.storage.insertOne(object, callback);
 };
 
 MongodbProvider.prototype.update = function(object, callback) {
-  this.connection.updateOne(
+  this.storage.updateOne(
     { objectId: object.objectId },
     object,
     { upsert: true, w: 1 }
@@ -39,9 +39,9 @@ MongodbProvider.prototype.update = function(object, callback) {
 };
 
 MongodbProvider.prototype.delete = function(objectId, callback) {
-  this.connection.deleteOne({ objectId: objectId }, callback);
+  this.storage.deleteOne({ objectId: objectId }, callback);
 };
 
 MongodbProvider.prototype.find = function(query, callback) {
-  this.connection.find(query).toArray(callback);
+  this.storage.find(query).toArray(callback);
 };
