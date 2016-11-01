@@ -5,6 +5,7 @@
 var util = require('util');
 var StorageProvider = require('./provider.js');
 var MongodbProvider = require('./provider.mongodb.js');
+var FsProvider = require('./provider.fs.js');
 var Connection = require('./connection.js');
 var Category = require('./category.js');
 var NO_STORAGE = 'No storage provider available';
@@ -14,8 +15,16 @@ module.exports = gs;
 
 gs.StorageProvider = StorageProvider;
 gs.MongodbProvider = MongodbProvider;
+gs.FsProvider = FsProvider;
 gs.Connection = Connection;
 gs.Category = Category;
+
+// Hash keyed by provider name
+//
+gs.providers = {
+  mongodb: MongodbProvider,
+  fs: FsProvider
+};
 
 // Objects cache keyed by objectId
 //
@@ -155,4 +164,36 @@ gs.objectToData = function(object, category) {
 //
 gs.projection = function(data, metadata) {
 
+};
+
+// Global Storage Infrastructure
+//
+gs.infrastructure = {};
+
+// Servers tree
+//
+gs.infrastructure.tree = {};
+
+// Servers index
+//
+gs.infrastructure.index = [];
+
+// Server bit mask
+//
+gs.infrastructure.mask = 0,
+
+// Assign new tnfrastructure tree
+//
+gs.infrastructure.assign = function(tree) {
+  gs.infrastructure.servers = tree;
+  // let index = ...;
+  // gs.infrastructure.index = ....
+  gs.infrastructure.bits = Math.log(index.length) / Math.log(2);
+  gs.infrastructure.mask = Math.pow(2, bits) - 1;
+};
+
+// Get server for objectId
+//
+gs.findServer = function(objectId) {
+  return index[objectId & gs.infrastructure.mask];
 };

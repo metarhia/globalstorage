@@ -5,7 +5,7 @@ var util = require('util');
 var StorageProvider = require('./provider.js');
 util.inherits(MongodbProvider, StorageProvider);
 
-// Abstract Storage Provider
+// MongoDB Storage Provider
 //
 function MongodbProvider(options) {
   StorageProvider.call(this, options);
@@ -13,7 +13,7 @@ function MongodbProvider(options) {
 
 MongodbProvider.prototype.open = function(callback) {
   if (this.connection) {
-    this.storage = this.connection.connection.collection('storage');
+    this.storage = this.connection.collection('storage');
   }
   callback();
 };

@@ -1,6 +1,6 @@
 {
   "name": "globalstorage",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "author": "Timur Shemsedinov <timur.shemsedinov@gmail.com>",
   "description": "Global Storage is a Global Distributed Data Warehouse",
   "keywords": [
@@ -17,10 +17,17 @@
     "type": "git",
     "url": "https://github.com/metarhia/GlobalStorage"
   },
-  "main": "./gs.js",
-  "readmeFilename": "README.md",
+  "dependencies": {
+    "metasync": ">=0.0.8",
+    "mkdirp": "0.5.x"
+  },
+  "peerDependencies": {
+    "mongodb": "2.2.x"
+  },
   "devDependencies": {
     "eslint": "^3.8.1",
     "eslint-config-google": "^0.7.0"
-  }
+  },
+  "main": "./gs.js",
+  "readmeFilename": "README.md"
 }
