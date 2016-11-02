@@ -8,6 +8,7 @@ function StorageProvider(options) {
   this.options = options;
   if (options) {
     this.connection = options.connection;
+    this.gs = options.gs;
   }
 };
 

@@ -87,7 +87,7 @@ gs.category = function(name, callback) {
 
 gs.get = function(objectId, callback) {
   if (gs.localStorageProvider) {
-    gs.localStorageProvider.get(objectId, callback);
+    gs.localStorageProvider.findOne(objectId, callback);
   } else {
     callback(new Error(NO_STORAGE));
   }
@@ -103,7 +103,9 @@ gs.create = function(object, callback) {
 
 gs.update = function(object, callback) {
   if (gs.localStorageProvider) {
-    gs.localStorageProvider.get(object, callback);
+    gs.localStorageProvider.update(
+      { objectId: object.objectId }, object, callback
+    );
   } else {
     callback(new Error(NO_STORAGE));
   }
@@ -111,7 +113,7 @@ gs.update = function(object, callback) {
 
 gs.delete = function(objectId, callback) {
   if (gs.localStorageProvider) {
-    gs.localStorageProvider.get(objectId, callback);
+    gs.localStorageProvider.remove(objectId, callback);
   } else {
     callback(new Error(NO_STORAGE));
   }
@@ -119,7 +121,7 @@ gs.delete = function(objectId, callback) {
 
 gs.find = function(query, callback) {
   if (gs.localStorageProvider) {
-    gs.localStorageProvider.get(query, callback);
+    gs.localStorageProvider.find(query, callback);
   } else {
     callback(new Error(NO_STORAGE));
   }
@@ -186,14 +188,24 @@ gs.infrastructure.mask = 0,
 //
 gs.infrastructure.assign = function(tree) {
   gs.infrastructure.servers = tree;
-  // let index = ...;
-  // gs.infrastructure.index = ....
+  let index = [ tree.S0 ];
+  gs.infrastructure.index = index;
   gs.infrastructure.bits = Math.log(index.length) / Math.log(2);
-  gs.infrastructure.mask = Math.pow(2, bits) - 1;
+  gs.infrastructure.mask = Math.pow(2, gs.infrastructure.bits) - 1;
 };
 
 // Get server for objectId
 //
 gs.findServer = function(objectId) {
   return index[objectId & gs.infrastructure.mask];
+};
+
+// Last objectId in storage
+//
+gs.nextId = 0;
+
+// Get server for objectId
+//
+gs.generateId = function() {
+  return gs.nextId++;
 };
