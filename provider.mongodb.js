@@ -15,15 +15,15 @@ MongodbProvider.prototype.open = function(callback) {
   if (this.connection) {
     this.storage = this.connection.collection('gs.storage');
     this.metadata = this.connection.collection('gs.metadata');
-    let provider = this;
+    var provider = this;
     this.metadata.findOne({ _id: 0 }, function(err, data) {
       if (data) {
-        //console.dir(data);
+        //console.dir({x:data});
         provider.gs.infrastructure.assign(data.tree);
         provider.gs.nextId = data.nextId;
         callback();
       } else {
-        let tree = { S0: { host: '127.0.0.1', port: 250 } };
+        var tree = { '0': {} };
         provider.metadata.insertOne(
           { _id: 0, nextId: 0, tree: tree }, callback
         );
@@ -39,7 +39,7 @@ MongodbProvider.prototype.close = function(callback) {
 MongodbProvider.prototype.get = function(objectId, callback) {
   this.storage.findOne({ _id: objectId }, function(err, data) {
     if (data) {
-      data.id = data.id;
+      data.id = data._id;
       delete data._id;
     }
     callback(err, data);

@@ -6,6 +6,7 @@ var util = require('util');
 var StorageProvider = require('./provider.js');
 var MongodbProvider = require('./provider.mongodb.js');
 var FsProvider = require('./provider.fs.js');
+var MemoryProvider = require('./provider.memory.js');
 var Connection = require('./connection.js');
 var Category = require('./category.js');
 var NO_STORAGE = 'No storage provider available';
@@ -16,6 +17,7 @@ module.exports = gs;
 gs.StorageProvider = StorageProvider;
 gs.MongodbProvider = MongodbProvider;
 gs.FsProvider = FsProvider;
+gs.MemoryProvider = MemoryProvider;
 gs.Connection = Connection;
 gs.Category = Category;
 
@@ -23,12 +25,13 @@ gs.Category = Category;
 //
 gs.providers = {
   mongodb: MongodbProvider,
-  fs: FsProvider
+  fs: FsProvider,
+  memory: MemoryProvider
 };
 
 // Objects cache keyed by objectId
 //
-gs.cache = {};
+gs.cache = {}; // TODO: MemoryStorageProvider
 
 // Database mode
 //   closed - no one provider is available
@@ -62,7 +65,6 @@ gs.connections = {};
 //
 gs.connect = function(options, callback) {
   var connection = new Connection(options);
-  connection
   callback(null, connection);
 };
 
@@ -188,7 +190,7 @@ gs.infrastructure.mask = 0,
 //
 gs.infrastructure.assign = function(tree) {
   gs.infrastructure.servers = tree;
-  let index = [ tree.S0 ];
+  var index = [tree.S0];
   gs.infrastructure.index = index;
   gs.infrastructure.bits = Math.log(index.length) / Math.log(2);
   gs.infrastructure.mask = Math.pow(2, gs.infrastructure.bits) - 1;
@@ -197,7 +199,9 @@ gs.infrastructure.assign = function(tree) {
 // Get server for objectId
 //
 gs.findServer = function(objectId) {
-  return index[objectId & gs.infrastructure.mask];
+  return (
+    gs.infrastructure.index[objectId & gs.infrastructure.mask]
+  );
 };
 
 // Last objectId in storage
