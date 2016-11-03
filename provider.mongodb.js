@@ -7,11 +7,10 @@ util.inherits(MongodbProvider, StorageProvider);
 
 // MongoDB Storage Provider
 //
-function MongodbProvider(options) {
-  StorageProvider.call(this, options);
-};
+function MongodbProvider() {
+}
 
-MongodbProvider.prototype.open = function(callback) {
+MongodbProvider.prototype.open = function(options, callback) {
   if (this.connection) {
     this.storage = this.connection.collection('gs.storage');
     this.metadata = this.connection.collection('gs.metadata');
@@ -21,11 +20,14 @@ MongodbProvider.prototype.open = function(callback) {
         //console.dir({x:data});
         provider.gs.infrastructure.assign(data.tree);
         provider.gs.nextId = data.nextId;
-        callback();
+        StorageProvider.prototype.open.call(this, options, callback);
       } else {
         var tree = { '0': {} };
         provider.metadata.insertOne(
-          { _id: 0, nextId: 0, tree: tree }, callback
+          { _id: 0, nextId: 0, tree: tree },
+          function() {
+            StorageProvider.prototype.open.call(this, options, callback);
+          }
         );
       }
     });

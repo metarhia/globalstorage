@@ -9,13 +9,14 @@ var fs = require('fs');
 // File System Storage Provider
 //   options.path - base path
 //
-function MemoryProvider(options) {
-  StorageProvider.call(this, options);
-  this.path = options.path;
-};
+function MemoryProvider() {
+}
 
-MemoryProvider.prototype.open = function(callback) {
-  callback();
+MemoryProvider.prototype.open = function(options, callback) {
+  if (options) {
+    this.path = options.path;
+  }
+  StorageProvider.prototype.open.call(this, options, callback);
 };
 
 MemoryProvider.prototype.close = function(callback) {

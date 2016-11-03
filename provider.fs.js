@@ -10,12 +10,11 @@ var fs = require('fs');
 //   options.path - base path
 //
 function FsProvider(options) {
-  StorageProvider.call(this, options);
-  this.path = options.path;
-};
+}
 
-FsProvider.prototype.open = function(callback) {
-  callback();
+FsProvider.prototype.open = function(options, callback) {
+  this.path = options.path;
+  StorageProvider.prototype.open.call(this, options, callback);
 };
 
 FsProvider.prototype.close = function(callback) {
