@@ -186,6 +186,25 @@ gs.infrastructure.index = [];
 //
 gs.infrastructure.mask = 0,
 
+// Build index array from tree
+//
+gs.infrastructure.buildIndex = function(tree) {
+  var result = [];
+  var parseTree = function(index, depth, node) {
+    var isBranch = !!node[0];
+    if (isBranch) {
+      parseTree(index, depth + 1, node[0]);
+      parseTree(index + (1 << depth), depth + 1, node[1]);
+    } else {
+      for (var i = 0; i < 1 << tree.height - depth; i++) {
+        result[index + (i << depth)] = node;
+      }
+    }
+  };
+  parseTree(0, 0, tree);
+  return result;
+};
+
 // Assign new tnfrastructure tree
 //
 gs.infrastructure.assign = function(tree) {
