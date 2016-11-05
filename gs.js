@@ -186,9 +186,25 @@ gs.infrastructure.index = [];
 //
 gs.infrastructure.mask = 0,
 
+// Calculate server tree height
+//
+gs.infrastructure.calculateTreeHeight = function(tree) {
+  var result = 0;
+  var parseTree = function(depth, node) {
+    if (node[0]) {
+      parseTree(depth + 1, node[0]);
+      parseTree(depth + 1, node[1]);
+    } else if (depth > result) {
+      result = depth;
+    }
+  };
+  parseTree(0, tree);
+  return result;
+};
+
 // Build index array from tree
 //
-gs.infrastructure.buildIndex = function(tree) {
+gs.infrastructure.buildIndex = function(tree, height) {
   var result = [];
   var parseTree = function(index, depth, node) {
     var isBranch = !!node[0];
@@ -196,7 +212,7 @@ gs.infrastructure.buildIndex = function(tree) {
       parseTree(index, depth + 1, node[0]);
       parseTree(index + (1 << depth), depth + 1, node[1]);
     } else {
-      for (var i = 0; i < 1 << tree.height - depth; i++) {
+      for (var i = 0; i < 1 << height - depth; i++) {
         result[index + (i << depth)] = node;
       }
     }
@@ -209,9 +225,10 @@ gs.infrastructure.buildIndex = function(tree) {
 //
 gs.infrastructure.assign = function(tree) {
   gs.infrastructure.servers = tree;
-  var index = [tree.S0];
+  var treeHeight = gs.infrastructure.calculateTreeHeight(tree);
+  var index = gs.infrastructure.buildIndex(tree, treeHeight);
   gs.infrastructure.index = index;
-  gs.infrastructure.bits = Math.log(index.length) / Math.log(2);
+  gs.infrastructure.bits = treeHeight;
   gs.infrastructure.mask = Math.pow(2, gs.infrastructure.bits) - 1;
 };
 
