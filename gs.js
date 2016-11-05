@@ -184,27 +184,11 @@ gs.infrastructure.index = [];
 
 // Server bit mask
 //
-gs.infrastructure.mask = 0,
-
-// Calculate server tree height
-//
-gs.infrastructure.calculateTreeHeight = function(tree) {
-  var result = 0;
-  var parseTree = function(depth, node) {
-    if (node[0]) {
-      parseTree(depth + 1, node[0]);
-      parseTree(depth + 1, node[1]);
-    } else if (depth > result) {
-      result = depth;
-    }
-  };
-  parseTree(0, tree);
-  return result;
-};
+gs.infrastructure.mask = 0;
 
 // Build index array from tree
 //
-gs.infrastructure.buildIndex = function(tree, height) {
+function buildIndex(tree) {
   var result = [];
   var parseTree = function(index, depth, node) {
     var isBranch = !!node[0];
@@ -212,23 +196,30 @@ gs.infrastructure.buildIndex = function(tree, height) {
       parseTree(index, depth + 1, node[0]);
       parseTree(index + (1 << depth), depth + 1, node[1]);
     } else {
-      for (var i = 0; i < 1 << height - depth; i++) {
-        result[index + (i << depth)] = node;
-      }
+      result[index] = node;
     }
   };
   parseTree(0, 0, tree);
+
+  var height = Math.ceil(Math.log(result.length) / Math.log(2));
+  for (var i = result.length; i >= 0; i--) {
+    var depth = Math.ceil(Math.log(i + 1) / Math.log(2));
+    for (var j = 1; result[i] && j < 1 << height - depth; j++) {
+      if (!result[i + (j << depth)]) {
+        result[i + (j << depth)] = result[i];
+      }
+    }
+  }
   return result;
-};
+}
 
 // Assign new tnfrastructure tree
 //
 gs.infrastructure.assign = function(tree) {
   gs.infrastructure.servers = tree;
-  var treeHeight = gs.infrastructure.calculateTreeHeight(tree);
-  var index = gs.infrastructure.buildIndex(tree, treeHeight);
+  var index = buildIndex(tree);
   gs.infrastructure.index = index;
-  gs.infrastructure.bits = treeHeight;
+  gs.infrastructure.bits = Math.log(index.length) / Math.log(2);
   gs.infrastructure.mask = Math.pow(2, gs.infrastructure.bits) - 1;
 };
 
