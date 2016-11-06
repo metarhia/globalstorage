@@ -1,3 +1,3 @@
 'use strict';
 
-var gs = require('./gs.js');
+var gs = require('./globalstorage.js');

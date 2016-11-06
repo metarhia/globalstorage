@@ -11,27 +11,23 @@ function MongodbProvider() {
 }
 
 MongodbProvider.prototype.open = function(options, callback) {
-  if (this.connection) {
-    this.storage = this.connection.collection('gs.storage');
-    this.metadata = this.connection.collection('gs.metadata');
-    var provider = this;
-    this.metadata.findOne({ _id: 0 }, function(err, data) {
-      if (data) {
-        //console.dir({x:data});
-        provider.gs.infrastructure.assign(data.tree);
-        provider.gs.nextId = data.nextId;
-        StorageProvider.prototype.open.call(this, options, callback);
-      } else {
-        var tree = { '0': {} };
-        provider.metadata.insertOne(
-          { _id: 0, nextId: 0, tree: tree },
-          function() {
-            StorageProvider.prototype.open.call(this, options, callback);
-          }
-        );
-      }
-    });
-  }
+  var provider = this;
+  StorageProvider.prototype.open.call(provider, options, function() {
+    if (provider.connection) {
+      provider.storage = provider.connection.collection('gs.storage');
+      provider.metadata = provider.connection.collection('gs.metadata');
+      provider.metadata.findOne({ _id: 0 }, function(err, data) {
+        if (data) {
+          //console.dir({x:data});
+          provider.gs.infrastructure.assign(data.tree);
+          provider.gs.nextId = data.nextId;
+        } else {
+          var tree = { '0': {} };
+          provider.metadata.insertOne({ _id: 0, nextId: 0, tree: tree }, callback);
+        }
+      });
+    }
+  });
 };
 
 MongodbProvider.prototype.close = function(callback) {
