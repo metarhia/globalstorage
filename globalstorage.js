@@ -111,7 +111,7 @@ gs.get = function(objectId, callback) {
 
   function get(objectId, callback) {
     if (gs.local) {
-      gs.local.findOne(objectId, function(err, data) {
+      gs.local.get(objectId, function(err, data) {
         if (data) callback(null, data);
         else {
           var sid = gs.findServer(objectId);
@@ -145,7 +145,7 @@ gs.update = function(object, callback) {
 
 gs.delete = function(objectId, callback) {
   if (gs.local) {
-    gs.local.remove(objectId, callback);
+    gs.local.delete(objectId, callback);
   } else {
     callback(new Error(NO_STORAGE));
   }

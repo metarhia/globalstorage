@@ -45,13 +45,13 @@ MongodbProvider.prototype.get = function(objectId, callback) {
 };
 
 MongodbProvider.prototype.create = function(object, callback) {
-  object._id = this.gs.generateId();
+  object._id = object._id || this.gs.generateId();
   this.storage.insertOne(object, callback);
 };
 
 MongodbProvider.prototype.update = function(object, callback) {
   this.storage.updateOne(
-    { _id: object.id }, object,
+    { _id: object.objectId }, object,
     { upsert: true, w: 1 }
   ).then(callback);
 };
