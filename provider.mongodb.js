@@ -9,7 +9,7 @@ util.inherits(MongodbProvider, StorageProvider);
 //
 function MongodbProvider(options) {
   StorageProvider.call(this, options);
-};
+}
 
 MongodbProvider.prototype.open = function(callback) {
   if (this.connection) {
@@ -23,7 +23,7 @@ MongodbProvider.prototype.open = function(callback) {
         provider.gs.nextId = data.nextId;
         callback();
       } else {
-        var tree = { '0': {} };
+        var tree = {};
         provider.metadata.insertOne(
           { _id: 0, nextId: 0, tree: tree }, callback
         );
