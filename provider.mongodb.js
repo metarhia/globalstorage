@@ -22,7 +22,7 @@ MongodbProvider.prototype.open = function(options, callback) {
           provider.gs.infrastructure.assign(data.tree);
           provider.gs.nextId = data.nextId;
         } else {
-          var tree = { '0': {} };
+          var tree = {};
           provider.metadata.insertOne({ _id: 0, nextId: 0, tree: tree }, callback);
         }
       });
