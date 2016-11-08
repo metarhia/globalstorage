@@ -4,9 +4,11 @@
 
 var util = require('util');
 var StorageProvider = require('./provider.js');
-var MongodbProvider = require('./provider.mongodb.js');
+
 var FsProvider = require('./provider.fs.js');
 var MemoryProvider = require('./provider.memory.js');
+var MongodbProvider = require('./provider.mongodb.js');
+
 var Connection = require('./connection.js');
 var Category = require('./category.js');
 var NO_STORAGE = 'No storage provider available';
@@ -24,14 +26,14 @@ gs.Category = Category;
 // Hash keyed by provider name
 //
 gs.providers = {
-  mongodb: MongodbProvider,
   fs: FsProvider,
-  memory: MemoryProvider
+  memory: MemoryProvider,
+  mongodb: MongodbProvider,
 };
 
 // Objects cache keyed by objectId
 //
-gs.cache = {}; // TODO: MemoryStorageProvider
+gs.memory = new MemoryProvider();
 
 // Database mode
 //   closed - no one provider is available
@@ -43,11 +45,23 @@ gs.mode = 'closed';
 // Local storage provider
 // implementing interface globalStorageProvider
 //
-gs.localStorageProvider = null;
+gs.local = null;
 
-gs.open = function(callback) {
-  if (gs.localStorageProvider) {
-    gs.localStorageProvider.open(callback);
+gs.open = function(options, callback) {
+  if (gs.memory) {
+    gs.memory.open({
+      gs: options.gs
+    }, function() {
+    });
+  }
+
+  var Provider = gs.providers[options.provider];
+  if (Provider) {
+    gs.local = new Provider();
+    gs.local.open({
+      gs: options.gs,
+      connection: options.connection
+    }, callback);
   } else {
     callback(new Error(NO_STORAGE));
   }
@@ -86,26 +100,42 @@ gs.category = function(name, callback) {
 };
 
 // Override StorageProvider methods
-
+//
 gs.get = function(objectId, callback) {
-  if (gs.localStorageProvider) {
-    gs.localStorageProvider.findOne(objectId, callback);
-  } else {
-    callback(new Error(NO_STORAGE));
+  if (gs.memoryStorageProvider) {
+    gs.memoryStorageProvider.get(objectId, function(err, data) {
+      if (data) callback(null, data);
+      else get(objectId, callback);
+    });
+  } else get(objectId, callback);
+
+  function get(objectId, callback) {
+    if (gs.local) {
+      gs.local.get(objectId, function(err, data) {
+        if (data) callback(null, data);
+        else {
+          var sid = gs.findServer(objectId);
+          var connection = gs.infrastructure.index[sid];
+          connection.get(objectId, callback);
+        }
+      });
+    } else {
+      callback(new Error(NO_STORAGE));
+    }
   }
 };
 
 gs.create = function(object, callback) {
-  if (gs.localStorageProvider) {
-    gs.localStorageProvider.create(object, callback);
+  if (gs.local) {
+    gs.local.create(object, callback);
   } else {
     callback(new Error(NO_STORAGE));
   }
 };
 
 gs.update = function(object, callback) {
-  if (gs.localStorageProvider) {
-    gs.localStorageProvider.update(
+  if (gs.local) {
+    gs.local.update(
       { objectId: object.objectId }, object, callback
     );
   } else {
@@ -114,16 +144,16 @@ gs.update = function(object, callback) {
 };
 
 gs.delete = function(objectId, callback) {
-  if (gs.localStorageProvider) {
-    gs.localStorageProvider.remove(objectId, callback);
+  if (gs.local) {
+    gs.local.delete(objectId, callback);
   } else {
     callback(new Error(NO_STORAGE));
   }
 };
 
 gs.find = function(query, callback) {
-  if (gs.localStorageProvider) {
-    gs.localStorageProvider.find(query, callback);
+  if (gs.local) {
+    gs.local.find(query, callback);
   } else {
     callback(new Error(NO_STORAGE));
   }

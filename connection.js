@@ -11,7 +11,7 @@ function Connection(options) {
   StorageProvider.call(this, options);
   this.gs = null;
   this.name = options.name;
-};
+}
 
 Connection.prototype.open = function(callback) {
   //StorageProvider.super_.prototype.close.apply(this, callback);

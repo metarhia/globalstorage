@@ -4,21 +4,22 @@ module.exports = StorageProvider;
 
 // Abstract Storage Provider
 //
-function StorageProvider(options) {
+function StorageProvider() {
+}
+
+var NOT_IMPLEMENTED = 'Not implemented in abstract interface';
+
+// Open storage provider
+//   options
+//   callback - after open
+//
+StorageProvider.prototype.open = function(options, callback) {
   this.options = options;
   if (options) {
     this.connection = options.connection;
     this.gs = options.gs;
   }
-};
-
-var NOT_IMPLEMENTED = 'Not implemented in abstract interface';
-
-// Open storage provider
-//   callback - after open
-//
-StorageProvider.prototype.open = function(callback) {
-  callback(new Error(NOT_IMPLEMENTED));
+  callback();
 };
 
 // Close storage provider

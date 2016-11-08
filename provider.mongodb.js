@@ -7,29 +7,27 @@ util.inherits(MongodbProvider, StorageProvider);
 
 // MongoDB Storage Provider
 //
-function MongodbProvider(options) {
-  StorageProvider.call(this, options);
+function MongodbProvider() {
 }
 
-MongodbProvider.prototype.open = function(callback) {
-  if (this.connection) {
-    this.storage = this.connection.collection('gs.storage');
-    this.metadata = this.connection.collection('gs.metadata');
-    var provider = this;
-    this.metadata.findOne({ _id: 0 }, function(err, data) {
-      if (data) {
-        //console.dir({x:data});
-        provider.gs.infrastructure.assign(data.tree);
-        provider.gs.nextId = data.nextId;
-        callback();
-      } else {
-        var tree = {};
-        provider.metadata.insertOne(
-          { _id: 0, nextId: 0, tree: tree }, callback
-        );
-      }
-    });
-  }
+MongodbProvider.prototype.open = function(options, callback) {
+  var provider = this;
+  StorageProvider.prototype.open.call(provider, options, function() {
+    if (provider.connection) {
+      provider.storage = provider.connection.collection('gs.storage');
+      provider.metadata = provider.connection.collection('gs.metadata');
+      provider.metadata.findOne({ _id: 0 }, function(err, data) {
+        if (data) {
+          //console.dir({x:data});
+          provider.gs.infrastructure.assign(data.tree);
+          provider.gs.nextId = data.nextId;
+        } else {
+          var tree = {};
+          provider.metadata.insertOne({ _id: 0, nextId: 0, tree: tree }, callback);
+        }
+      });
+    }
+  });
 };
 
 MongodbProvider.prototype.close = function(callback) {
@@ -47,13 +45,13 @@ MongodbProvider.prototype.get = function(objectId, callback) {
 };
 
 MongodbProvider.prototype.create = function(object, callback) {
-  object._id = this.gs.generateId();
+  object._id = object._id || this.gs.generateId();
   this.storage.insertOne(object, callback);
 };
 
 MongodbProvider.prototype.update = function(object, callback) {
   this.storage.updateOne(
-    { _id: object.id }, object,
+    { _id: object.objectId }, object,
     { upsert: true, w: 1 }
   ).then(callback);
 };
