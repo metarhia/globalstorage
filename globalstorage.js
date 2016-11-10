@@ -268,5 +268,7 @@ gs.nextId = 0;
 // Get server for objectId
 //
 gs.generateId = function() {
+  // TODO: implement id chunks for separate processes
+  // This function not used now
   return gs.nextId++;
 };

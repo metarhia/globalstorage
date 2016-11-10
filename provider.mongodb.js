@@ -25,8 +25,7 @@ MongodbProvider.prototype.open = function(options, callback) {
           var metadata = {
             _id: 0,
             nextId: 0,
-            tree: {},
-            categories: []
+            tree: {}
           };
           provider.metadata.insertOne(metadata, callback);
         }
@@ -39,17 +38,13 @@ MongodbProvider.prototype.close = function(callback) {
   callback();
 };
 
-MongodbProvider.prototype.get = function(objectId, callback) {
+MongodbProvider.prototype.get = function(id, callback) {
   var provider = this;
-  provider.storage.findOne({ _id: objectId }, function(err, data) {
+  provider.storage.findOne({ _id: id }, function(err, data) {
     if (data) {
-      var categoryName = data.category;
-      var category = provider.connection.collection(categoryName);
-      category.findOne({ _id: objectId }, function(err, data) {
-        if (data) {
-          data.id = data._id;
-          delete data._id;
-        }
+      var category = provider.category(data.category);
+      category.findOne({ _id: id }, function(err, data) {
+        if (data) toGsId(data);
         callback(err, data);
       });
     }
@@ -57,59 +52,119 @@ MongodbProvider.prototype.get = function(objectId, callback) {
   });
 };
 
-MongodbProvider.prototype.create = function(object, callback) {
+MongodbProvider.prototype.create = function(obj, callback) {
   var provider = this;
-  var id = object.id || provider.gs.generateId();
-  object._id = object.id;
-  var index = {
-    _id: object.id,
-    category: object.category
-  };
-  delete object.id;
-  provider.storage.insertOne(index, function(err) {
-    if (!err) {
-      var categoryName = object.category;
-      var category = provider.connection.collection(categoryName);
-      category.insertOne(object, callback);
-    } else callback(err);
+  provider.generateId(function(err, id) {
+    if (err) callback(err);
+    else {
+      obj._id = id;
+      var index = {
+        _id: obj._id,
+        category: obj.category
+      };
+      delete obj.id;
+      provider.storage.insertOne(index, function(err) {
+        if (err) callback(err);
+        else {
+          var category = provider.category(obj.category);
+          category.insertOne(obj, function(err, data) {
+            if (err) callback(err);
+            else callback(null, true);
+          });
+        }
+      });
+    }
   });
 };
 
-MongodbProvider.prototype.update = function(object, callback) {
+MongodbProvider.prototype.category = function(name) {
+  return this.connection.collection('c' + name);
+};
+
+MongodbProvider.prototype.generateId = function(callback) {
   var provider = this;
-  var id = object.id;
-  delete object.id;
-  object._id = id;
-  provider.storage.findOne({ _id: id }, function(err, data) {
-    if (!err) {
-      var categoryName = data.category;
-      var category = provider.connection.collection(categoryName);
+  this.metadata.findAndModify(
+    { _id: 0 }, null,
+    { $inc: { nextId: 1 } },
+    { upsert: true, new: true },
+    function(err, res) {
+      if (err) {
+        if (err.code === 11000) {
+          process.nextTick(function() {
+            provider.generateId(callback);
+          });
+        } else callback(err);
+      } else callback(null, res.value.nextId);
+    }
+  );
+};
+
+MongodbProvider.prototype.update = function(obj, callback) {
+  var provider = this;
+  toMongoId(obj);
+  provider.storage.findOne({ _id: obj._id }, function(err, data) {
+    if (err) callback(err);
+    else if (data) {
+      var category = provider.category(data.category);
       category.updateOne(
-        { _id: id }, object, { upsert: true, w: 1 }
+        { _id: obj._id }, obj, { upsert: true, w: 1 }
       ).then(callback);
-    } else callback(err);
+    } else callback(new Error('Record not found'));
   });
 };
 
-MongodbProvider.prototype.delete = function(objectId, callback) {
+MongodbProvider.prototype.delete = function(query, callback) {
   var provider = this;
-  var categoryName = data.category;
-  var category = provider.connection.collection(categoryName);
-  category.deleteOne({ _id: objectId }, function(err) {
-    if (!err) {
-      provider.storage.deleteOne({ _id: objectId }, callback);
-    } else callback(err);
-  });
+  if (typeof(query) === 'object') {
+    provider.find(query, function(err, data) {
+      if (err) callback(err);
+      else {
+        for (var i = 0; i < data.length; i++) {
+          deleteOne(data[i]);
+        }
+        callback();
+      }
+    });
+  } else if (typeof(query) === 'number') {
+    provider.metadata.findOne({ _id: query }, function(err, data) {
+      if (err) callback(err);
+      else if (data) {
+        deleteOne(data);
+        callback();
+      } else callback(new Error('Record not found'));
+    });
+  } else callback(new Error('Nothing to delete'));
+
+  function deleteOne(record) {
+    if (record.category) {
+      var category = provider.category(record.category);
+      category.deleteOne({ _id: record.id }, function(err) {
+        if (!err) {
+          provider.storage.deleteOne({ _id: record.id });
+        }
+      });
+    }
+  }
 };
 
 MongodbProvider.prototype.find = function(query, callback) {
   var provider = this;
-  var categoryName = query.category;
-  var category = provider.connection.collection(categoryName);
+  var category = provider.category(query.category);
   category.find(query).toArray(function(err, data) {
-    if (!err) {
-      // TODO: rename _id to id
+    if (err) callback(err);
+    else {
+      data.forEach(toGsId);
       callback(null, data);
-    } else callback(err);
+    }
   });
 };
+
+function toMongoId(obj) {
+  obj._id = obj.id;
+  delete obj.id;
+}
+
+function toGsId(obj) {
+  obj.id = obj._id;
+  delete obj._id;
+}
