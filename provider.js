@@ -29,36 +29,50 @@ StorageProvider.prototype.close = function(callback) {
   callback(new Error(NOT_IMPLEMENTED));
 };
 
-// Get object from Global Storage
-//   objectId - globally unique object id
-//   callback - function(err, object)
+// Create category to access objects in it
+//   name - category name
+//   return - category instance
 //
-StorageProvider.prototype.get = function(objectId, callback) {
+StorageProvider.prototype.category = function(name) {
+  return {};
+};
+
+// Generate object id
+//
+StorageProvider.prototype.generateId = function(callback) {
+  callback();
+};
+
+// Get object from Global Storage
+//   id - globally unique object id
+//   callback - function(err, obj)
+//
+StorageProvider.prototype.get = function(id, callback) {
   callback(new Error(NOT_IMPLEMENTED));
 };
 
 // Create object in Global Storage
-//   object - object to be stored
-//   callback - function(err, objectId)
+//   obj - object to be stored
+//   callback - function(err, id)
 //
-StorageProvider.prototype.create = function(object, callback) {
+StorageProvider.prototype.create = function(obj, callback) {
   callback(new Error(NOT_IMPLEMENTED));
 };
 
 // Update object in Global Storage
-//   object - object to be updated
-//   object.id - globally unique object id
+//   obj - object to be updated
+//   obj.id - globally unique object id
 //   callback - function(err)
 //
-StorageProvider.prototype.update = function(object, callback) {
+StorageProvider.prototype.update = function(obj, callback) {
   callback(new Error(NOT_IMPLEMENTED));
 };
 
 // Delete object in Global Storage
-//   objectId - globally unique object id
+//   id - globally unique object id
 //   callback - function(err)
 //
-StorageProvider.prototype.delete = function(objectId, callback) {
+StorageProvider.prototype.delete = function(id, callback) {
   callback(new Error(NOT_IMPLEMENTED));
 };
 
@@ -66,6 +80,7 @@ StorageProvider.prototype.delete = function(objectId, callback) {
 //   query - JSQL lambda expression
 //   //projection - to be applied after query (not implemented)
 //   callback - function(err, data)
+//     data - array of object
 //
 StorageProvider.prototype.find = function(query, callback) {
   callback(new Error(NOT_IMPLEMENTED));

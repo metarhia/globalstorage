@@ -31,7 +31,7 @@ gs.providers = {
   mongodb: MongodbProvider,
 };
 
-// Objects cache keyed by objectId
+// Objects cache keyed by id
 //
 gs.memory = new MemoryProvider();
 
@@ -101,22 +101,22 @@ gs.category = function(name, callback) {
 
 // Override StorageProvider methods
 //
-gs.get = function(objectId, callback) {
+gs.get = function(id, callback) {
   if (gs.memoryStorageProvider) {
-    gs.memoryStorageProvider.get(objectId, function(err, data) {
+    gs.memoryStorageProvider.get(id, function(err, data) {
       if (data) callback(null, data);
-      else get(objectId, callback);
+      else get(id, callback);
     });
-  } else get(objectId, callback);
+  } else get(id, callback);
 
-  function get(objectId, callback) {
+  function get(id, callback) {
     if (gs.local) {
-      gs.local.get(objectId, function(err, data) {
+      gs.local.get(id, function(err, data) {
         if (data) callback(null, data);
         else {
-          var sid = gs.findServer(objectId);
+          var sid = gs.findServer(id);
           var connection = gs.infrastructure.index[sid];
-          connection.get(objectId, callback);
+          connection.get(id, callback);
         }
       });
     } else {
@@ -143,9 +143,9 @@ gs.update = function(object, callback) {
   }
 };
 
-gs.delete = function(objectId, callback) {
+gs.delete = function(id, callback) {
   if (gs.local) {
-    gs.local.delete(objectId, callback);
+    gs.local.delete(id, callback);
   } else {
     callback(new Error(NO_STORAGE));
   }
@@ -253,19 +253,19 @@ gs.infrastructure.assign = function(tree) {
   gs.infrastructure.mask = Math.pow(2, gs.infrastructure.bits) - 1;
 };
 
-// Get server for objectId
+// Get server for id
 //
-gs.findServer = function(objectId) {
+gs.findServer = function(id) {
   return (
-    gs.infrastructure.index[objectId & gs.infrastructure.mask]
+    gs.infrastructure.index[id & gs.infrastructure.mask]
   );
 };
 
-// Last objectId in storage
+// Last id in storage
 //
 gs.nextId = 0;
 
-// Get server for objectId
+// Get server for id
 //
 gs.generateId = function() {
   // TODO: implement id chunks for separate processes

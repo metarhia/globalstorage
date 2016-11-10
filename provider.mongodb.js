@@ -38,6 +38,28 @@ MongodbProvider.prototype.close = function(callback) {
   callback();
 };
 
+MongodbProvider.prototype.category = function(name) {
+  return this.connection.collection('c' + name);
+};
+
+MongodbProvider.prototype.generateId = function(callback) {
+  var provider = this;
+  this.metadata.findAndModify(
+    { _id: 0 }, null,
+    { $inc: { nextId: 1 } },
+    { upsert: true, new: true },
+    function(err, res) {
+      if (err) {
+        if (err.code === 11000) {
+          process.nextTick(function() {
+            provider.generateId(callback);
+          });
+        } else callback(err);
+      } else callback(null, res.value.nextId);
+    }
+  );
+};
+
 MongodbProvider.prototype.get = function(id, callback) {
   var provider = this;
   provider.storage.findOne({ _id: id }, function(err, data) {
@@ -75,28 +97,6 @@ MongodbProvider.prototype.create = function(obj, callback) {
       });
     }
   });
-};
-
-MongodbProvider.prototype.category = function(name) {
-  return this.connection.collection('c' + name);
-};
-
-MongodbProvider.prototype.generateId = function(callback) {
-  var provider = this;
-  this.metadata.findAndModify(
-    { _id: 0 }, null,
-    { $inc: { nextId: 1 } },
-    { upsert: true, new: true },
-    function(err, res) {
-      if (err) {
-        if (err.code === 11000) {
-          process.nextTick(function() {
-            provider.generateId(callback);
-          });
-        } else callback(err);
-      } else callback(null, res.value.nextId);
-    }
-  );
 };
 
 MongodbProvider.prototype.update = function(obj, callback) {

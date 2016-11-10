@@ -21,19 +21,27 @@ FsProvider.prototype.close = function(callback) {
   callback();
 };
 
-FsProvider.prototype.get = function(objectId, callback) {
+FsProvider.prototype.category = function(name) {
+  return {};
+};
+
+FsProvider.prototype.generateId = function(callback) {
   callback();
 };
 
-FsProvider.prototype.create = function(object, callback) {
+FsProvider.prototype.get = function(id, callback) {
   callback();
 };
 
-FsProvider.prototype.update = function(object, callback) {
+FsProvider.prototype.create = function(obj, callback) {
   callback();
 };
 
-FsProvider.prototype.delete = function(objectId, callback) {
+FsProvider.prototype.update = function(obj, callback) {
+  callback();
+};
+
+FsProvider.prototype.delete = function(id, callback) {
   callback();
 };
 

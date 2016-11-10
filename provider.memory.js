@@ -23,19 +23,27 @@ MemoryProvider.prototype.close = function(callback) {
   callback();
 };
 
-MemoryProvider.prototype.get = function(objectId, callback) {
+MemoryProvider.prototype.category = function(name) {
+  return {};
+};
+
+MemoryProvider.prototype.generateId = function(callback) {
   callback();
 };
 
-MemoryProvider.prototype.create = function(object, callback) {
+MemoryProvider.prototype.get = function(id, callback) {
   callback();
 };
 
-MemoryProvider.prototype.update = function(object, callback) {
+MemoryProvider.prototype.create = function(obj, callback) {
   callback();
 };
 
-MemoryProvider.prototype.delete = function(objectId, callback) {
+MemoryProvider.prototype.update = function(obj, callback) {
+  callback();
+};
+
+MemoryProvider.prototype.delete = function(id, callback) {
   callback();
 };
 
