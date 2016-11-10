@@ -136,7 +136,7 @@ gs.create = function(object, callback) {
 gs.update = function(object, callback) {
   if (gs.local) {
     gs.local.update(
-      { objectId: object.objectId }, object, callback
+      object, callback
     );
   } else {
     callback(new Error(NO_STORAGE));

@@ -107,8 +107,8 @@ MongodbProvider.prototype.update = function(obj, callback) {
     else if (data) {
       var category = provider.category(data.category);
       category.updateOne(
-        { _id: obj._id }, obj, { upsert: true, w: 1 }
-      ).then(callback);
+        { _id: obj._id }, obj, { upsert: true, w: 1 }, callback
+      );
     } else callback(new Error('Record not found'));
   });
 };
