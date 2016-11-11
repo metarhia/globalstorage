@@ -91,10 +91,7 @@ MongodbProvider.prototype.create = function(obj, callback) {
           var category = provider.category(obj.category);
           category.insertOne(obj, function(err, data) {
             if (err) callback(err);
-            else {
-              delete obj._id;
-              callback(null, true);
-            }
+            else callback(null, true);
           });
         }
       });
@@ -110,10 +107,7 @@ MongodbProvider.prototype.update = function(obj, callback) {
     else if (data) {
       var category = provider.category(data.category);
       category.updateOne(
-        { _id: obj._id }, obj, { upsert: true, w: 1 }, function(err, data) {
-          delete obj._id;
-          callback(err, data);
-        }
+        { _id: obj._id }, obj, { upsert: true, w: 1 }, callback
       );
     } else callback(new Error('Record not found'));
   });
