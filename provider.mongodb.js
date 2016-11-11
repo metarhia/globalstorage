@@ -101,7 +101,7 @@ MongodbProvider.prototype.create = function(obj, callback) {
 
 MongodbProvider.prototype.update = function(obj, callback) {
   var provider = this;
-  obj._id = obj.id
+  obj._id = obj.id;
   provider.storage.findOne({ _id: obj._id }, function(err, data) {
     if (err) callback(err);
     else if (data) {
