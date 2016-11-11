@@ -80,18 +80,21 @@ MongodbProvider.prototype.create = function(obj, callback) {
     if (err) callback(err);
     else {
       obj._id = id;
+      obj.id = id;
       var index = {
-        _id: obj._id,
+        _id: id,
         category: obj.category
       };
-      delete obj.id;
       provider.storage.insertOne(index, function(err) {
         if (err) callback(err);
         else {
           var category = provider.category(obj.category);
           category.insertOne(obj, function(err, data) {
             if (err) callback(err);
-            else callback(null, true);
+            else {
+              delete obj._id;
+              callback(null, true);
+            }
           });
         }
       });
@@ -101,13 +104,16 @@ MongodbProvider.prototype.create = function(obj, callback) {
 
 MongodbProvider.prototype.update = function(obj, callback) {
   var provider = this;
-  toMongoId(obj);
+  obj._id = obj.id
   provider.storage.findOne({ _id: obj._id }, function(err, data) {
     if (err) callback(err);
     else if (data) {
       var category = provider.category(data.category);
       category.updateOne(
-        { _id: obj._id }, obj, { upsert: true, w: 1 }, callback
+        { _id: obj._id }, obj, { upsert: true, w: 1 }, function(err, data) {
+          delete obj._id;
+          callback(err, data);
+        }
       );
     } else callback(new Error('Record not found'));
   });
