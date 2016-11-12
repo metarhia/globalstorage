@@ -78,10 +78,22 @@ StorageProvider.prototype.delete = function(id, callback) {
 
 // Find objects in Global Storage
 //   query - JSQL lambda expression
-//   //projection - to be applied after query (not implemented)
+//   options.order - order key field name
+//   options.limit - top n records
 //   callback - function(err, data)
 //     data - array of object
 //
-StorageProvider.prototype.find = function(query, callback) {
+StorageProvider.prototype.find = function(query, options, callback) {
+  callback(new Error(NOT_IMPLEMENTED));
+};
+
+// Create index
+//   def.category - category name
+//   def.fields - array of field names
+//   def.unique - bool flag, default false
+//   def.background - bool flag, default true
+//   callback - function(err)
+//
+StorageProvider.prototype.index = function(def, callback) {
   callback(new Error(NOT_IMPLEMENTED));
 };

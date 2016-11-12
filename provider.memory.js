@@ -47,6 +47,10 @@ MemoryProvider.prototype.delete = function(id, callback) {
   callback();
 };
 
-MemoryProvider.prototype.find = function(query, callback) {
+MemoryProvider.prototype.find = function(query, options, callback) {
+  callback();
+};
+
+MemoryProvider.prototype.index = function(def, callback) {
   callback();
 };

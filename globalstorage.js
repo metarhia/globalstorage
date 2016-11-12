@@ -125,18 +125,18 @@ gs.get = function(id, callback) {
   }
 };
 
-gs.create = function(object, callback) {
+gs.create = function(obj, callback) {
   if (gs.local) {
-    gs.local.create(object, callback);
+    gs.local.create(obj, callback);
   } else {
     callback(new Error(NO_STORAGE));
   }
 };
 
-gs.update = function(object, callback) {
+gs.update = function(obj, callback) {
   if (gs.local) {
     gs.local.update(
-      object, callback
+      obj, callback
     );
   } else {
     callback(new Error(NO_STORAGE));
@@ -151,53 +151,20 @@ gs.delete = function(id, callback) {
   }
 };
 
-gs.find = function(query, callback) {
+gs.find = function(query, options, callback) {
   if (gs.local) {
-    gs.local.find(query, callback);
+    gs.local.find(query, options, callback);
   } else {
     callback(new Error(NO_STORAGE));
   }
 };
 
-/* Some conceptual examples
-
-cities.get({ name: 'Kiev' }, { city: ['name', upper] }, function(err, kiev) {
-  var cities = api.gs.category('City');
-  var form1 = api.guiConsole.createScreen(cities);
-  form1.on('focus', callback);
-  form1.on('save', function() {
-    cities.update(form1.toObject());
-  });
-  form1.show();
-});
-
-*/
-
-// Convert data array into object using category metadata
-//   data - array to be mapped to given metadata by key position
-//   category - metadata definition
-//   return - JavaScript object
-//
-gs.dataToObject = function(data, category) {
-
-};
-
-// Convert object into data array using category metadata
-//   object - JavaScript object to be mapped to array by key position
-//   category - metadata definition
-//   return - data array
-//
-gs.objectToData = function(object, category) {
-
-};
-
-// Create data crojection
-//   data - data array of objects or category
-//   metadata - projection language
-//   return - fake object with get/set
-//
-gs.projection = function(data, metadata) {
-
+gs.index = function(def, callback) {
+  if (gs.local) {
+    gs.local.index(def, callback);
+  } else {
+    callback(new Error(NO_STORAGE));
+  }
 };
 
 // Global Storage Infrastructure

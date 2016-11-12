@@ -66,7 +66,7 @@ MongodbProvider.prototype.get = function(id, callback) {
     if (data) {
       var category = provider.category(data.category);
       category.findOne({ _id: id }, function(err, data) {
-        if (data) toGsId(data);
+        if (data) data.id = data._id;
         callback(err, data);
       });
     }
@@ -147,24 +147,43 @@ MongodbProvider.prototype.delete = function(query, callback) {
   }
 };
 
-MongodbProvider.prototype.find = function(query, callback) {
+MongodbProvider.prototype.find = function(query, options, callback) {
   var provider = this;
   var category = provider.category(query.category);
-  category.find(query).toArray(function(err, data) {
+  if (!callback) {
+    callback = options;
+    options = {};
+  }
+  var cursor = category.find(query);
+  if (options.sort) {
+    var order = {};
+    order[options.sort] = 1;
+    cursor = cursor.sort(order);
+  }
+  if (options.limit) {
+    cursor = cursor.limit(options.limit);
+  }
+  cursor.toArray(function(err, data) {
     if (err) callback(err);
     else {
-      data.forEach(toGsId);
+      data.forEach(function(obj) {
+        obj.id = obj._id;
+      });
       callback(null, data);
     }
   });
 };
 
-function toMongoId(obj) {
-  obj._id = obj.id;
-  delete obj.id;
-}
-
-function toGsId(obj) {
-  obj.id = obj._id;
-  delete obj._id;
-}
+MongodbProvider.prototype.index = function(def, callback) {
+  var provider = this;
+  var category = provider.category(def.category);
+  var keys = {};
+  def.fields.forEach(function(key) {
+    keys[key] = 1;
+  });
+  var options = {
+    unique: def.unique !== undefined ? def.unique : false,
+    background: def.background !== undefined ? def.background : true
+  };
+  category.createIndex(keys, options, callback);
+};

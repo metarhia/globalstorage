@@ -45,6 +45,10 @@ FsProvider.prototype.delete = function(id, callback) {
   callback();
 };
 
-FsProvider.prototype.find = function(query, callback) {
+FsProvider.prototype.find = function(query, options, callback) {
+  callback();
+};
+
+FsProvider.prototype.index = function(def, callback) {
   callback();
 };
