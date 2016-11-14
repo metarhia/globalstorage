@@ -1,28 +1,37 @@
 'use strict';
 
-// Global Storage Cursor
-
 module.exports = Cursor;
 
-function Cursor() {
+// Global Storage Cursor
+//
+function Cursor(storageProvider) {
+  this.storage = storageProvider;
+  this.chain = [];
 }
 
-// Asynchronous functional mapping
-//   Cursor.map(fn, done)
-// Lazy functional mapping
-//   Cursor.map(fn): Cursor
+// Iterable protocol .next() implementation
 //
+Cursor.prototype.next = function() {
+  return new Error('Not implemented');
+};
+
+// Lazy functional mapping
+//   fn - mapping function
+//   return - Cursor instance
+//
+Cursor.prototype.map = function(fn) {
+  this.chain.push({ op: 'map', fn: fn });
+  return this;
+};
+
+// Asynchronous functional mapping
 //   fn - mapping function
 //   done(err, arr) - callback on done
 //   return - Cursor instance
 //
-Cursor.prototype.map = function(fn, done) {
-  if (typeof(done) === 'function') {
-    // Asynchronous functional mapping
-  } else {
-    // Lazy functional mapping
-  }
-  done();
+Cursor.prototype.mapAsync = function(fn, done) {
+  done(new Error('Not implemented'));
+  return this;
 };
 
 // Declarative lazy projection
@@ -34,28 +43,31 @@ Cursor.prototype.map = function(fn, done) {
 Cursor.prototype.projection = function(mapping) {
   if (Array.isArray(mapping)) {
     // Array of field names
+    this.chain.push({ op: 'projection', fields: mapping });
   } else {
     // Object describing mappings
+    this.chain.push({ op: 'projection', metadata: mapping });
   }
-  return;
+  return this;
+};
+
+// Lazy functional filter
+//   fn - filtering function
+//   return - Cursor instance
+//
+Cursor.prototype.filter = function(fn) {
+  this.chain.push({ op: 'filter', fn: fn });
+  return this;
 };
 
 // Asynchronous functional filter
-//   Cursor.filter(fn, done)
-// Lazy functional filter
-//   Cursor.filter(fn): Cursor
-//
 //   fn - filtering function
 //   done(err, arr) - callback on done
 //   return - Cursor instance
 //
-Cursor.prototype.filter = function(fn, done) {
-  if (typeof(done) === 'function') {
-    // Asynchronous functional filter
-  } else {
-    // Lazy functional filter
-  }
-  done();
+Cursor.prototype.filterAsync = function(fn, done) {
+  done(new Error('Not implemented'));
+  return this;
 };
 
 // Declarative lazy filter
@@ -63,58 +75,67 @@ Cursor.prototype.filter = function(fn, done) {
 //   return - Cursor instance
 //
 Cursor.prototype.select = function(query) {
-  return;
+  this.chain.push({ op: 'select', query: query });
+  return this;
+};
+
+// Lazy functional distinct filter
+//   return - Cursor instance
+//
+Cursor.prototype.distinct = function() {
+  this.chain.push({ op: 'distinct' });
+  return this;
 };
 
 // Asynchronous functional distinct filter
-//   Cursor.distinct(done)
-// Lazy functional distinct filter
-//   Cursor.distinct(): Cursor
-//
 //   done(err, arr) - callback on done
 //   return - Cursor instance
 //
-Cursor.prototype.distinct = function(done) {
-  if (typeof(done) === 'function') {
-    // Asynchronous functional filter
-  } else {
-    // Lazy functional filter
-  }
-  done();
+Cursor.prototype.distinctAsync = function(done) {
+  done(new Error('Not implemented'));
+  return this;
+};
+
+// Lazy functional find (legacy)
+//   query - find expression
+//   options - find options
+//   done(err, arr) - callback on done
+//   return - Cursor instance
+//
+Cursor.prototype.find = function(query, options) {
+  this.chain.push({ op: 'find', query: query, options: options });
+  return this;
 };
 
 // Asynchronous functional find (legacy)
-//   Cursor.find(fn, done)
-// Lazy functional find (legacy)
-//   Cursor.find(fn): Cursor
-//
+//   query - find expression
+//   options - find options
 //   done(err, arr) - callback on done
 //   return - Cursor instance
 //
-Cursor.prototype.find = function(fn, done) {
-  if (typeof(done) === 'function') {
-    // Asynchronous functional find
-  } else {
-    // Lazy functional find
-  }
-  done();
+Cursor.prototype.findAsync = function(query, options, done) {
+  done(new Error('Not implemented'));
+  return this;
+};
+
+// Lazy functional dort
+//   fn - compare function
+//   done(err, arr) - callback on done
+//   return - Cursor instance
+//
+Cursor.prototype.sort = function(fn) {
+  this.chain.push({ op: 'sort', fn: fn });
+  return this;
 };
 
 // Asynchronous functional sort
-//   Cursor.sort(fn, done)
-// Lazy functional dort
-//   Cursor.sort(fn): Cursor
-//
+//   fn - compare function
 //   done(err, arr) - callback on done
 //   return - Cursor instance
 //
-Cursor.prototype.sort = function(fn, done) {
-  if (typeof(done) === 'function') {
-    // Asynchronous functional sort
-  } else {
-    // Lazy functional sort
-  }
-  done();
+Cursor.prototype.sortAsync = function(fn, done) {
+  done(new Error('Not implemented'));
+  return this;
 };
 
 // Declarative lazy sort
@@ -123,17 +144,19 @@ Cursor.prototype.sort = function(fn, done) {
 //
 Cursor.prototype.order = function(order) {
   if (typeof(done) === 'string') {
-    // Single field
+    this.chain.push({ op: 'sort', order: [order] });
   } else {
-    // Lazy functional sort
+    this.chain.push({ op: 'sort', odrder: order });
   }
+  return this;
 };
 
 // Asynchronous materialization converts Cursor to Array
 //   done(err, arr) - callback on done
 //
 Cursor.prototype.toArray = function(done) {
-  done();
+  done(null, this.chain);
+  return this;
 };
 
 // Synchronous virtualization converts Array to Cursor
@@ -141,41 +164,50 @@ Cursor.prototype.toArray = function(done) {
 //   return - Cursor instance
 //
 Cursor.prototype.from = function(arr) {
-  return;
+  return this;
 };
 
 Cursor.prototype.count = function(done) {
   done();
+  return this;
 };
 
 Cursor.prototype.sum = function(done) {
   done();
+  return this;
 };
 
 Cursor.prototype.avg = function(done) {
   done();
+  return this;
 };
 
 Cursor.prototype.max = function(done) {
   done();
+  return this;
 };
 
 Cursor.prototype.min = function(done) {
   done();
+  return this;
 };
 
 Cursor.prototype.median = function(done) {
   done();
+  return this;
 };
 
 Cursor.prototype.mode = function(done) {
   done();
+  return this;
 };
 
 Cursor.prototype.column = function() {
-  return;
+  this.chain.push({ op: 'column' });
+  return this;
 };
 
 Cursor.prototype.row = function() {
-  return;
+  this.chain.push({ op: 'row' });
+  return this;
 };
