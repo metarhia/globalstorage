@@ -183,6 +183,7 @@ MongodbProvider.prototype.index = function(def, callback) {
   });
   var options = {
     unique: def.unique !== undefined ? def.unique : false,
+    sparse: def.sparse !== undefined ? def.sparse : false,
     background: def.background !== undefined ? def.background : true
   };
   category.createIndex(keys, options, callback);
