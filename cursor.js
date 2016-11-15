@@ -202,8 +202,8 @@ Cursor.prototype.mode = function(done) {
   return this;
 };
 
-Cursor.prototype.column = function() {
-  this.chain.push({ op: 'column' });
+Cursor.prototype.col = function() {
+  this.chain.push({ op: 'col' });
   return this;
 };
 

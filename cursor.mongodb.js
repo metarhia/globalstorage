@@ -124,7 +124,13 @@ MongodbCursor.prototype.toArray = function(done) {
             });
             return row;
           });
-        } else if (item.op === 'column') {
+        } else if (item.op === 'row') {
+          if (Array.isArray(data) && data.length > 0) {
+            var obj = data[0];
+            data = [];
+            for (var k in obj) data.push(obj[k]);
+          }
+        } else if (item.op === 'col') {
           if (Array.isArray(data) && data.length > 0) {
             var key = Object.keys(data[0])[0];
             data = data.map(function(record) {
@@ -137,16 +143,6 @@ MongodbCursor.prototype.toArray = function(done) {
       mc.chain = {};
     } else done(err);
   });
-
-/*
-[
-  { op: 'find', fn: { category: 'Buildings' } },
-  { op: 'sort', fn: 'height' },
-  { op: 'map', fn: [ 'id' ] },
-  { op: 'column' }
-]
-*/
-
   return this;
 };
 
@@ -189,8 +185,8 @@ MongodbCursor.prototype.mode = function(done) {
   return this;
 };
 
-MongodbCursor.prototype.column = function() {
-  this.chain.push({ op: 'column' });
+MongodbCursor.prototype.col = function() {
+  this.chain.push({ op: 'col' });
   return this;
 };
 
@@ -200,7 +196,7 @@ MongodbCursor.prototype.row = function() {
 };
 
 MongodbCursor.prototype.limit = function(n) {
-  this.cursor.sort(n);
+  this.cursor.limit(n);
   this.chain.push({ op: 'limit', count: n});
   return this;
 };
