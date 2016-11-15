@@ -135,9 +135,7 @@ gs.create = function(obj, callback) {
 
 gs.update = function(obj, callback) {
   if (gs.local) {
-    gs.local.update(
-      obj, callback
-    );
+    gs.local.update(obj, callback);
   } else {
     callback(new Error(NO_STORAGE));
   }
@@ -153,7 +151,7 @@ gs.delete = function(id, callback) {
 
 gs.find = function(query, options, callback) {
   if (gs.local) {
-    gs.local.find(query, options, callback);
+    return gs.local.find(query, options, callback);
   } else {
     callback(new Error(NO_STORAGE));
   }

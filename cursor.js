@@ -211,3 +211,8 @@ Cursor.prototype.row = function() {
   this.chain.push({ op: 'row' });
   return this;
 };
+
+Cursor.prototype.limit = function(n) {
+  this.chain.push({ op: 'limit', count: n});
+  return this;
+};

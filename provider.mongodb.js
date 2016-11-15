@@ -3,6 +3,7 @@
 module.exports = MongodbProvider;
 var util = require('util');
 var StorageProvider = require('./provider.js');
+var MongodbCursor = require('./cursor.mongodb.js');
 util.inherits(MongodbProvider, StorageProvider);
 
 // MongoDB Storage Provider
@@ -155,6 +156,7 @@ MongodbProvider.prototype.find = function(query, options, callback) {
     options = {};
   }
   var cursor = category.find(query);
+  /*
   if (options.sort) {
     var order = {};
     order[options.sort] = 1;
@@ -163,15 +165,18 @@ MongodbProvider.prototype.find = function(query, options, callback) {
   if (options.limit) {
     cursor = cursor.limit(options.limit);
   }
-  cursor.toArray(function(err, data) {
-    if (err) callback(err);
-    else {
-      data.forEach(function(obj) {
-        obj.id = obj._id;
-      });
-      callback(null, data);
-    }
-  });
+  */
+  if (callback) {
+    cursor.toArray(function(err, data) {
+      if (err) callback(err);
+      else {
+        data.forEach(function(obj) {
+          obj.id = obj._id;
+        });
+        callback(null, data);
+      }
+    });
+  } else return new MongodbCursor(cursor);
 };
 
 MongodbProvider.prototype.index = function(def, callback) {
