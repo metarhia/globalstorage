@@ -1,10 +1,12 @@
 'use strict';
 
-module.exports = MongodbProvider;
 var util = require('util');
+
+module.exports = MongodbProvider;
 var StorageProvider = require('./provider.js');
-var MongodbCursor = require('./cursor.mongodb.js');
 util.inherits(MongodbProvider, StorageProvider);
+
+var MongodbCursor = require('./cursor.mongodb.js');
 
 // MongoDB Storage Provider
 //

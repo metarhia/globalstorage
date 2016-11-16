@@ -1,10 +1,12 @@
 'use strict';
 
-module.exports = MemoryProvider;
 var util = require('util');
+
+module.exports = MemoryProvider;
 var StorageProvider = require('./provider.js');
 util.inherits(MemoryProvider, StorageProvider);
-var fs = require('fs');
+
+var MemoryCursor = require('./cursor.memory.js');
 
 // File System Storage Provider
 //   options.path - base path

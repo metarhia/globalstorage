@@ -1,10 +1,11 @@
 'use strict';
 
-module.exports = FsProvider;
 var util = require('util');
+var fs = require('fs');
+
+module.exports = FsProvider;
 var StorageProvider = require('./provider.js');
 util.inherits(FsProvider, StorageProvider);
-var fs = require('fs');
 
 // File System Storage Provider
 //   options.path - base path

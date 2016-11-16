@@ -1,7 +1,9 @@
 'use strict';
 
-module.exports = MongodbCursor;
 var util = require('util');
+var transformations = require('./transformations.js');
+
+module.exports = MongodbCursor;
 var Cursor = require('./cursor.js');
 util.inherits(MongodbCursor, Cursor);
 
@@ -15,7 +17,7 @@ function MongodbCursor(cursor) {
 MongodbCursor.prototype.next = function() {
   //nextObject(function(err, item) {});
   return {
-    done: false,
+    done: true,
     value: null
   };
 };
@@ -23,12 +25,6 @@ MongodbCursor.prototype.next = function() {
 MongodbCursor.prototype.map = function(fn) {
   this.cursor.map(fn);
   this.jsql.push({ op: 'map', fn: fn });
-  return this;
-};
-
-
-MongodbCursor.prototype.mapAsync = function(fn, done) {
-  done(new Error('Not implemented'));
   return this;
 };
 
@@ -52,11 +48,6 @@ MongodbCursor.prototype.filter = function(fn) {
   return this;
 };
 
-MongodbCursor.prototype.filterAsync = function(fn, done) {
-  done(new Error('Not implemented'));
-  return this;
-};
-
 MongodbCursor.prototype.select = function(query) {
   // Not implemented
   this.jsql.push({ op: 'select', query: query });
@@ -69,29 +60,15 @@ MongodbCursor.prototype.distinct = function() {
   return this;
 };
 
-MongodbCursor.prototype.distinctAsync = function(done) {
-  done(new Error('Not implemented'));
-  return this;
-};
-
 MongodbCursor.prototype.find = function(query, options) {
   // Not implemented
   this.jsql.push({ op: 'find', query: query, options: options });
   return this;
 };
 
-MongodbCursor.prototype.findAsync = function(fn, done) {
-  done(new Error('Not implemented'));
-  return this;
-};
-
 MongodbCursor.prototype.sort = function(fn) {
   // Not implemented
   this.jsql.push({ op: 'sort', fn: fn });
-  return this;
-};
-
-MongodbCursor.prototype.sortAsync = function(fn, done) {
   return this;
 };
 
@@ -133,37 +110,26 @@ MongodbCursor.prototype.toArray = function(done) {
     if (data) {
       mc.jsql.forEach(function(item) {
         if (item.op === 'projection') {
-          data = data.map(function(record) {
-            var row = {};
-            item.fields.forEach(function(field) {
-              row[field] = record[field];
-            });
-            return row;
-          });
+          data = transformations.projection(data);
         } else if (item.op === 'row') {
-          if (Array.isArray(data) && data.length > 0) {
-            var obj = data[0];
-            data = [];
-            for (var k in obj) data.push(obj[k]);
-          }
+          data = transformations.row(data);
         } else if (item.op === 'col') {
-          if (Array.isArray(data) && data.length > 0) {
-            var key = Object.keys(data[0])[0];
-            data = data.map(function(record) {
-              return record[key];
-            });
-          }
+          data = transformations.col(data);
+        } else if (item.op === 'union') {
+          item.cursor.toArray(function(err, data2) {
+            data = data.concat(data2);
+          });
         }
       });
       done(null, data);
-      mc.jsql = {};
+      mc.jsql = {}; // TODO
     } else done(err);
   });
   return this;
 };
 
 MongodbCursor.prototype.from = function(arr) {
-  return this;
+  return new Error('Not implemented');
 };
 
 MongodbCursor.prototype.count = function(done) {
@@ -201,38 +167,8 @@ MongodbCursor.prototype.mode = function(done) {
   return this;
 };
 
-MongodbCursor.prototype.col = function() {
-  this.jsql.push({ op: 'col' });
-  return this;
-};
-
-MongodbCursor.prototype.row = function() {
-  this.jsql.push({ op: 'row' });
-  return this;
-};
-
 MongodbCursor.prototype.limit = function(n) {
   this.cursor.limit(n);
   this.jsql.push({ op: 'limit', count: n});
-  return this;
-};
-
-MongodbCursor.prototype.union = function(cursor) {
-  this.jsql.push({ op: 'union', cursor: cursor});
-  return this;
-};
-
-MongodbCursor.prototype.intersection = function(cursor) {
-  this.jsql.push({ op: 'intersection', cursor: cursor});
-  return this;
-};
-
-MongodbCursor.prototype.difference = function(cursor) {
-  this.jsql.push({ op: 'difference', cursor: cursor});
-  return this;
-};
-
-MongodbCursor.prototype.complement = function(cursor) {
-  this.jsql.push({ op: 'complement', cursor: cursor});
   return this;
 };

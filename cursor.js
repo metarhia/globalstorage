@@ -24,16 +24,6 @@ Cursor.prototype.map = function(fn) {
   return this;
 };
 
-// Asynchronous functional mapping
-//   fn - mapping function
-//   done(err, arr) - callback on done
-//   return - Cursor instance
-//
-Cursor.prototype.mapAsync = function(fn, done) {
-  done(new Error('Not implemented'));
-  return this;
-};
-
 // Declarative lazy projection
 //   mapping - projection metadata
 //     array of field names or object describing mapping:
@@ -60,16 +50,6 @@ Cursor.prototype.filter = function(fn) {
   return this;
 };
 
-// Asynchronous functional filter
-//   fn - filtering function
-//   done(err, arr) - callback on done
-//   return - Cursor instance
-//
-Cursor.prototype.filterAsync = function(fn, done) {
-  done(new Error('Not implemented'));
-  return this;
-};
-
 // Declarative lazy filter
 //   query - filter expression
 //   return - Cursor instance
@@ -87,15 +67,6 @@ Cursor.prototype.distinct = function() {
   return this;
 };
 
-// Asynchronous functional distinct filter
-//   done(err, arr) - callback on done
-//   return - Cursor instance
-//
-Cursor.prototype.distinctAsync = function(done) {
-  done(new Error('Not implemented'));
-  return this;
-};
-
 // Lazy functional find (legacy)
 //   query - find expression
 //   options - find options
@@ -107,17 +78,6 @@ Cursor.prototype.find = function(query, options) {
   return this;
 };
 
-// Asynchronous functional find (legacy)
-//   query - find expression
-//   options - find options
-//   done(err, arr) - callback on done
-//   return - Cursor instance
-//
-Cursor.prototype.findAsync = function(query, options, done) {
-  done(new Error('Not implemented'));
-  return this;
-};
-
 // Lazy functional dort
 //   fn - compare function
 //   done(err, arr) - callback on done
@@ -125,16 +85,6 @@ Cursor.prototype.findAsync = function(query, options, done) {
 //
 Cursor.prototype.sort = function(fn) {
   this.jsql.push({ op: 'sort', fn: fn });
-  return this;
-};
-
-// Asynchronous functional sort
-//   fn - compare function
-//   done(err, arr) - callback on done
-//   return - Cursor instance
-//
-Cursor.prototype.sortAsync = function(fn, done) {
-  done(new Error('Not implemented'));
   return this;
 };
 
