@@ -6,7 +6,7 @@ module.exports = Cursor;
 //
 function Cursor(storageProvider) {
   this.storage = storageProvider;
-  this.chain = [];
+  this.jsql = [];
 }
 
 // Iterable protocol .next() implementation
@@ -20,7 +20,7 @@ Cursor.prototype.next = function() {
 //   return - Cursor instance
 //
 Cursor.prototype.map = function(fn) {
-  this.chain.push({ op: 'map', fn: fn });
+  this.jsql.push({ op: 'map', fn: fn });
   return this;
 };
 
@@ -43,10 +43,10 @@ Cursor.prototype.mapAsync = function(fn, done) {
 Cursor.prototype.projection = function(mapping) {
   if (Array.isArray(mapping)) {
     // Array of field names
-    this.chain.push({ op: 'projection', fields: mapping });
+    this.jsql.push({ op: 'projection', fields: mapping });
   } else {
     // Object describing mappings
-    this.chain.push({ op: 'projection', metadata: mapping });
+    this.jsql.push({ op: 'projection', metadata: mapping });
   }
   return this;
 };
@@ -56,7 +56,7 @@ Cursor.prototype.projection = function(mapping) {
 //   return - Cursor instance
 //
 Cursor.prototype.filter = function(fn) {
-  this.chain.push({ op: 'filter', fn: fn });
+  this.jsql.push({ op: 'filter', fn: fn });
   return this;
 };
 
@@ -75,7 +75,7 @@ Cursor.prototype.filterAsync = function(fn, done) {
 //   return - Cursor instance
 //
 Cursor.prototype.select = function(query) {
-  this.chain.push({ op: 'select', query: query });
+  this.jsql.push({ op: 'select', query: query });
   return this;
 };
 
@@ -83,7 +83,7 @@ Cursor.prototype.select = function(query) {
 //   return - Cursor instance
 //
 Cursor.prototype.distinct = function() {
-  this.chain.push({ op: 'distinct' });
+  this.jsql.push({ op: 'distinct' });
   return this;
 };
 
@@ -103,7 +103,7 @@ Cursor.prototype.distinctAsync = function(done) {
 //   return - Cursor instance
 //
 Cursor.prototype.find = function(query, options) {
-  this.chain.push({ op: 'find', query: query, options: options });
+  this.jsql.push({ op: 'find', query: query, options: options });
   return this;
 };
 
@@ -124,7 +124,7 @@ Cursor.prototype.findAsync = function(query, options, done) {
 //   return - Cursor instance
 //
 Cursor.prototype.sort = function(fn) {
-  this.chain.push({ op: 'sort', fn: fn });
+  this.jsql.push({ op: 'sort', fn: fn });
   return this;
 };
 
@@ -138,15 +138,28 @@ Cursor.prototype.sortAsync = function(fn, done) {
   return this;
 };
 
-// Declarative lazy sort
-//   order - field name or array of names
+// Declarative lazy ascending sort
+//   fields - field name or array of names
 //   return - Cursor instance
 //
-Cursor.prototype.order = function(order) {
-  if (typeof(done) === 'string') {
-    this.chain.push({ op: 'sort', order: [order] });
+Cursor.prototype.order = function(fields) {
+  if (typeof(fields) === 'string') {
+    this.jsql.push({ op: 'order', fields: [fields] });
   } else {
-    this.chain.push({ op: 'sort', odrder: order });
+    this.jsql.push({ op: 'order', fields: fields });
+  }
+  return this;
+};
+
+// Declarative lazy descending sort
+//   fields - field name or array of names
+//   return - Cursor instance
+//
+Cursor.prototype.desc = function(fields) {
+  if (typeof(fields) === 'string') {
+    this.jsql.push({ op: 'desc', fields: [fields] });
+  } else {
+    this.jsql.push({ op: 'desc', fields: fields });
   }
   return this;
 };
@@ -155,7 +168,7 @@ Cursor.prototype.order = function(order) {
 //   done(err, arr) - callback on done
 //
 Cursor.prototype.toArray = function(done) {
-  done(null, this.chain);
+  done(null, this.jsql);
   return this;
 };
 
@@ -202,17 +215,51 @@ Cursor.prototype.mode = function(done) {
   return this;
 };
 
+// Convert first column of dataset to Cursor
+//
 Cursor.prototype.col = function() {
-  this.chain.push({ op: 'col' });
+  this.jsql.push({ op: 'col' });
   return this;
 };
 
+// Convert first row of dataset to Cursor
+//
 Cursor.prototype.row = function() {
-  this.chain.push({ op: 'row' });
+  this.jsql.push({ op: 'row' });
   return this;
 };
 
+// Take top N elements
+//
 Cursor.prototype.limit = function(n) {
-  this.chain.push({ op: 'limit', count: n});
+  this.jsql.push({ op: 'limit', count: n});
+  return this;
+};
+
+// Calculate union with Cursor
+//
+Cursor.prototype.union = function(cursor) {
+  this.jsql.push({ op: 'union', cursor: cursor});
+  return this;
+};
+
+// Calculate intersection with Cursor
+//
+Cursor.prototype.intersection = function(cursor) {
+  this.jsql.push({ op: 'intersection', cursor: cursor});
+  return this;
+};
+
+// Calculate difference with Cursor
+//
+Cursor.prototype.difference = function(cursor) {
+  this.jsql.push({ op: 'difference', cursor: cursor});
+  return this;
+};
+
+// Calculate complement with Cursor
+//
+Cursor.prototype.complement = function(cursor) {
+  this.jsql.push({ op: 'complement', cursor: cursor});
   return this;
 };

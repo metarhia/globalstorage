@@ -9,7 +9,7 @@ util.inherits(MongodbCursor, Cursor);
 //
 function MongodbCursor(cursor) {
   this.cursor = cursor;
-  this.chain = [];
+  this.jsql = [];
 }
 
 MongodbCursor.prototype.next = function() {
@@ -22,7 +22,7 @@ MongodbCursor.prototype.next = function() {
 
 MongodbCursor.prototype.map = function(fn) {
   this.cursor.map(fn);
-  this.chain.push({ op: 'map', fn: fn });
+  this.jsql.push({ op: 'map', fn: fn });
   return this;
 };
 
@@ -39,16 +39,16 @@ MongodbCursor.prototype.projection = function(mapping) {
       fields[field] = 1;
     });
     this.cursor.project(fields);
-    this.chain.push({ op: 'projection', fields: mapping });
+    this.jsql.push({ op: 'projection', fields: mapping });
   } else {
-    this.chain.push({ op: 'projection', metadata: mapping });
+    this.jsql.push({ op: 'projection', metadata: mapping });
   }
   return this;
 };
 
 MongodbCursor.prototype.filter = function(fn) {
   this.cursor.filter(fn);
-  this.chain.push({ op: 'filter', fn: fn });
+  this.jsql.push({ op: 'filter', fn: fn });
   return this;
 };
 
@@ -59,13 +59,13 @@ MongodbCursor.prototype.filterAsync = function(fn, done) {
 
 MongodbCursor.prototype.select = function(query) {
   // Not implemented
-  this.chain.push({ op: 'select', query: query });
+  this.jsql.push({ op: 'select', query: query });
   return this;
 };
 
 MongodbCursor.prototype.distinct = function() {
   // Not implemented
-  this.chain.push({ op: 'distinct' });
+  this.jsql.push({ op: 'distinct' });
   return this;
 };
 
@@ -76,7 +76,7 @@ MongodbCursor.prototype.distinctAsync = function(done) {
 
 MongodbCursor.prototype.find = function(query, options) {
   // Not implemented
-  this.chain.push({ op: 'find', query: query, options: options });
+  this.jsql.push({ op: 'find', query: query, options: options });
   return this;
 };
 
@@ -87,7 +87,7 @@ MongodbCursor.prototype.findAsync = function(fn, done) {
 
 MongodbCursor.prototype.sort = function(fn) {
   // Not implemented
-  this.chain.push({ op: 'sort', fn: fn });
+  this.jsql.push({ op: 'sort', fn: fn });
   return this;
 };
 
@@ -100,13 +100,29 @@ MongodbCursor.prototype.order = function(fields) {
   if (typeof(fields) === 'string') {
     order[fields] = 1;
     this.cursor.sort(order);
-    this.chain.push({ op: 'order', fields: [fields] });
+    this.jsql.push({ op: 'order', fields: [fields] });
   } else {
     fields.forEach(function(field) {
       order[field] = 1;
     });
     this.cursor.sort(order);
-    this.chain.push({ op: 'order', fields: fields });
+    this.jsql.push({ op: 'order', fields: fields });
+  }
+  return this;
+};
+
+MongodbCursor.prototype.desc = function(fields) {
+  var order = {};
+  if (typeof(fields) === 'string') {
+    order[fields] = -1;
+    this.cursor.sort(order);
+    this.jsql.push({ op: 'desc', fields: [fields] });
+  } else {
+    fields.forEach(function(field) {
+      order[field] = -1;
+    });
+    this.cursor.sort(order);
+    this.jsql.push({ op: 'desc', fields: fields });
   }
   return this;
 };
@@ -115,7 +131,7 @@ MongodbCursor.prototype.toArray = function(done) {
   var mc = this;
   mc.cursor.toArray(function(err, data) {
     if (data) {
-      mc.chain.forEach(function(item) {
+      mc.jsql.forEach(function(item) {
         if (item.op === 'projection') {
           data = data.map(function(record) {
             var row = {};
@@ -140,7 +156,7 @@ MongodbCursor.prototype.toArray = function(done) {
         }
       });
       done(null, data);
-      mc.chain = {};
+      mc.jsql = {};
     } else done(err);
   });
   return this;
@@ -186,17 +202,37 @@ MongodbCursor.prototype.mode = function(done) {
 };
 
 MongodbCursor.prototype.col = function() {
-  this.chain.push({ op: 'col' });
+  this.jsql.push({ op: 'col' });
   return this;
 };
 
 MongodbCursor.prototype.row = function() {
-  this.chain.push({ op: 'row' });
+  this.jsql.push({ op: 'row' });
   return this;
 };
 
 MongodbCursor.prototype.limit = function(n) {
   this.cursor.limit(n);
-  this.chain.push({ op: 'limit', count: n});
+  this.jsql.push({ op: 'limit', count: n});
+  return this;
+};
+
+MongodbCursor.prototype.union = function(cursor) {
+  this.jsql.push({ op: 'union', cursor: cursor});
+  return this;
+};
+
+MongodbCursor.prototype.intersection = function(cursor) {
+  this.jsql.push({ op: 'intersection', cursor: cursor});
+  return this;
+};
+
+MongodbCursor.prototype.difference = function(cursor) {
+  this.jsql.push({ op: 'difference', cursor: cursor});
+  return this;
+};
+
+MongodbCursor.prototype.complement = function(cursor) {
+  this.jsql.push({ op: 'complement', cursor: cursor});
   return this;
 };
