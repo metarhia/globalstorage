@@ -1,5 +1,8 @@
 'use strict';
 
+// !!!setJSTP
+var NOT_IMPLEMENTED = 'Not implemented';
+
 module.exports = Cursor;
 
 // Global Storage Cursor
@@ -9,10 +12,36 @@ function Cursor(storageProvider) {
   this.jsql = [];
 }
 
+// Clone Cursor
+//
+Cursor.prototype.clone = function() {
+  return new Error(NOT_IMPLEMENTED);
+};
+
+// Enroll JSQL to Cursor
+//
+Cursor.prototype.enroll = function(jsql) {
+  return new Error(NOT_IMPLEMENTED);
+};
+
+// Empty Cursor
+//
+Cursor.prototype.empty = function() {
+  return new Error(NOT_IMPLEMENTED);
+};
+
 // Iterable protocol .next() implementation
 //
 Cursor.prototype.next = function() {
-  return new Error('Not implemented');
+  return new Error(NOT_IMPLEMENTED);
+};
+
+// Synchronous virtualization converts Array to Cursor
+//   arr - array or iterable
+//   return - Cursor instance
+//
+Cursor.prototype.from = function(arr) {
+  return this;
 };
 
 // Lazy functional mapping
@@ -119,14 +148,6 @@ Cursor.prototype.desc = function(fields) {
 //
 Cursor.prototype.toArray = function(done) {
   done(null, this.jsql);
-  return this;
-};
-
-// Synchronous virtualization converts Array to Cursor
-//   arr - array or iterable
-//   return - Cursor instance
-//
-Cursor.prototype.from = function(arr) {
   return this;
 };
 

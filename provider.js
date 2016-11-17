@@ -7,7 +7,7 @@ module.exports = StorageProvider;
 function StorageProvider() {
 }
 
-var NOT_IMPLEMENTED = 'Not implemented in abstract interface';
+var NOT_IMPLEMENTED = 'Not implemented';
 
 // Open storage provider
 //   options

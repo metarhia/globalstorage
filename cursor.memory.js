@@ -14,11 +14,28 @@ function MemoryCursor(dataset) {
   this.jsql = [];
 }
 
+MemoryCursor.prototype.clone = function() {
+  var ds = transformations.copy(this.dataset);
+  return new MemoryCursor(ds);
+};
+
+MemoryCursor.prototype.enroll = function(jsql) {
+  return this;
+};
+
+MemoryCursor.prototype.empty = function() {
+  return this;
+};
+
 MemoryCursor.prototype.next = function() {
   return {
     done: true,
     value: null
   };
+};
+
+MemoryCursor.prototype.from = function(arr) {
+  return this;
 };
 
 MemoryCursor.prototype.map = function(fn) {
@@ -61,6 +78,3 @@ MemoryCursor.prototype.toArray = function(done) {
   return this;
 };
 
-MemoryCursor.prototype.from = function(arr) {
-  return this;
-};

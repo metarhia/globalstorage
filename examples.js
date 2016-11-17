@@ -13,6 +13,13 @@ console.dir({
   complement: transformations.complement(ds1,ds2)
 });
 
+var mc1 = new gs.MemoryCursor(ds1);
+var mc2 = mc1.clone();
+
+mc1.dataset[0].name = 'qwerty';
+console.dir(mc1.dataset);
+console.dir(mc2.dataset);
+
 /*
 gs.open({
   gs: gs,

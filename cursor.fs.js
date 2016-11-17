@@ -10,15 +10,30 @@ util.inherits(FsCursor, Cursor);
 // Filesystem Cursor
 //
 function FsCursor(cursor) {
-  this.cursor = cursor;
   this.jsql = [];
 }
+
+FsCursor.prototype.clone = function() {
+  new new FsCursor();
+};
+
+FsCursor.prototype.enroll = function(jsql) {
+  return this;
+};
+
+FsCursor.prototype.empty = function() {
+  return this;
+};
 
 FsCursor.prototype.next = function() {
   return {
     done: true,
     value: null
   };
+};
+
+FsCursor.prototype.from = function(arr) {
+  return this;
 };
 
 FsCursor.prototype.map = function(fn) {
@@ -58,9 +73,5 @@ FsCursor.prototype.desc = function(fields) {
 };
 
 FsCursor.prototype.toArray = function(done) {
-  return this;
-};
-
-FsCursor.prototype.from = function(arr) {
   return this;
 };

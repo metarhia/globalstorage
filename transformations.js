@@ -53,7 +53,7 @@ transformations.header = function(ds) {
 //
 transformations.projection = function(meta, ds) {
   var fields = meta;
-  return data.map(function(record) {
+  return ds.map(function(record) {
     var row = {};
     fields.forEach(function(field) {
       row[field] = record[field];
@@ -138,3 +138,64 @@ transformations.difference = function(ds1, ds2) {
 transformations.complement = function(ds1, ds2) {
   return transformations.difference(ds2, ds1);
 };
+
+// Copy dataset (copy objects to new array)
+//
+transformations.copy = function(ds) {
+  return ds.slice();
+  /* TODO: test speed in following implementations:
+  1. slice() and slice(0)
+  2. [].concat(arr);
+  3. following solution:
+  var result = [],
+      l1 = ds.length;
+  for (i = 0; i < l1; i++) {
+    result.push(ds[i]);
+  }
+  return result;
+  */
+};
+
+// Clone dataset (clone objects to new array)
+//
+transformations.clone = function(ds) {
+  return cloneArray(ds);
+};
+
+function cloneObject(obj) {
+  var result = {},
+      keys = Object.keys(obj),
+      i, key, val, type,
+      len = keys.length;
+  for (i = 0; i < len; i++) {
+    key = keys[i];
+    val = obj[key];
+    type = typeof(val);
+    if (type === 'object') {
+      result[key] = (
+        Array.isArray(val) ? cloneArray(val) : cloneObject(val)
+      );
+    } else {
+      result[key] = val;
+    }
+  }
+  return result;
+}
+
+function cloneArray(arr) {
+  var result = [],
+      i, val, type,
+      len = arr.length;
+  for (i = 0; i < len; i++) {
+    val = arr[i];
+    type = typeof(val);
+    if (type === 'object') {
+      result.push(
+        Array.isArray(val) ? cloneArray(val) : cloneObject(val)
+      );
+    } else {
+      result.push(val);
+    }
+  }
+  return result;
+}

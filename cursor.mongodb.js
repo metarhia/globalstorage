@@ -2,6 +2,7 @@
 
 var util = require('util');
 var transformations = require('./transformations.js');
+var NOT_IMPLEMENTED = 'Not implemented';
 
 module.exports = MongodbCursor;
 var Cursor = require('./cursor.js');
@@ -14,12 +15,31 @@ function MongodbCursor(cursor) {
   this.jsql = [];
 }
 
+MongodbCursor.prototype.clone = function() {
+  var mc = this.cursor.clone();
+  var cursor = new MongodbCursor(mc);
+  cursor.jstp = this.jstp;
+  return cursor;
+};
+
+MongodbCursor.prototype.enroll = function(jsql) {
+  return this;
+};
+
+MongodbCursor.prototype.empty = function() {
+  return this;
+};
+
 MongodbCursor.prototype.next = function() {
   //nextObject(function(err, item) {});
   return {
     done: true,
     value: null
   };
+};
+
+MongodbCursor.prototype.from = function(arr) {
+  return new Error(NOT_IMPLEMENTED);
 };
 
 MongodbCursor.prototype.map = function(fn) {
@@ -128,47 +148,43 @@ MongodbCursor.prototype.toArray = function(done) {
   return this;
 };
 
-MongodbCursor.prototype.from = function(arr) {
-  return new Error('Not implemented');
-};
-
 MongodbCursor.prototype.count = function(done) {
-  done(new Error('Not implemented'));
+  done(new Error(NOT_IMPLEMENTED));
   return this;
 };
 
 MongodbCursor.prototype.sum = function(done) {
-  done(new Error('Not implemented'));
+  done(new Error(NOT_IMPLEMENTED));
   return this;
 };
 
 MongodbCursor.prototype.avg = function(done) {
-  done(new Error('Not implemented'));
+  done(new Error(NOT_IMPLEMENTED));
   return this;
 };
 
 MongodbCursor.prototype.max = function(done) {
-  done(new Error('Not implemented'));
+  done(new Error(NOT_IMPLEMENTED));
   return this;
 };
 
 MongodbCursor.prototype.min = function(done) {
-  done(new Error('Not implemented'));
+  done(new Error(NOT_IMPLEMENTED));
   return this;
 };
 
 MongodbCursor.prototype.median = function(done) {
-  done(new Error('Not implemented'));
+  done(new Error(NOT_IMPLEMENTED));
   return this;
 };
 
 MongodbCursor.prototype.mode = function(done) {
-  done(new Error('Not implemented'));
+  done(new Error(NOT_IMPLEMENTED));
   return this;
 };
 
 MongodbCursor.prototype.limit = function(n) {
   this.cursor.limit(n);
-  this.jsql.push({ op: 'limit', count: n});
+  this.jsql.push({ op: 'limit', count: n });
   return this;
 };

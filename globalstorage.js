@@ -3,37 +3,37 @@
 // Global Storage API
 
 var util = require('util');
-var StorageProvider = require('./provider.js');
-
-var FsProvider = require('./provider.fs.js');
-var MemoryProvider = require('./provider.memory.js');
-var MongodbProvider = require('./provider.mongodb.js');
-
-var Connection = require('./connection.js');
-var Category = require('./category.js');
 var NO_STORAGE = 'No storage provider available';
 
+var StorageProvider = require('./provider.js');
 var gs = new StorageProvider();
 module.exports = gs;
-
 gs.StorageProvider = StorageProvider;
-gs.MongodbProvider = MongodbProvider;
-gs.FsProvider = FsProvider;
-gs.MemoryProvider = MemoryProvider;
-gs.Connection = Connection;
-gs.Category = Category;
+
+gs.FsProvider = require('./provider.fs.js');
+gs.MemoryProvider = require('./provider.memory.js');
+gs.MongodbProvider = require('./provider.mongodb.js');
+
+gs.Cursor = require('./cursor.js');
+gs.FsCursor = require('./cursor.fs.js');
+gs.MemoryCursor = require('./cursor.memory.js');
+gs.MongodbCursor = require('./cursor.mongodb.js');
+
+gs.Connection = require('./connection.js');
+gs.Category = require('./category.js');
+gs.transformations = require('./transformations.js');
 
 // Hash keyed by provider name
 //
 gs.providers = {
-  fs: FsProvider,
-  memory: MemoryProvider,
-  mongodb: MongodbProvider,
+  fs: gs.FsProvider,
+  memory: gs.MemoryProvider,
+  mongodb: gs.MongodbProvider,
 };
 
 // Objects cache keyed by id
 //
-gs.memory = new MemoryProvider();
+gs.memory = new gs.MemoryProvider();
 
 // Database mode
 //   closed - no one provider is available
@@ -78,7 +78,7 @@ gs.connections = {};
 //   callback - on connect function(err, connection)
 //
 gs.connect = function(options, callback) {
-  var connection = new Connection(options);
+  var connection = new gs.Connection(options);
   callback(null, connection);
 };
 
@@ -93,7 +93,7 @@ gs.categories = {};
 gs.category = function(name, callback) {
   var cat = gs.categories[name];
   if (!cat) {
-    cat = new Category(name);
+    cat = new gs.Category(name);
     gs.categories[name] = cat;
   }
   callback(null, cat);
