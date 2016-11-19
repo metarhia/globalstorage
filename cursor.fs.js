@@ -13,8 +13,12 @@ function FsCursor(cursor) {
   this.jsql = [];
 }
 
+FsCursor.prototype.copy = function() {
+  return this;
+};
+
 FsCursor.prototype.clone = function() {
-  new new FsCursor();
+  return this;
 };
 
 FsCursor.prototype.enroll = function(jsql) {

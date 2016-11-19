@@ -15,6 +15,13 @@ function MongodbCursor(cursor) {
   this.jsql = [];
 }
 
+MongodbCursor.prototype.copy = function() {
+  var mc = this.cursor.clone();
+  var cursor = new MongodbCursor(mc);
+  cursor.jstp = this.jstp;
+  return cursor;
+};
+
 MongodbCursor.prototype.clone = function() {
   var mc = this.cursor.clone();
   var cursor = new MongodbCursor(mc);

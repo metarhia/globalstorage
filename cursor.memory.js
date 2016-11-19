@@ -14,8 +14,13 @@ function MemoryCursor(dataset) {
   this.jsql = [];
 }
 
-MemoryCursor.prototype.clone = function() {
+MemoryCursor.prototype.copy = function() {
   var ds = transformations.copy(this.dataset);
+  return new MemoryCursor(ds);
+};
+
+MemoryCursor.prototype.clone = function() {
+  var ds = transformations.clone(this.dataset);
   return new MemoryCursor(ds);
 };
 

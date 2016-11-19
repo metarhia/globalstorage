@@ -12,6 +12,12 @@ function Cursor(storageProvider) {
   this.jsql = [];
 }
 
+// Copy Cursor
+//
+Cursor.prototype.copy = function() {
+  return new Error(NOT_IMPLEMENTED);
+};
+
 // Clone Cursor
 //
 Cursor.prototype.clone = function() {
