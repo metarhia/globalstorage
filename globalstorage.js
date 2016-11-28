@@ -54,14 +54,11 @@ gs.open = function(options, callback) {
     }, function() {
     });
   }
-
   var Provider = gs.providers[options.provider];
   if (Provider) {
+    console.dir({provider:options.provider});
     gs.local = new Provider();
-    gs.local.open({
-      gs: options.gs,
-      connection: options.connection
-    }, callback);
+    gs.local.open(options, callback);
   } else {
     callback(new Error(NO_STORAGE));
   }
@@ -126,7 +123,9 @@ gs.get = function(id, callback) {
 };
 
 gs.create = function(obj, callback) {
+  //console.log('---1');
   if (gs.local) {
+    //console.log('---2');
     gs.local.create(obj, callback);
   } else {
     callback(new Error(NO_STORAGE));
