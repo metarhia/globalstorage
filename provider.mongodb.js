@@ -11,6 +11,7 @@ var MongodbCursor = require('./cursor.mongodb.js');
 // MongoDB Storage Provider
 //
 function MongodbProvider() {
+  this.stat = null;
 }
 
 MongodbProvider.prototype.open = function(options, callback) {
@@ -21,13 +22,14 @@ MongodbProvider.prototype.open = function(options, callback) {
       provider.metadata = provider.connection.collection('gsMetadata');
       provider.metadata.findOne({ _id: 0 }, function(err, data) {
         if (data) {
-          provider.gs.infrastructure.assign(data.tree);
-          provider.gs.nextId = data.nextId;
-          provider.gs.categories = data.categories;
+          delete data._id;
+          //provider.gs.infrastructure.assign(data.tree);
+          provider.stat = data;
+          callback();
         } else {
           var metadata = {
             _id: 0,
-            nextId: 0,
+            next: 0,
             tree: {}
           };
           provider.metadata.insertOne(metadata, callback);
@@ -49,7 +51,7 @@ MongodbProvider.prototype.generateId = function(callback) {
   var provider = this;
   this.metadata.findAndModify(
     { _id: 0 }, null,
-    { $inc: { nextId: 1 } },
+    { $inc: { next: 1 } },
     { upsert: true, new: true },
     function(err, res) {
       if (err) {
@@ -58,7 +60,7 @@ MongodbProvider.prototype.generateId = function(callback) {
             provider.generateId(callback);
           });
         } else callback(err);
-      } else callback(null, res.value.nextId);
+      } else callback(null, res.value.next);
     }
   );
 };
@@ -119,7 +121,7 @@ MongodbProvider.prototype.update = function(obj, callback) {
 MongodbProvider.prototype.delete = function(query, callback) {
   var provider = this;
   if (typeof(query) === 'object') {
-    provider.find(query, function(err, data) {
+    provider.select(query, function(err, data) {
       if (err) callback(err);
       else {
         for (var i = 0; i < data.length; i++) {
@@ -150,7 +152,7 @@ MongodbProvider.prototype.delete = function(query, callback) {
   }
 };
 
-MongodbProvider.prototype.find = function(query, options, callback) {
+MongodbProvider.prototype.select = function(query, options, callback) {
   var provider = this;
   var category = provider.category(query.category);
   if (!callback) {
@@ -178,7 +180,11 @@ MongodbProvider.prototype.find = function(query, options, callback) {
         callback(null, data);
       }
     });
-  } else return new MongodbCursor(cursor);
+  } else {
+    var mс = new MongodbCursor(this, cursor);
+    mс.jsql.push({ op: 'select', query: query, options: options });
+    return mс;
+  }
 };
 
 MongodbProvider.prototype.index = function(def, callback) {

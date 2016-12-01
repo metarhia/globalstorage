@@ -122,9 +122,7 @@ gs.get = function(id, callback) {
 };
 
 gs.create = function(obj, callback) {
-  //console.log('---1');
   if (gs.local) {
-    //console.log('---2');
     gs.local.create(obj, callback);
   } else {
     callback(new Error(NO_STORAGE));
@@ -147,9 +145,9 @@ gs.delete = function(id, callback) {
   }
 };
 
-gs.find = function(query, options, callback) {
+gs.select = function(query, options, callback) {
   if (gs.local) {
-    return gs.local.find(query, options, callback);
+    return gs.local.select(query, options, callback);
   } else {
     callback(new Error(NO_STORAGE));
   }

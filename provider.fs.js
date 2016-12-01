@@ -128,8 +128,7 @@ FsProvider.prototype.idToChunks = function(id) {
     path = name;
     name = '0000';
   }
-  // console.dir({ path: '/' + path, name: name + '.gs' });
-  return      { path: '/' + path, name: name + '.gs' };
+  return { path: '/' + path, name: name + '.gs' };
 }
 
 FsProvider.prototype.update = function(obj, callback) {
@@ -169,7 +168,7 @@ FsProvider.prototype.delete = function(id, callback) {
   });
 };
 
-FsProvider.prototype.find = function(query, options, callback) {
+FsProvider.prototype.select = function(query, options, callback) {
   callback();
 };
 

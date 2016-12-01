@@ -10,7 +10,8 @@ util.inherits(MongodbCursor, Cursor);
 
 // MongoDB Cursor
 //
-function MongodbCursor(cursor) {
+function MongodbCursor(provider, cursor) {
+  this.provider = provider;
   this.cursor = cursor;
   this.jsql = [];
 }
@@ -70,31 +71,27 @@ MongodbCursor.prototype.projection = function(mapping) {
 };
 
 MongodbCursor.prototype.filter = function(fn) {
-  this.cursor.filter(fn);
   this.jsql.push({ op: 'filter', fn: fn });
   return this;
 };
 
 MongodbCursor.prototype.select = function(query) {
-  // Not implemented
+  this.cursor.filter(query);
   this.jsql.push({ op: 'select', query: query });
   return this;
 };
 
 MongodbCursor.prototype.distinct = function() {
-  // Not implemented
   this.jsql.push({ op: 'distinct' });
   return this;
 };
 
-MongodbCursor.prototype.find = function(query, options) {
-  // Not implemented
-  this.jsql.push({ op: 'find', query: query, options: options });
+MongodbCursor.prototype.find = function(fn) {
+  this.jsql.push({ op: 'find', fn: fn });
   return this;
 };
 
 MongodbCursor.prototype.sort = function(fn) {
-  // Not implemented
   this.jsql.push({ op: 'sort', fn: fn });
   return this;
 };
@@ -137,7 +134,7 @@ MongodbCursor.prototype.toArray = function(done) {
     if (data) {
       mc.jsql.forEach(function(item) {
         if (item.op === 'projection') {
-          data = transformations.projection(data);
+          data = transformations.projection(item.fields, data);
         } else if (item.op === 'row') {
           data = transformations.row(data);
         } else if (item.op === 'col') {
@@ -194,4 +191,15 @@ MongodbCursor.prototype.limit = function(n) {
   this.cursor.limit(n);
   this.jsql.push({ op: 'limit', count: n });
   return this;
+};
+
+MongodbCursor.prototype.modify = function(changes, callback) {
+  var mc = this;
+  if (mc.jsql.length > 0) {
+    var select = mc.jsql[0];
+    if (select.op === 'select') {
+      var category = this.provider.category(select.query.category);
+      category.updateMany(select.query, { $set: changes }, { w: 1 }, callback);
+    }
+  }
 };

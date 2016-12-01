@@ -9,19 +9,20 @@ util.inherits(MemoryCursor, Cursor);
 
 // MongoDB Cursor
 //
-function MemoryCursor(dataset) {
+function MemoryCursor(provider, dataset) {
+  this.provider = provider;
   this.dataset = dataset;
   this.jsql = [];
 }
 
 MemoryCursor.prototype.copy = function() {
   var ds = transformations.copy(this.dataset);
-  return new MemoryCursor(ds);
+  return new MemoryCursor(this.provider, ds);
 };
 
 MemoryCursor.prototype.clone = function() {
   var ds = transformations.clone(this.dataset);
-  return new MemoryCursor(ds);
+  return new MemoryCursor(this.provider, ds);
 };
 
 MemoryCursor.prototype.enroll = function(jsql) {
@@ -63,7 +64,7 @@ MemoryCursor.prototype.distinct = function() {
   return this;
 };
 
-MemoryCursor.prototype.find = function(query, options) {
+MemoryCursor.prototype.find = function(fn) {
   return this;
 };
 

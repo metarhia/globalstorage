@@ -76,14 +76,14 @@ StorageProvider.prototype.delete = function(id, callback) {
   callback(new Error(NOT_IMPLEMENTED));
 };
 
-// Find objects in Global Storage
+// Select objects from Global Storage
 //   query - JSQL lambda expression
 //   options.order - order key field name
 //   options.limit - top n records
 //   callback - function(err, data)
 //     data - array of object
 //
-StorageProvider.prototype.find = function(query, options, callback) {
+StorageProvider.prototype.select = function(query, options, callback) {
   callback(new Error(NOT_IMPLEMENTED));
 };
 

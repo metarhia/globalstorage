@@ -9,7 +9,8 @@ util.inherits(FsCursor, Cursor);
 
 // Filesystem Cursor
 //
-function FsCursor(cursor) {
+function FsCursor(provider) {
+  this.provider = provider;
   this.jsql = [];
 }
 
@@ -60,7 +61,7 @@ FsCursor.prototype.distinct = function() {
   return this;
 };
 
-FsCursor.prototype.find = function(query, options) {
+FsCursor.prototype.find = function(fn) {
   return this;
 };
 

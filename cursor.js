@@ -1,14 +1,13 @@
 'use strict';
 
-// !!!setJSTP
 var NOT_IMPLEMENTED = 'Not implemented';
 
 module.exports = Cursor;
 
 // Global Storage Cursor
 //
-function Cursor(storageProvider) {
-  this.storage = storageProvider;
+function Cursor(provider) {
+  this.provider = provider;
   this.jsql = [];
 }
 
