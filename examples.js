@@ -28,21 +28,28 @@ gs.open({
   if (err) console.dir(err);
   else {
     console.time('insert');
-    for (var i = 0; i < 10000; i++) {
-      queue.add({ id: i });
+    for (var i = 0; i < 100000; i++) {
+      queue.add({ num: i });
     }
   }
 });
 
 var queue =  new metasync.ConcurrentQueue(2000, 2000);
 
-queue.on('process', gs.create);
+queue.on('process', processItem);
 
-//function(item, callback) {
-/*  gs.create(item, function() {
-    callback();
+function processItem(item, callback) {
+  gs.create(item, function() {
+    item.name = item.id % 2 ? 'Marcus' : 'Aurelius';
+    gs.update(item, function() {
+      if (item.id % 3) {
+        gs.delete(item.id, callback);
+      } else {
+        callback();
+      }
+    });
   });
-});*/
+}
 
 queue.on('timeout', function() {
   console.log('Insert test error, file writing timeout');

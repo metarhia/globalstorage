@@ -56,7 +56,6 @@ gs.open = function(options, callback) {
   }
   var Provider = gs.providers[options.provider];
   if (Provider) {
-    console.dir({provider:options.provider});
     gs.local = new Provider();
     gs.local.open(options, callback);
   } else {
