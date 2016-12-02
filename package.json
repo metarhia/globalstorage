@@ -30,7 +30,7 @@
   },
   "main": "./globalstorage.js",
   "scripts": {
-    "test": "node ./examples.js"
+    "test": "node ./test/examples.js"
   },
   "readmeFilename": "README.md"
 }
