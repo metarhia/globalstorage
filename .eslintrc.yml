@@ -44,9 +44,6 @@ rules:
     - error
     - before: false
       after: true
-  consistent-this:
-    - error
-    - self
   eol-last:
     - error
   func-call-spacing:

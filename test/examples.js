@@ -12,8 +12,8 @@ mongodbProviderTest();
 //
 function memoryProviderTest() {
 
-  var ds1 = [ {id: 1}, {id: 2} ];
-  var ds2 = [ {id: 2}, {id: 3} ];
+  var ds1 = [ { id: 1 }, { id: 2 } ];
+  var ds2 = [ { id: 2 }, { id: 3 } ];
 
   console.dir({
     union: gs.transformations.union(ds1, ds2),
@@ -35,6 +35,9 @@ function memoryProviderTest() {
 //
 function fsProviderTest() {
 
+  var queue = new metasync.ConcurrentQueue(2000, 2000);
+  queue.on('process', processItem);
+
   gs.open({
     gs: gs,
     provider: 'fs',
@@ -48,9 +51,6 @@ function fsProviderTest() {
       }
     }
   });
-
-  var queue =  new metasync.ConcurrentQueue(2000, 2000);
-  queue.on('process', processItem);
 
   function processItem(item, callback) {
     gs.create(item, function() {
@@ -90,21 +90,21 @@ function mongodbProviderTest() {
       console.log('opened');
       if (err) console.dir(err);
       gs
-      .create({ category: 'Person', name: 'Marcus' }, function() {
-        gs
-        .select({ category: 'Person', name: 'Marcus' })
-        .modify({ name: 'Aurelius' }, function() {
+        .create({ category: 'Person', name: 'Marcus' }, function() {
           gs
-          .select({ category: 'Person' })
-          .limit(3)
-          .desc(['id'])
-          .projection(['id', 'name'])
-          .toArray(function(err, data) {
-            console.dir([err, data]);
-            connection.close();
-          });
+            .select({ category: 'Person', name: 'Marcus' })
+            .modify({ name: 'Aurelius' }, function() {
+              gs
+                .select({ category: 'Person' })
+                .limit(3)
+                .desc(['id'])
+                .projection(['id', 'name'])
+                .toArray(function(err, data) {
+                  console.dir([err, data]);
+                  connection.close();
+                });
+            });
         });
-      });
     });
   });
 
