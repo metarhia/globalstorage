@@ -30,7 +30,8 @@
   },
   "main": "./globalstorage.js",
   "scripts": {
-    "test": "node ./test/examples.js"
+    "test": "node ./test/examples.js",
+    "lint": "eslint ."
   },
   "readmeFilename": "README.md"
 }
