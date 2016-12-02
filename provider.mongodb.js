@@ -44,6 +44,9 @@ MongodbProvider.prototype.close = function(callback) {
 };
 
 MongodbProvider.prototype.category = function(name) {
+  if (!name) {
+    throw new Error('Category is not specifyed');
+  }
   return this.connection.collection('c' + name);
 };
 

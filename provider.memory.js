@@ -38,6 +38,7 @@ MemoryProvider.prototype.get = function(id, callback) {
 };
 
 MemoryProvider.prototype.create = function(obj, callback) {
+  this.dataset.push(obj);
   callback();
 };
 
