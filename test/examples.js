@@ -1,6 +1,6 @@
 'use strict';
 
-var gs = require('./globalstorage.js');
+var gs = require('..');
 var metasync = require('metasync');
 var mongodb = require('mongodb').MongoClient;
 

@@ -21,7 +21,7 @@
   "dependencies": {
     "metasync": ">=0.0.8",
     "mkdirp": "0.5.x",
-    "metarhia-jstp": "0.3.x"
+    "metarhia-jstp": "0.4.x"
   },
   "devDependencies": {
     "eslint": "^3.8.1",
@@ -30,7 +30,8 @@
   },
   "main": "./globalstorage.js",
   "scripts": {
-    "test": "node ./examples.js"
+    "test": "node ./test/examples.js",
+    "lint": "eslint ."
   },
   "readmeFilename": "README.md"
 }
