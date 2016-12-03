@@ -89,23 +89,35 @@ function mongodbProviderTest() {
     }, function(err) {
       console.log('opened');
       if (err) console.dir(err);
-      gs
-        .create({ category: 'Person', name: 'Marcus' }, function() {
-          gs
-            .select({ category: 'Person', name: 'Marcus' })
-            .modify({ name: 'Aurelius' }, function() {
-              gs
-                .select({ category: 'Person' })
-                .limit(3)
-                .desc(['id'])
-                .projection(['id', 'name'])
-                .toArray(function(err, data) {
-                  console.dir([err, data]);
-                  connection.close();
-                });
-            });
-        });
+
+      gs.create({ category: 'Person', name: 'Marcus' }, function() {
+        gs.select({ category: 'Person', name: 'Marcus' })
+          .modify({ name: 'Aurelius' }, function() {
+            gs.select({ category: 'Person' })
+              .limit(3)
+              .desc(['id'])
+              .projection(['id', 'name'])
+              .fetch(function(err, data) {
+                console.dir([err, data]);
+                end();
+              });
+          });
+
+        gs.select({ category: 'Person', name: 'Aurelius' })
+          .next(function(err, record) {
+            console.dir({ record: record });
+            end();
+          });
+
+      });
+
     });
+
+    var count = 0;
+    function end() {
+      if (++count === 2) connection.close();
+    }
+
   });
 
 }

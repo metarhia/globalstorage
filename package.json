@@ -1,6 +1,6 @@
 {
   "name": "globalstorage",
-  "version": "0.0.27",
+  "version": "0.0.28",
   "author": "Timur Shemsedinov <timur.shemsedinov@gmail.com>",
   "description": "Global Storage is a Global Distributed Data Warehouse",
   "license": "MIT",
@@ -27,9 +27,9 @@
     "eslint": "^3.8.1",
     "mongodb": "2.2.x"
   },
-  "main": "./globalstorage.js",
+  "main": "lib/globalstorage",
   "scripts": {
-    "test": "node ./test/examples.js",
+    "test": "node test/examples",
     "lint": "eslint ."
   },
   "readmeFilename": "README.md"
