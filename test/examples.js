@@ -49,6 +49,12 @@ function fsProviderTest() {
       for (var i = 0; i < 100; i++) {
         queue.add({ num: i });
       }
+      gs.select({ category: 'Person', name: 'Marcus' })
+        .limit(10)
+        .fetch(function(err, data) {
+          console.log('Select test: ');
+          console.dir([err, data]);
+        });
     }
   });
 
