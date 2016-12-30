@@ -1,8 +1,8 @@
 'use strict';
 
-var gs = require('..');
-var metasync = require('metasync');
-var mongodb = require('mongodb').MongoClient;
+const gs = require('..');
+const metasync = require('metasync');
+const mongodb = require('mongodb').MongoClient;
 
 memoryProviderTest();
 //fsProviderTest();
@@ -12,8 +12,8 @@ mongodbProviderTest();
 //
 function memoryProviderTest() {
 
-  var ds1 = [ { id: 1 }, { id: 2 } ];
-  var ds2 = [ { id: 2 }, { id: 3 } ];
+  const ds1 = [ { id: 1 }, { id: 2 } ];
+  const ds2 = [ { id: 2 }, { id: 3 } ];
 
   console.dir({
     union: gs.transformations.union(ds1, ds2),
@@ -22,8 +22,8 @@ function memoryProviderTest() {
     complement: gs.transformations.complement(ds1, ds2)
   });
 
-  var mc1 = new gs.MemoryCursor(null, ds1);
-  var mc2 = mc1.clone();
+  const mc1 = new gs.MemoryCursor(null, ds1);
+  const mc2 = mc1.clone();
 
   mc1.dataset[0].name = 'qwerty';
   console.dir(mc1.dataset);
@@ -35,23 +35,23 @@ function memoryProviderTest() {
 //
 function fsProviderTest() {
 
-  var queue = new metasync.ConcurrentQueue(2000, 2000);
+  const queue = new metasync.ConcurrentQueue(2000, 2000);
   queue.on('process', processItem);
 
   gs.open({
-    gs: gs,
+    gs,
     provider: 'fs',
     path: './data'
-  }, function(err) {
+  }, (err) => {
     if (err) console.dir(err);
     else {
       console.time('insert');
-      for (var i = 0; i < 100; i++) {
+      for (let i = 0; i < 100; i++) {
         queue.add({ num: i });
       }
       gs.select({ category: 'Person', name: 'Marcus' })
         .limit(10)
-        .fetch(function(err, data) {
+        .fetch((err, data) => {
           console.log('Select test: ');
           console.dir([err, data]);
         });
@@ -59,9 +59,9 @@ function fsProviderTest() {
   });
 
   function processItem(item, callback) {
-    gs.create(item, function() {
+    gs.create(item, () => {
       item.name = item.id % 2 ? 'Marcus' : 'Aurelius';
-      gs.update(item, function() {
+      gs.update(item, () => {
         if (item.id % 3) {
           gs.delete(item.id, callback);
         } else {
@@ -71,11 +71,11 @@ function fsProviderTest() {
     });
   }
 
-  queue.on('timeout', function() {
+  queue.on('timeout', () => {
     console.log('Insert test error, file writing timeout');
   });
 
-  queue.on('empty', function() {
+  queue.on('empty', () => {
     console.timeEnd('insert');
     console.log('Insert test done');
   });
@@ -86,32 +86,32 @@ function fsProviderTest() {
 //
 function mongodbProviderTest() {
 
-  var url = 'mongodb://127.0.0.1:27017/globalstorage';
-  mongodb.connect(url, function(err, connection) {
+  const url = 'mongodb://127.0.0.1:27017/globalstorage';
+  mongodb.connect(url, (err, connection) => {
     gs.open({
-      gs: gs,
+      gs,
       provider: 'mongodb',
-      connection: connection
-    }, function(err) {
+      connection
+    }, (err) => {
       console.log('opened');
       if (err) console.dir(err);
 
-      gs.create({ category: 'Person', name: 'Marcus' }, function() {
+      gs.create({ category: 'Person', name: 'Marcus' }, () => {
         gs.select({ category: 'Person', name: 'Marcus' })
-          .modify({ name: 'Aurelius' }, function() {
+          .modify({ name: 'Aurelius' }, () => {
             gs.select({ category: 'Person' })
               .limit(3)
               .desc(['id'])
               .projection(['id', 'name'])
-              .fetch(function(err, data) {
+              .fetch((err, data) => {
                 console.dir([err, data]);
                 end();
               });
           });
 
         gs.select({ category: 'Person', name: 'Aurelius' })
-          .next(function(err, record) {
-            console.dir({ record: record });
+          .next((err, record) => {
+            console.dir({ record });
             end();
           });
 
@@ -119,7 +119,7 @@ function mongodbProviderTest() {
 
     });
 
-    var count = 0;
+    let count = 0;
     function end() {
       if (++count === 2) connection.close();
     }
