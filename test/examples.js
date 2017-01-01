@@ -46,7 +46,8 @@ function fsProviderTest() {
     if (err) console.dir(err);
     else {
       console.time('insert');
-      for (let i = 0; i < 100; i++) {
+      let i;
+      for (i = 0; i < 100; i++) {
         queue.add({ num: i });
       }
       gs.select({ category: 'Person', name: 'Marcus' })
