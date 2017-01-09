@@ -1,7 +1,7 @@
 # GlobalStorage
 
 [![TravisCI](https://img.shields.io/travis/metarhia/GlobalStorage.svg?branch=master&style=flat-square)](https://travis-ci.org/metarhia/GlobalStorage)
-[![Dependency](https://img.shields.io/david/metarhia/GlobalStorage.svg?style=flat-square)](https://david-dm.org/metarhia/GlobalStorage)
+[![bitHound](https://img.shields.io/bithound/dependencies/github/metarhia/GlobalStorage.svg?style=flat-square)](https://www.bithound.io/github/metarhia/GlobalStorage)
 [![NPM Version](https://img.shields.io/npm/v/globalstorage.svg?style=flat-square)](https://www.npmjs.com/package/globalstorage)
 [![NPM Downloads/Month](https://img.shields.io/npm/dm/globalstorage.svg?style=flat-square)](https://www.npmjs.com/package/globalstorage)
 [![NPM Downloads](https://img.shields.io/npm/dt/globalstorage.svg?style=flat-square)](https://www.npmjs.com/package/globalstorage)
