@@ -8,8 +8,6 @@ memoryProviderTest();
 //fsProviderTest();
 mongodbProviderTest();
 
-// Memory
-//
 function memoryProviderTest() {
 
   const ds1 = [ { id: 1 }, { id: 2 } ];
@@ -31,8 +29,6 @@ function memoryProviderTest() {
 
 }
 
-// Filesystem
-//
 function fsProviderTest() {
 
   const queue = new metasync.ConcurrentQueue(2000, 2000);
@@ -83,8 +79,6 @@ function fsProviderTest() {
 
 }
 
-// Mongodb
-//
 function mongodbProviderTest() {
 
   const url = 'mongodb://127.0.0.1:27017/globalstorage';

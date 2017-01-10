@@ -27,7 +27,7 @@
     "metarhia-jstp": "0.6.x"
   },
   "devDependencies": {
-    "eslint": "^3.8.1",
+    "eslint": "3.x",
     "mongodb": "2.2.x"
   },
   "main": "lib/globalstorage",
