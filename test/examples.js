@@ -104,6 +104,7 @@ function mongodbProviderTest() {
               .limit(3)
               .desc(['id'])
               .projection(['id', 'name'])
+              .distinct()
               .fetch((err, data) => {
                 console.dir([err, data]);
                 end();
