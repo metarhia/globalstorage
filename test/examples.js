@@ -33,7 +33,7 @@ function memoryProviderTest() {
   const mc4 = mc1.clone().desc(['id', 'name'], true);
   console.dir({ mc4: mc4.dataset });
 
-  let persons = [
+  const persons = [
     { name: 'Marcus Aurelius', city: 'Rome', born: 121 },
     { name: 'Victor Glushkov', city: 'Rostov on Don', born: 1923 },
     { name: 'Ibn Arabi', city: 'Murcia', born: 1165 },
@@ -57,20 +57,18 @@ function fsProviderTest() {
     provider: 'fs',
     path: './data'
   }, (err) => {
-    if (err) console.dir(err);
-    else {
-      console.time('insert');
-      let i;
-      for (i = 0; i < 100; i++) {
-        queue.add({ num: i });
-      }
-      gs.select({ category: 'Person', name: 'Marcus' })
-        .limit(10)
-        .fetch((err, data) => {
-          console.log('Select test: ');
-          console.dir([err, data]);
-        });
+    if (err) return console.dir(err);
+    console.time('insert');
+    let i;
+    for (i = 0; i < 100; i++) {
+      queue.add({ num: i });
     }
+    gs.select({ category: 'Person', name: 'Marcus' })
+      .limit(10)
+      .fetch((err, data) => {
+        console.log('Select test: ');
+        console.dir([err, data]);
+      });
   });
 
   function processItem(item, callback) {
