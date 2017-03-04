@@ -2,26 +2,25 @@
 
 // Global Storage API
 
-const util = require('util');
 const NO_STORAGE = 'No storage provider available';
 
-const StorageProvider = require('./provider.js');
+const StorageProvider = require('./lib/provider.js');
 const gs = new StorageProvider();
 module.exports = gs;
 gs.StorageProvider = StorageProvider;
 
-gs.FsProvider = require('./provider.fs.js');
-gs.MemoryProvider = require('./provider.memory.js');
-gs.MongodbProvider = require('./provider.mongodb.js');
+gs.FsProvider = require('./lib/provider.fs.js');
+gs.MemoryProvider = require('./lib/provider.memory.js');
+gs.MongodbProvider = require('./lib/provider.mongodb.js');
 
-gs.Cursor = require('./cursor.js');
-gs.FsCursor = require('./cursor.fs.js');
-gs.MemoryCursor = require('./cursor.memory.js');
-gs.MongodbCursor = require('./cursor.mongodb.js');
+gs.Cursor = require('./lib/cursor.js');
+gs.FsCursor = require('./lib/cursor.fs.js');
+gs.MemoryCursor = require('./lib/cursor.memory.js');
+gs.MongodbCursor = require('./lib/cursor.mongodb.js');
 
-gs.Connection = require('./connection.js');
-gs.Category = require('./category.js');
-gs.transformations = require('./transformations.js');
+gs.Connection = require('./lib/connection.js');
+gs.Category = require('./lib/category.js');
+gs.transformations = require('./lib/transformations.js');
 
 // Hash keyed by provider name
 //
