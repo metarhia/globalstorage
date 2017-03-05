@@ -1,10 +1,10 @@
 # GlobalStorage
 
 [![TravisCI](https://travis-ci.org/metarhia/GlobalStorage.svg?branch=master)](https://travis-ci.org/metarhia/GlobalStorage)
-[![bitHound](https://www.bithound.io/github/metarhia/GlobalStorage/badges/score.svg)](https://www.bithound.io/github/metarhia/GlobalStorages)
+[![bitHound](https://www.bithound.io/github/metarhia/GlobalStorage/badges/score.svg)](https://www.bithound.io/github/metarhia/GlobalStorage)
 [![NPM Version](https://badge.fury.io/js/globalstorage.svg)](https://badge.fury.io/js/globalstorage)
-[![NPM Downloads/Month](https://img.shields.io/npm/dm/globalstorage.svg?style=flat-square)](https://www.npmjs.com/package/globalstorage)
-[![NPM Downloads](https://img.shields.io/npm/dt/globalstorage.svg?style=flat-square)](https://www.npmjs.com/package/globalstorage)
+[![NPM Downloads/Month](https://img.shields.io/npm/dm/globalstorage.svg)](https://www.npmjs.com/package/globalstorage)
+[![NPM Downloads](https://img.shields.io/npm/dt/globalstorage.svg)](https://www.npmjs.com/package/globalstorage)
 
 
 ## The Concept
