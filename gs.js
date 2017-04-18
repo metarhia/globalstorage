@@ -2,25 +2,49 @@
 
 // Global Storage API
 
-const NO_STORAGE = 'No storage provider available';
+const api = {};
 
-const StorageProvider = require('./lib/provider.js');
+api.fs = require('fs');
+api.util = require('util');
+api.events = require('events');
+api.crypto = require('crypto');
+api.mkdirp = require('mkdirp');
+
+api.jstp = require('metarhia-jstp');
+api.common = require('metarhia-common');
+api.metasync = require('metasync');
+
+const StorageProvider = require('./lib/provider');
 const gs = new StorageProvider();
 module.exports = gs;
-gs.StorageProvider = StorageProvider;
 
-gs.FsProvider = require('./lib/provider.fs.js');
-gs.MemoryProvider = require('./lib/provider.memory.js');
-gs.MongodbProvider = require('./lib/provider.mongodb.js');
+{
 
-gs.Cursor = require('./lib/cursor.js');
-gs.FsCursor = require('./lib/cursor.fs.js');
-gs.MemoryCursor = require('./lib/cursor.memory.js');
-gs.MongodbCursor = require('./lib/cursor.mongodb.js');
+  const imports = {
+    StorageProvider: 'provider',
+    FsProvider: 'provider.fs',
+    MemoryProvider: 'provider.memory',
+    MongodbProvider: 'provider.mongodb',
 
-gs.Connection = require('./lib/connection.js');
-gs.Category = require('./lib/category.js');
-gs.transformations = require('./lib/transformations.js');
+    Cursor: 'cursor',
+    FsCursor: 'cursor.fs',
+    MemoryCursor: 'cursor.memory',
+    MongodbCursor: 'cursor.mongodb',
+
+    Connection: 'connection',
+    Category: 'category',
+    transformations: 'transformations'
+  };
+
+  let name, file;
+  for (name in imports) {
+    file = './lib/' + imports[name];
+    gs[name] = require(file);
+  }
+
+}
+
+const NO_STORAGE = 'No storage provider available';
 
 // Hash keyed by provider name
 //
@@ -95,12 +119,10 @@ gs.category = (
 };
 
 gs.get = (id, callback) => {
-  if (gs.memoryStorageProvider) {
-    gs.memoryStorageProvider.get(id, (err, data) => {
-      if (data) callback(null, data);
-      else get(id, callback);
-    });
-  } else get(id, callback);
+  gs.memoryStorageProvider.get(id, (err, data) => {
+    if (data) callback(null, data);
+    else get(id, callback);
+  });
 
   function get(id, callback) {
     if (gs.local) {
