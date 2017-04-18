@@ -33,7 +33,7 @@
   },
   "main": "gs.js",
   "scripts": {
-    "test": "node test/examples",
+    "test": "node test/examples && npm run lint",
     "lint": "eslint ."
   },
   "readmeFilename": "README.md",
