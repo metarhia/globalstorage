@@ -6,7 +6,7 @@ api.metasync = require('metasync');
 api.mongodb = require('mongodb').MongoClient;
 
 memoryProviderTest();
-//fsProviderTest();
+if (!api) fsProviderTest();
 mongodbProviderTest();
 
 function memoryProviderTest() {
