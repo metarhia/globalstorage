@@ -247,5 +247,4 @@ gs.nextId = 0;
 // Get server for id
 //
 gs.generateId = () => gs.nextId++;
-// TODO: implement id chunks for separate processes
 // This function not used now
