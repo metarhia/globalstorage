@@ -4,6 +4,7 @@
 
 const api = {};
 
+api.gs = {};
 api.fs = require('fs');
 api.util = require('util');
 api.events = require('events');
@@ -14,8 +15,9 @@ api.jstp = require('metarhia-jstp');
 api.common = require('metarhia-common');
 api.metasync = require('metasync');
 
-const StorageProvider = require('./lib/provider');
-const gs = new StorageProvider();
+require('./lib/provider')(api);
+const gs = new api.gs.StorageProvider();
+api.gs = gs;
 module.exports = gs;
 
 {
@@ -39,7 +41,7 @@ module.exports = gs;
   let name, file;
   for (name in imports) {
     file = './lib/' + imports[name];
-    gs[name] = require(file);
+    require(file)(api);
   }
 
 }
