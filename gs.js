@@ -1,7 +1,5 @@
 'use strict';
 
-// Global Storage API
-
 const api = {};
 
 api.gs = {};
@@ -46,7 +44,8 @@ module.exports = gs;
 
 }
 
-const NO_STORAGE = 'No storage provider available';
+api.gs.NO_STORAGE = 'No storage provider available';
+api.gs.NOT_IMPLEMENTED = 'Not implemented';
 
 // Hash keyed by provider name
 //
@@ -84,7 +83,7 @@ gs.open = (options, callback) => {
     gs.active = true;
     gs.local.open(options, callback);
   } else {
-    callback(new Error(NO_STORAGE));
+    callback(new Error(api.gs.NO_STORAGE));
   }
 };
 
@@ -135,7 +134,7 @@ gs.get = (id, callback) => {
         connection.get(id, callback);
       });
     } else if (callback) {
-      callback(new Error(NO_STORAGE));
+      callback(new Error(api.gs.NO_STORAGE));
     }
   }
 };
@@ -144,7 +143,7 @@ gs.create = (obj, callback) => {
   if (gs.local) {
     gs.local.create(obj, callback);
   } else if (callback) {
-    callback(new Error(NO_STORAGE));
+    callback(new Error(api.gs.NO_STORAGE));
   }
 };
 
@@ -152,7 +151,7 @@ gs.update = (obj, callback) => {
   if (gs.local) {
     gs.local.update(obj, callback);
   } else if (callback) {
-    callback(new Error(NO_STORAGE));
+    callback(new Error(api.gs.NO_STORAGE));
   }
 };
 
@@ -160,7 +159,7 @@ gs.delete = (id, callback) => {
   if (gs.local) {
     gs.local.delete(id, callback);
   } else if (callback) {
-    callback(new Error(NO_STORAGE));
+    callback(new Error(api.gs.NO_STORAGE));
   }
 };
 
@@ -168,7 +167,7 @@ gs.select = (query, options, callback) => {
   if (gs.local) {
     return gs.local.select(query, options, callback);
   } else if (callback) {
-    callback(new Error(NO_STORAGE));
+    callback(new Error(api.gs.NO_STORAGE));
   }
 };
 
@@ -176,7 +175,7 @@ gs.index = (def, callback) => {
   if (gs.local) {
     gs.local.index(def, callback);
   } else if (callback) {
-    callback(new Error(NO_STORAGE));
+    callback(new Error(api.gs.NO_STORAGE));
   }
 };
 
