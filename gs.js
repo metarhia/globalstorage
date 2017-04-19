@@ -18,31 +18,10 @@ const gs = new api.gs.StorageProvider();
 api.gs = gs;
 module.exports = gs;
 
-{
-
-  const imports = {
-    StorageProvider: 'provider',
-    FsProvider: 'provider.fs',
-    MemoryProvider: 'provider.memory',
-    MongodbProvider: 'provider.mongodb',
-
-    Cursor: 'cursor',
-    FsCursor: 'cursor.fs',
-    MemoryCursor: 'cursor.memory',
-    MongodbCursor: 'cursor.mongodb',
-
-    Connection: 'connection',
-    Category: 'category',
-    transformations: 'transformations'
-  };
-
-  let name, file;
-  for (name in imports) {
-    file = './lib/' + imports[name];
-    require(file)(api);
-  }
-
-}
+[ 'provider', 'provider.fs', 'provider.memory', 'provider.mongodb',
+  'cursor', 'cursor.fs', 'cursor.memory', 'cursor.mongodb',
+  'connection', 'category', 'transformations'
+].forEach((name) => require('./lib/' + name)(api));
 
 api.gs.NO_STORAGE = 'No storage provider available';
 api.gs.NOT_IMPLEMENTED = 'Not implemented';
@@ -223,7 +202,7 @@ function buildIndex(tree) {
   return result;
 }
 
-// Assign new tnfrastructure tree
+// Assign new infrastructure tree
 //
 gs.infrastructure.assign = (tree) => {
   gs.infrastructure.servers = tree;
