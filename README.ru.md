@@ -4,9 +4,9 @@
 
 Это распределенная СУБД для стека технологий [Metarhia](https://github.com/metarhia/Metarhia)
 построенная на следующих принципах:
-* Встраивание в процесс сервера приложений [Impress](https://github.com/metarhia/Impress)
+* Встраивание в процесс сервера приложений [Impress](https://github.com/metarhia/impress)
 для того, чтобы избежать лишнего межпроцессового взаимодействия;
-* Глубокая совместимость с сетевым протоколом [JSTP](https://github.com/metarhia/JSTP),
+* Глубокая совместимость с сетевым протоколом [JSTP](https://github.com/metarhia/jstp),
 данные хранятся на диске и памяти в формате, близком протоколу;
 * Формат передачи данных по протоколу и формат хранения могут не содержать
 идентификаторов полей, что уменьшает их размер; значения полей хранятся в
@@ -30,9 +30,9 @@
 с версионностью и ветвлением, как в git;
 * Глобальная унификация структур данных в рамках всех систем, работающих на
 стеке технологий [Metarhia](https://github.com/metarhia/Metarhia), т.е.
-[GlobalStorage](https://github.com/metarhia/GlobalStorage),
-[Impress](https://github.com/metarhia/Impress),
-[JSTP](https://github.com/metarhia/JSTP) и
+[GlobalStorage](https://github.com/metarhia/globalstorage),
+[Impress](https://github.com/metarhia/impress),
+[JSTP](https://github.com/metarhia/jstp) и
 [Console](https://github.com/metarhia/Console) через модерируемые распределенные
 репозитории структур данных;
 * Возможность работать с не унифицированными данными, специфическими для
