@@ -1,7 +1,7 @@
 # GlobalStorage
 
-[![TravisCI](https://travis-ci.org/metarhia/GlobalStorage.svg?branch=master)](https://travis-ci.org/metarhia/GlobalStorage)
-[![bitHound](https://www.bithound.io/github/metarhia/GlobalStorage/badges/score.svg)](https://www.bithound.io/github/metarhia/GlobalStorage)
+[![TravisCI](https://travis-ci.org/metarhia/globalstorage.svg?branch=master)](https://travis-ci.org/metarhia/globalstorage)
+[![bitHound](https://www.bithound.io/github/metarhia/globalstorage/badges/score.svg)](https://www.bithound.io/github/metarhia/globalstorage)
 [![NPM Version](https://badge.fury.io/js/globalstorage.svg)](https://badge.fury.io/js/globalstorage)
 [![NPM Downloads/Month](https://img.shields.io/npm/dm/globalstorage.svg)](https://www.npmjs.com/package/globalstorage)
 [![NPM Downloads](https://img.shields.io/npm/dt/globalstorage.svg)](https://www.npmjs.com/package/globalstorage)
@@ -10,8 +10,8 @@
 ## The Concept
 
 This is a distributed DBMS for technological stack [Metarhia](https://github.com/metarhia/Metarhia) and it is built with following assumptions:
-* GS is designed to be built-in DBMS, to work inside [Impress Applications Server](https://github.com/metarhia/Impress); it is needed to avoid or minimize interprocess communication to access DB;
-* GS is compatible with JSTP [JavaScript Transfer Protocol](https://github.com/metarhia/JSTP), all data slould be stored, stansmitted, handled and placed in RAM in the same format;
+* GS is designed to be built-in DBMS, to work inside [Impress Applications Server](https://github.com/metarhia/impress); it is needed to avoid or minimize interprocess communication to access DB;
+* GS is compatible with JSTP [JavaScript Transfer Protocol](https://github.com/metarhia/jstp), all data slould be stored, stansmitted, handled and placed in RAM in the same format;
 * All data structures can be reduced to array representation to redice size by removing key names, we can do that with the help of metadata schemas and we can dynamicaly build prototypes from schemas and assign them to arrays, so getters/setters will convert access by name (hash) to assess by position (array);
 * Maximum memory usage, read-ahead and lazy-write, minimizing data conversion;
 * Using metadata everywhere, special declarative format for subject domein representation including fields, relations, and indices so we can automatically build a storage scheme in the relational database, memory structures and  structure for the database, different the GUI, API server, etc.
@@ -21,7 +21,7 @@ This is a distributed DBMS for technological stack [Metarhia](https://github.com
   - sharding for distributed storage of large data amounts, geo-distribution, save backup copies, access load balancing;
   - allows user to exchange data in P2P mode;
 * Syncronization between client and server in realtime (close to realtime) and in lazy mode; so applications can work in online and offline (with locally stored data); having bidirectional data sync and hieratchical versioning like git have;
-* Global data structures unification for applications working with [Metarhia](https://github.com/metarhia/Metarhia) technological stack: [GlobalStorage](https://github.com/metarhia/GlobalStorage), [Impress](https://github.com/metarhia/Impress), [JSTP](https://github.com/metarhia/JSTP) and [Console](https://github.com/metarhia/Console) through moderated distributed metadata repositories;
+* Global data structures unification for applications working with [Metarhia](https://github.com/metarhia/Metarhia) technological stack: [GlobalStorage](https://github.com/metarhia/globalgtorage), [Impress](https://github.com/metarhia/impress), [JSTP](https://github.com/metarhia/jstp) and [Console](https://github.com/metarhia/console) through moderated distributed metadata repositories;
 * Ability to work with non-unified data structures (custom schemas), specific to certain subject domain;
 * GlobalStorage provides DAC (data access layer) abstraction, it substitutes ORM but it does not necessarily make maping on the relational model (though RDBMS are also supported);
 * Data structures have global distributed identification system, so data can be inserted anywhere and will not bring ID  conflicts;
