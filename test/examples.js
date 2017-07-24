@@ -1,12 +1,11 @@
 'use strict';
 
 const gs = require('..');
-const api = {};
-api.metasync = require('metasync');
-api.mongodb = require('mongodb').MongoClient;
+const metasync = require('metasync');
+const mongodb = require('mongodb').MongoClient;
 
 memoryProviderTest();
-if (!api) fsProviderTest();
+if (!gs) fsProviderTest();
 mongodbProviderTest();
 
 function memoryProviderTest() {
@@ -50,7 +49,7 @@ function memoryProviderTest() {
 
 function fsProviderTest() {
 
-  const queue = new api.metasync.ConcurrentQueue(2000, 2000);
+  const queue = new metasync.ConcurrentQueue(2000, 2000);
   queue.on('process', processItem);
 
   gs.open({
@@ -99,7 +98,7 @@ function fsProviderTest() {
 function mongodbProviderTest() {
 
   const url = 'mongodb://127.0.0.1:27017/globalstorage';
-  api.mongodb.connect(url, (err, connection) => {
+  mongodb.connect(url, (err, connection) => {
     gs.open({
       gs,
       provider: 'mongodb',
