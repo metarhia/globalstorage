@@ -101,7 +101,10 @@ GlobalStorage.prototype.get = function(
   function get(id, callback) {
     if (this.local) {
       this.local.get(id, (err, data) => {
-        if (!err) return callback(null, data);
+        if (!err) {
+          callback(null, data);
+          return;
+        }
         const sid = this.findServer(id);
         const connection = this.infrastructure.index[sid];
         connection.get(id, callback);
@@ -155,10 +158,11 @@ GlobalStorage.prototype.select = function(
   callback // function(err, cursor)
 ) {
   if (this.local) {
-    return this.local.select(query, options, callback);
+    this.local.select(query, options, callback);
   } else if (callback) {
     callback(new Error(constants.NO_STORAGE));
   }
+  return this;
 };
 
 GlobalStorage.prototype.index = function(
