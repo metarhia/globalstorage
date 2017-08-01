@@ -1,6 +1,6 @@
 {
   "name": "globalstorage",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "author": "Timur Shemsedinov <timur.shemsedinov@gmail.com>",
   "description": "Global Storage is a Global Distributed Data Warehouse",
   "license": "MIT",
@@ -14,34 +14,28 @@
     "distributed",
     "dbms"
   ],
+  "readmeFilename": "README.md",
   "repository": {
     "type": "git",
     "url": "https://github.com/metarhia/globalstorage"
-  },
-  "engines": {
-    "node": ">=6.0.0"
-  },
-  "dependencies": {
-    "metarhia-common": "^0.0.14",
-    "metasync": "^0.3.4",
-    "mkdirp": "^0.5.1",
-    "metarhia-jstp": "^0.6.8"
-  },
-  "devDependencies": {
-    "eslint": "^4.1.1",
-    "mongodb": "^2.2.29"
   },
   "main": "gs.js",
   "scripts": {
     "test": "node test/test.all && npm run lint",
     "lint": "eslint ."
   },
-  "readmeFilename": "README.md",
-  "jshintConfig": {
-    "esversion": 6,
-    "predef": [],
-    "node": true,
-    "indent": 2,
-    "maxcomplexity": 25
+  "engines": {
+    "node": ">=6.0.0"
+  },
+  "dependencies": {
+    "metarhia-common": "^0.0.19",
+    "metasync": "^0.3.7",
+    "mkdirp": "^0.5.1",
+    "metarhia-jstp": "^0.6.8"
+  },
+  "devDependencies": {
+    "eslint": "^4.1.1",
+    "mongodb": "^2.2.29",
+    "metaschema": "^0.0.3"
   }
 }
