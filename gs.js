@@ -158,11 +158,11 @@ GlobalStorage.prototype.select = function(
   callback // function(err, cursor)
 ) {
   if (this.local) {
-    this.local.select(query, options, callback);
-  } else if (callback) {
+    return this.local.select(query, options, callback);
+  }
+  if (callback) {
     callback(new Error(constants.NO_STORAGE));
   }
-  return this;
 };
 
 GlobalStorage.prototype.index = function(
