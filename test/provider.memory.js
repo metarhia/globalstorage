@@ -21,10 +21,10 @@ module.exports = (api) => {
   console.dir(mc1.dataset);
   console.dir(mc2.dataset);
 
-  const mc3 = mc1.clone().order('id', true);
+  const mc3 = mc1.clone().order('id');
   console.dir({ mc3: mc3.dataset });
 
-  const mc4 = mc1.clone().desc(['id', 'name'], true);
+  const mc4 = mc1.clone().desc(['id', 'name']);
   console.dir({ mc4: mc4.dataset });
 
   const persons = [
@@ -36,7 +36,7 @@ module.exports = (api) => {
   ];
 
   const mcPersons = new gs.MemoryCursor(null, persons);
-  mcPersons.select({ born: ['<', 1500] }, true).order('born', true);
+  mcPersons.select({ born: ['<', 1500] }).order('born');
   console.dir({ mcPersons: mcPersons.dataset });
 
 };
