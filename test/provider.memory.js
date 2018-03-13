@@ -21,11 +21,17 @@ module.exports = (api) => {
   console.dir(mc1.dataset);
   console.dir(mc2.dataset);
 
-  const mc3 = mc1.clone().order('id');
-  console.dir({ mc3: mc3.dataset });
+  mc1.clone()
+    .order('id')
+    .fetch((err, data) => {
+      console.dir({ order: data });
+    });
 
-  const mc4 = mc1.clone().desc(['id', 'name']);
-  console.dir({ mc4: mc4.dataset });
+  mc1.clone()
+    .desc(['id', 'name'])
+    .fetch((err, data) => {
+      console.dir({ desc: data });
+    });
 
   const persons = [
     { name: 'Marcus Aurelius', city: 'Rome', born: 121 },
@@ -36,7 +42,11 @@ module.exports = (api) => {
   ];
 
   const mcPersons = new gs.MemoryCursor(null, persons);
-  mcPersons.select({ born: ['<', 1500] }).order('born');
-  console.dir({ mcPersons: mcPersons.dataset });
+  mcPersons
+    .select({ born: ['<', 1500] })
+    .order('born')
+    .fetch((err, data) => {
+      console.dir({ selected: data });
+    });
 
 };
