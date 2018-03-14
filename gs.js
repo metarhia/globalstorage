@@ -5,6 +5,7 @@ const util = require('util');
 const constants = require('./lib/constants');
 const infrastructure = require('./lib/infrastructure');
 const transformations = require('./lib/transformations');
+const operations = require('./lib/operations');
 
 const StorageProvider = require('./lib/provider');
 
@@ -20,12 +21,6 @@ const Category = require('./lib/category');
 const Connection = require('./lib/connection');
 
 function GlobalStorage() {
-  this.providers = {
-    fs: FsProvider,
-    memory: MemoryProvider,
-    mongodb: MongodbProvider
-  };
-
   this.memory = new MemoryProvider();
   this.active = false;
   this.offline = true;
@@ -37,32 +32,36 @@ function GlobalStorage() {
   this.connections = {};
   this.nextId = 0;
   this.categories = {};
-
-  this.constants = constants;
-  this.infrastructure = infrastructure;
-  this.transformations = transformations;
-
-  this.FsCursor = FsCursor;
-  this.MemoryCursor = MemoryCursor;
-  this.MongodbCursor = MongodbCursor;
 }
 
 util.inherits(GlobalStorage, StorageProvider);
+
+GlobalStorage.providers = {
+  fs: FsProvider,
+  memory: MemoryProvider,
+  mongodb: MongodbProvider
+};
+
+GlobalStorage.prototype.constants = constants;
+GlobalStorage.prototype.infrastructure = infrastructure;
+GlobalStorage.prototype.transformations = transformations;
+GlobalStorage.prototype.operations = operations;
+
+GlobalStorage.prototype.FsCursor = FsCursor;
+GlobalStorage.prototype.MemoryCursor = MemoryCursor;
+GlobalStorage.prototype.MongodbCursor = MongodbCursor;
 
 GlobalStorage.prototype.open = function(
   // Open database
   options, // options
   callback // callback
 ) {
-  this.memory.open({ gs: options.gs }, () => {});
-  const Provider = this.providers[options.provider];
-  if (Provider) {
-    this.local = new Provider();
-    this.active = true;
-    this.local.open(options, callback);
-  } else {
-    callback(new Error(constants.NO_STORAGE));
-  }
+  this.memory.open({ gs: options.gs });
+  const providerName = options.provider || 'memory';
+  const Provider = GlobalStorage.providers[providerName];
+  this.local = new Provider();
+  this.active = true;
+  this.local.open(options, callback);
 };
 
 GlobalStorage.prototype.connect = function(
@@ -99,19 +98,15 @@ GlobalStorage.prototype.get = function(
   });
 
   function get(id, callback) {
-    if (this.local) {
-      this.local.get(id, (err, data) => {
-        if (!err) {
-          callback(null, data);
-          return;
-        }
-        const sid = this.findServer(id);
-        const connection = this.infrastructure.index[sid];
-        connection.get(id, callback);
-      });
-    } else if (callback) {
-      callback(new Error(constants.NO_STORAGE));
-    }
+    this.local.get(id, (err, data) => {
+      if (!err) {
+        callback(null, data);
+        return;
+      }
+      const sid = this.findServer(id);
+      const connection = this.infrastructure.index[sid];
+      connection.get(id, callback);
+    });
   }
 };
 
@@ -120,11 +115,7 @@ GlobalStorage.prototype.create = function(
   obj, // object
   callback // function(err, id)
 ) {
-  if (this.local) {
-    this.local.create(obj, callback);
-  } else if (callback) {
-    callback(new Error(constants.NO_STORAGE));
-  }
+  this.local.create(obj, callback);
 };
 
 GlobalStorage.prototype.update = function(
@@ -132,11 +123,7 @@ GlobalStorage.prototype.update = function(
   obj, // object
   callback // function(err)
 ) {
-  if (this.local) {
-    this.local.update(obj, callback);
-  } else if (callback) {
-    callback(new Error(constants.NO_STORAGE));
-  }
+  this.local.update(obj, callback);
 };
 
 GlobalStorage.prototype.delete = function(
@@ -144,11 +131,7 @@ GlobalStorage.prototype.delete = function(
   id, // object id
   callback // function(err)
 ) {
-  if (this.local) {
-    this.local.delete(id, callback);
-  } else if (callback) {
-    callback(new Error(constants.NO_STORAGE));
-  }
+  this.local.delete(id, callback);
 };
 
 GlobalStorage.prototype.select = function(
@@ -157,12 +140,7 @@ GlobalStorage.prototype.select = function(
   options, // object
   callback // function(err, cursor)
 ) {
-  if (this.local) {
-    return this.local.select(query, options, callback);
-  }
-  if (callback) {
-    callback(new Error(constants.NO_STORAGE));
-  }
+  return this.local.select(query, options, callback);
 };
 
 GlobalStorage.prototype.index = function(
@@ -170,11 +148,7 @@ GlobalStorage.prototype.index = function(
   def, // declarative definotion
   callback // function(err)
 ) {
-  if (this.local) {
-    this.local.index(def, callback);
-  } else if (callback) {
-    callback(new Error(constants.NO_STORAGE));
-  }
+  this.local.index(def, callback);
 };
 
 GlobalStorage.prototype.infrastructureAssign = function(
