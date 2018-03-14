@@ -6,11 +6,13 @@ module.exports = (api) => {
   api.mongodb = require('mongodb').MongoClient;
 
   const url = 'mongodb://127.0.0.1:27017/globalstorage';
-  api.mongodb.connect(url, (err, connection) => {
+  const dbName = url.substr(url.lastIndexOf('/') + 1);
 
-    gs.open({
-      gs, provider: 'mongodb', connection
-    }, (err) => {
+  api.mongodb.connect(url, (err, client) => {
+
+    const connection = client.db(dbName);
+
+    gs.open({ gs, provider: 'mongodb', connection }, (err) => {
 
       console.log('opened');
       if (err) console.dir(err);
@@ -31,7 +33,7 @@ module.exports = (api) => {
           });
 
         gs.select({ category: 'Person', name: 'Aurelius' })
-          .next((err, record) => {
+          .fetch((err, record) => {
             console.dir({ record });
             end();
           });
@@ -42,7 +44,7 @@ module.exports = (api) => {
 
     let count = 0;
     function end() {
-      if (++count === 2) connection.close();
+      if (++count === 2) client.close();
     }
 
   });
