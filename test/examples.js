@@ -132,7 +132,7 @@ function mongodbProviderTest() {
           });
 
         gs.select({ category: 'Person', name: 'Aurelius' })
-          .next((err, record) => {
+          .fetch((err, record) => {
             console.dir({ record });
             end();
           });

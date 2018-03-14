@@ -36,6 +36,6 @@
   "devDependencies": {
     "eslint": "^4.18.1",
     "metaschema": "^0.0.7",
-    "mongodb": "^2.2.35"
+    "mongodb": "^3.0.4"
   }
 }
