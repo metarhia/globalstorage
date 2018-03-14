@@ -92,12 +92,7 @@ GlobalStorage.prototype.get = function(
   id, // object id
   callback // function(err, object)
 ) {
-  this.memoryStorageProvider.get(id, (err, data) => {
-    if (data) callback(null, data);
-    else get(id, callback);
-  });
-
-  function get(id, callback) {
+  const get = (id, callback) => {
     this.local.get(id, (err, data) => {
       if (!err) {
         callback(null, data);
@@ -107,7 +102,12 @@ GlobalStorage.prototype.get = function(
       const connection = this.infrastructure.index[sid];
       connection.get(id, callback);
     });
-  }
+  };
+
+  this.memoryStorageProvider.get(id, (err, data) => {
+    if (data) callback(null, data);
+    else get(id, callback);
+  });
 };
 
 GlobalStorage.prototype.create = function(
