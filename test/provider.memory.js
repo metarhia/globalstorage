@@ -43,7 +43,7 @@ module.exports = (api) => {
 
   const mcPersons = new gs.MemoryCursor(null, persons);
   mcPersons
-    .select({ born: ['<', 1500] })
+    .select({ born: '< 1500' })
     .order('born')
     .fetch((err, data) => {
       console.dir({ selected: data });
