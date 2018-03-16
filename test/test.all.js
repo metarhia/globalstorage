@@ -4,5 +4,5 @@ const api = {};
 api.gs = require('..');
 api.metasync = require('metasync');
 
-['provider.memory', 'provider.mongodb']
+['memory', 'mongodb']
   .forEach(test => require('./' + test)(api));

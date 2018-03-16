@@ -9,13 +9,13 @@ const operations = require('./lib/operations');
 
 const StorageProvider = require('./lib/provider');
 
-const FsProvider = require('./lib/provider.fs');
-const MemoryProvider = require('./lib/provider.memory');
-const MongodbProvider = require('./lib/provider.mongodb');
+const FsProvider = require('./lib/fs.provider');
+const MemoryProvider = require('./lib/memory.provider');
+const MongodbProvider = require('./lib/mongodb.provider');
 
-const FsCursor = require('./lib/cursor.fs');
-const MemoryCursor = require('./lib/cursor.memory');
-const MongodbCursor = require('./lib/cursor.mongodb');
+const FsCursor = require('./lib/fs.cursor');
+const MemoryCursor = require('./lib/memory.cursor');
+const MongodbCursor = require('./lib/mongodb.cursor');
 
 const Category = require('./lib/category');
 const Connection = require('./lib/connection');
