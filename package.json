@@ -21,7 +21,7 @@
   },
   "main": "gs.js",
   "scripts": {
-    "test": "node test/test.all && npm run lint",
+    "test": "npm run lint && node test/test.all",
     "lint": "eslint ."
   },
   "engines": {
