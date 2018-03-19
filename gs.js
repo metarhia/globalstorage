@@ -1,6 +1,6 @@
 'use strict';
 
-const util = require('util');
+const common = require('metarhia-common');
 
 const core = require('./lib/core');
 const transformations = require('./lib/transformations');
@@ -32,7 +32,7 @@ function GlobalStorage() {
   this.categories = {};
 }
 
-util.inherits(GlobalStorage, StorageProvider);
+common.inherits(GlobalStorage, StorageProvider);
 
 GlobalStorage.prototype.providers = {
   fs: FsProvider,
