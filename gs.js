@@ -2,8 +2,7 @@
 
 const util = require('util');
 
-const constants = require('./lib/constants');
-const infrastructure = require('./lib/infrastructure');
+const core = require('./lib/core');
 const transformations = require('./lib/transformations');
 const operations = require('./lib/operations');
 
@@ -17,7 +16,6 @@ const FsCursor = require('./lib/fs.cursor');
 const MemoryCursor = require('./lib/memory.cursor');
 const MongodbCursor = require('./lib/mongodb.cursor');
 
-const Category = require('./lib/category');
 const Connection = require('./lib/connection');
 
 function GlobalStorage() {
@@ -36,20 +34,28 @@ function GlobalStorage() {
 
 util.inherits(GlobalStorage, StorageProvider);
 
-GlobalStorage.providers = {
+GlobalStorage.prototype.providers = {
   fs: FsProvider,
   memory: MemoryProvider,
   mongodb: MongodbProvider
 };
 
-GlobalStorage.prototype.constants = constants;
-GlobalStorage.prototype.infrastructure = infrastructure;
-GlobalStorage.prototype.transformations = transformations;
-GlobalStorage.prototype.operations = operations;
+GlobalStorage.prototype.FsProvider = FsProvider;
+GlobalStorage.prototype.MemoryProvider = MemoryProvider;
+GlobalStorage.prototype.MongodbProvider = MongodbProvider;
+
+GlobalStorage.prototype.cursors = {
+  fs: FsCursor,
+  memory: MemoryCursor,
+  mongodb: MongodbCursor
+};
 
 GlobalStorage.prototype.FsCursor = FsCursor;
 GlobalStorage.prototype.MemoryCursor = MemoryCursor;
 GlobalStorage.prototype.MongodbCursor = MongodbCursor;
+
+GlobalStorage.prototype.transformations = transformations;
+GlobalStorage.prototype.operations = operations;
 
 GlobalStorage.prototype.open = function(
   // Open database
@@ -58,7 +64,7 @@ GlobalStorage.prototype.open = function(
 ) {
   this.memory.open({ gs: options.gs });
   const providerName = options.provider || 'memory';
-  const Provider = GlobalStorage.providers[providerName];
+  const Provider = GlobalStorage.prototype.providers[providerName];
   this.local = new Provider();
   this.active = true;
   this.local.open(options, callback);
@@ -81,7 +87,7 @@ GlobalStorage.prototype.category = function(
 ) {
   let cat = this.categories[name];
   if (!cat) {
-    cat = new Category(name);
+    cat = new core.Category(name);
     this.categories[name] = cat;
   }
   callback(null, cat);
@@ -156,7 +162,7 @@ GlobalStorage.prototype.infrastructureAssign = function(
   tree // new infrastructure tree
 ) {
   this.infrastructure.servers = tree;
-  const index = infrastructure.buildIndex(tree);
+  const index = core.buildIndex(tree);
   this.infrastructure.index = index;
   this.infrastructure.bits = Math.log(index.length) / Math.log(2);
   this.infrastructure.mask = Math.pow(2, this.infrastructure.bits) - 1;
