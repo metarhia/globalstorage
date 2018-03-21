@@ -108,12 +108,11 @@ function fsProviderTest() {
 function mongodbProviderTest() {
 
   const url = 'mongodb://127.0.0.1:27017/globalstorage';
-  mongodb.connect(url, (err, connection) => {
-    gs.open({
-      gs,
-      provider: 'mongodb',
-      connection
-    }, (err) => {
+  const dbName = url.substr(url.lastIndexOf('/') + 1);
+
+  mongodb.connect(url, (err, client) => {
+    const db = client.db(dbName);
+    gs.open({ gs, provider: 'mongodb', client, db }, (err) => {
       console.log('opened');
       if (err) console.dir(err);
 
@@ -143,7 +142,7 @@ function mongodbProviderTest() {
 
     let count = 0;
     function end() {
-      if (++count === 2) connection.close();
+      if (++count === 2) client.close();
     }
 
   });

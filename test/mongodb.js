@@ -10,9 +10,9 @@ module.exports = (api) => {
 
   api.mongodb.connect(url, (err, client) => {
 
-    const connection = client.db(dbName);
+    const db = client.db(dbName);
 
-    gs.open({ gs, provider: 'mongodb', connection }, (err) => {
+    gs.open({ gs, provider: 'mongodb', client, db }, (err) => {
 
       console.log('opened');
       if (err) console.dir(err);
