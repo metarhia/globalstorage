@@ -20,7 +20,7 @@ function memoryProviderTest() {
     complement: gs.transformations.complement(ds1, ds2)
   });
 
-  const mc1 = new gs.MemoryCursor(null, ds1);
+  const mc1 = new gs.MemoryCursor(ds1);
   const mc2 = mc1.clone();
 
   mc1.dataset[0].name = 'qwerty';
@@ -47,7 +47,7 @@ function memoryProviderTest() {
     { name: 'Rene Descartes', city: 'La Haye en Touraine', born: 1596 }
   ];
 
-  const mcPersons = new gs.MemoryCursor(null, persons);
+  const mcPersons = new gs.MemoryCursor(persons);
   mcPersons
     .select({ born: '< 1500' })
     .order('born')
