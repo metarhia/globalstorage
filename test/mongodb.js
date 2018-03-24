@@ -33,9 +33,11 @@ module.exports = (api) => {
           });
 
         gs.select({ category: 'Person', name: 'Aurelius' })
-          .fetch((err, record) => {
-            console.dir({ record });
-            end();
+          .fetch((err, records) => {
+            console.dir({ records });
+            gs.delete({ category: 'Person' }, () => {
+              end();
+            });
           });
 
       });
