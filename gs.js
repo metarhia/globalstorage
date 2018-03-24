@@ -14,7 +14,7 @@ const submodules = [
 
 let gs = {};
 
-submodules.forEach(name => require('./lib/' + name)(gs));
+submodules.forEach(name => Object.assign(gs, require('./lib/' + name)));
 
 function GlobalStorage() {
   this.memory = new gs.MemoryProvider();
