@@ -7,32 +7,33 @@ const transformations = require('./lib/transformations');
 const operations = require('./lib/operations');
 
 const submodules = [
-  'provider', 'fs.provider', 'memory.provider', 'mongodb.provider',
-  'cursor', 'fs.cursor', 'memory.cursor', 'mongodb.cursor',
-  'connection'
+  'provider', 'cursor',
+  'memory.provider', 'memory.cursor',
+  'remote.provider', 'remote.cursor',
+  'fs.provider', 'fs.cursor',
+  'mongodb.provider', 'mongodb.cursor',
 ];
 
-let gs = {};
-
-submodules.forEach(name => Object.assign(gs, require('./lib/' + name)));
+const lib = {};
+submodules.forEach(name => Object.assign(lib, require('./lib/' + name)));
 
 function GlobalStorage() {
-  this.memory = new gs.MemoryProvider();
+  this.memory = new lib.MemoryProvider();
+  this.local = null;
+  this.remotes = {};
   this.active = false;
   this.offline = true;
-  this.local = null;
   this.infrastructure = {};
   this.infrastructureTree = {};
   this.infrastructureIndex = [];
   this.infrastructureMask = 0;
-  this.connections = {};
   this.nextId = 0;
   this.categories = {};
 }
 
-common.inherits(GlobalStorage, gs.StorageProvider);
+common.inherits(GlobalStorage, lib.StorageProvider);
 
-gs = Object.assign(new GlobalStorage(), gs);
+const gs = Object.assign(new GlobalStorage(), lib);
 module.exports = gs;
 
 gs.providers = {
@@ -69,7 +70,7 @@ GlobalStorage.prototype.connect = function(
   // Example: { url: 'gs://user:password@host:port/database' }
   callback // on connect function(err, connection)
 ) {
-  const connection = new gs.Connection(options);
+  const connection = new gs.RemoteProvider(options);
   callback(null, connection);
 };
 
