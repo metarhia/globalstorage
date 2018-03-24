@@ -6,20 +6,18 @@ const core = require('./lib/core');
 const transformations = require('./lib/transformations');
 const operations = require('./lib/operations');
 
-const StorageProvider = require('./lib/provider');
+const submodules = [
+  'provider', 'fs.provider', 'memory.provider', 'mongodb.provider',
+  'cursor', 'fs.cursor', 'memory.cursor', 'mongodb.cursor',
+  'connection'
+];
 
-const FsProvider = require('./lib/fs.provider');
-const MemoryProvider = require('./lib/memory.provider');
-const MongodbProvider = require('./lib/mongodb.provider');
+let gs = {};
 
-const FsCursor = require('./lib/fs.cursor');
-const MemoryCursor = require('./lib/memory.cursor');
-const MongodbCursor = require('./lib/mongodb.cursor');
-
-const Connection = require('./lib/connection');
+submodules.forEach(name => require('./lib/' + name)(gs));
 
 function GlobalStorage() {
-  this.memory = new MemoryProvider();
+  this.memory = new gs.MemoryProvider();
   this.active = false;
   this.offline = true;
   this.local = null;
@@ -32,30 +30,25 @@ function GlobalStorage() {
   this.categories = {};
 }
 
-common.inherits(GlobalStorage, StorageProvider);
+common.inherits(GlobalStorage, gs.StorageProvider);
 
-GlobalStorage.prototype.providers = {
-  fs: FsProvider,
-  memory: MemoryProvider,
-  mongodb: MongodbProvider
+gs = Object.assign(new GlobalStorage(), gs);
+module.exports = gs;
+
+gs.providers = {
+  fs: gs.FsProvider,
+  memory: gs.MemoryProvider,
+  mongodb: gs.MongodbProvider
 };
 
-GlobalStorage.prototype.FsProvider = FsProvider;
-GlobalStorage.prototype.MemoryProvider = MemoryProvider;
-GlobalStorage.prototype.MongodbProvider = MongodbProvider;
-
-GlobalStorage.prototype.cursors = {
-  fs: FsCursor,
-  memory: MemoryCursor,
-  mongodb: MongodbCursor
+gs.cursors = {
+  fs: gs.FsCursor,
+  memory: gs.MemoryCursor,
+  mongodb: gs.MongodbCursor
 };
 
-GlobalStorage.prototype.FsCursor = FsCursor;
-GlobalStorage.prototype.MemoryCursor = MemoryCursor;
-GlobalStorage.prototype.MongodbCursor = MongodbCursor;
-
-GlobalStorage.prototype.transformations = transformations;
-GlobalStorage.prototype.operations = operations;
+gs.transformations = transformations;
+gs.operations = operations;
 
 GlobalStorage.prototype.open = function(
   // Open database
@@ -64,7 +57,7 @@ GlobalStorage.prototype.open = function(
 ) {
   this.memory.open({ gs: options.gs });
   const providerName = options.provider || 'memory';
-  const Provider = GlobalStorage.prototype.providers[providerName];
+  const Provider = gs.providers[providerName];
   this.local = new Provider();
   this.active = true;
   this.local.open(options, callback);
@@ -76,7 +69,7 @@ GlobalStorage.prototype.connect = function(
   // Example: { url: 'gs://user:password@host:port/database' }
   callback // on connect function(err, connection)
 ) {
-  const connection = new Connection(options);
+  const connection = new gs.Connection(options);
   callback(null, connection);
 };
 
@@ -183,4 +176,3 @@ GlobalStorage.prototype.generateId = function(
   return this.nextId++;
 };
 
-module.exports = new GlobalStorage();
