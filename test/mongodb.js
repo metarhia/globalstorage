@@ -45,7 +45,6 @@ mongodb.connect(url, (err, client) => {
 
     const insertMany = (data, done) => {
       persons.map((person, i) => gs.create(person, () => {
-        //console.dir([person, i]);
         if (i === persons.length - 1) {
           console.log('create done');
           done();
@@ -63,10 +62,11 @@ mongodb.connect(url, (err, client) => {
     };
 
     const queryCursor = (data, done) => {
-      gs.select({ category: 'Person' }) // born: '> 1000'
+      gs.select({ category: 'Person', born: '> 1000' })
         .order('born')
         .limit(3)
-        .distinct()
+        //.projection(['name', 'city', 'born'])
+        //.distinct()
         .fetch((err, data) => {
           if (err) throw err;
           console.dir({ queryCursor: data });
