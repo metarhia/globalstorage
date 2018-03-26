@@ -1,3 +1,3 @@
 'use strict';
 
-['memory', 'mongodb'].forEach(test => require('./' + test));
+['memory', 'mongodb', 'fs'].forEach(test => require('./' + test));
