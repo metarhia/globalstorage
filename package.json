@@ -30,12 +30,12 @@
   "dependencies": {
     "metarhia-common": "0.0.26",
     "metarhia-jstp": "^1.1.0",
-    "metasync": "^0.3.20",
+    "metasync": "^0.3.21",
     "mkdirp": "^0.5.1"
   },
   "devDependencies": {
     "eslint": "^4.18.1",
     "metaschema": "^0.0.7",
-    "mongodb": "^3.0.4"
+    "mongodb": "^3.0.5"
   }
 }
