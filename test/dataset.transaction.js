@@ -116,3 +116,47 @@ mt.test('dataset transaction: pushing item', (test) => {
   test.strictSame(persons, expected);
   test.end('dataset transaction end');
 });
+
+mt.test('dataset transaction: rollback, commit', (test) => {
+  const persons = [{
+    category: 'Person',
+    name: 'Marcus Aurelius',
+    city: 'Rome',
+    born: 121,
+  }];
+  const expected = [{
+    category: 'Person',
+    name: 'Marcus Aurelius',
+    city: 'Greece',
+    born: 121,
+  }];
+
+  const transaction = gs.DatasetTransaction.start(persons);
+  transaction[0].name = 'Aristotele';
+  transaction.rollback();
+  transaction[0].city = 'Greece';
+  transaction.commit();
+  test.strictSame(persons, expected);
+  test.end('data transaction end');
+});
+
+mt.test('dataset transaction: clone', (test) => {
+  const persons = [{
+    category: 'Person',
+    name: 'Marcus Aurelius',
+    city: 'Rome',
+    born: 121,
+  }];
+  const expected = [{
+    category: 'Person',
+    name: 'Aristotele',
+    city: 'Rome',
+    born: 121,
+  }];
+
+  const transaction = gs.DatasetTransaction.start(persons);
+  transaction[0].name = 'Aristotele';
+  transaction.clone().commit();
+  test.strictSame(persons, expected);
+  test.end('data transaction end');
+});
