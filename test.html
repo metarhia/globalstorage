@@ -1,0 +1,17 @@
+<html>
+  <head>
+    <script src="dist/main.js"></script>
+    <script>
+      const provider = new LocalstorageProvider();
+      provider.create({name: 'Vladka'});
+      provider.get(0, (err, obj) => {
+        if (err) return;
+        if (obj.name != 'Vladka') return;
+        document.getElementById('test-result').innerHTML = 'Test passed';
+      });
+    </script>
+  </head>
+  <body>
+    <div id="test-result">Test failed</div>
+  </body>
+</html>
