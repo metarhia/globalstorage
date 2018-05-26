@@ -22,10 +22,15 @@
   "main": "gs.js",
   "scripts": {
     "test": "npm run lint && node test/test.all",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "build-browser": "webpack --progress --colors --mode=none"
   },
   "engines": {
     "node": ">=6.0.0"
+  },
+  "browser": {
+    "./lib/fs.provider.js": false,
+    "./node_modules/mkdirp": false
   },
   "dependencies": {
     "metarhia-common": "^0.0.30",
@@ -35,6 +40,7 @@
   },
   "devDependencies": {
     "eslint": "^4.19.1",
+    "fake-indexeddb": "^2.0.4",
     "metaschema": "^0.0.10",
     "metatests": "^0.1.11",
     "mongodb": "^3.1.1"

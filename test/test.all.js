@@ -5,3 +5,4 @@ global.api = { metatests };
 
 require('./memory');
 require('./mongodb');
+require('./indexeddb.provider');
