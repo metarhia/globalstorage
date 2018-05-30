@@ -2,7 +2,7 @@
 
 const gs = require('..');
 const metasync = require('metasync');
-const mt = require('metatests');
+const metatests = require('metatests');
 
 const ds1 = [ { id: 1 }, { id: 2 } ];
 const ds2 = [ { id: 2 }, { id: 3 } ];
@@ -79,19 +79,25 @@ const testSelect = (done) => (test) => {
     });
 };
 
-const test = (data, done) => {
-  mt.test('operation tests', operationTests);
+module.exports = (data, done) => {
+  metatests.test('operation tests', operationTests);
 
   const mc1 = new gs.MemoryCursor(ds1, metasync.emptiness);
   const mc2 = mc1.clone();
   mc1.dataset[0].name = 'qwerty';
 
   metasync([
-    (data, done) => mt.test('datasets tests', testDatasets(mc1, mc2, done)),
-    (data, done) => mt.test('order 1 test', testOrder1(mc1, done)),
-    (data, done) => mt.test('order 2 test', testOrder2(mc1, done)),
-    (data, done) => mt.test('select test', testSelect(done)),
+    (data, done) => {
+      metatests.test('datasets tests', testDatasets(mc1, mc2, done));
+    },
+    (data, done) => {
+      metatests.test('order 1 test', testOrder1(mc1, done));
+    },
+    (data, done) => {
+      metatests.test('order 2 test', testOrder2(mc1, done));
+    },
+    (data, done) => {
+      metatests.test('select test', testSelect(done));
+    },
   ])(done);
 };
-
-module.exports = { test };

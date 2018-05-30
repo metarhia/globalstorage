@@ -2,10 +2,10 @@
 
 const gs = require('..');
 const metasync = require('metasync');
-const mt = require('metatests');
+const metatests = require('metatests');
 
-const test = (data, done) => {
-  mt.test('fs test', (test) => {
+module.exports = (data, done) => {
+  metatests.test('fs test', (test) => {
     const queue = metasync.queue(100, 100);
 
     const processItem = (item, callback) => {
@@ -55,5 +55,3 @@ const test = (data, done) => {
     });
   });
 };
-
-module.exports = { test };

@@ -3,7 +3,7 @@
 const gs = require('..');
 const metasync = require('metasync');
 const mongodb = require('mongodb').MongoClient;
-const mt = require('metatests');
+const metatests = require('metatests');
 
 const url = 'mongodb://127.0.0.1:27017/globalstorage';
 const dbName = url.substr(url.lastIndexOf('/') + 1);
@@ -63,10 +63,10 @@ const deletePersons = (data, done) => {
   gs.delete({ category: 'Person' }, done);
 };
 
-const test = (data, done) => {
+module.exports = (data, done) => {
   mongodb.connect(url, (err, client) => {
     const db = client.db(dbName);
-    mt.test('mongodb test', (test) => {
+    metatests.test('mongodb test', (test) => {
       gs.open({ gs, provider: 'mongodb', client, db }, (err) => {
         if (err) return test.throws(err, 'error opening');
 
@@ -81,5 +81,3 @@ const test = (data, done) => {
     });
   });
 };
-
-module.exports = { test };
