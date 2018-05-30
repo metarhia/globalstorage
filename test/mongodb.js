@@ -3,6 +3,7 @@
 const gs = require('..');
 const metasync = require('metasync');
 const mongodb = require('mongodb').MongoClient;
+const metatests = require('metatests');
 
 const url = 'mongodb://127.0.0.1:27017/globalstorage';
 const dbName = url.substr(url.lastIndexOf('/') + 1);
@@ -36,58 +37,47 @@ const persons = [
   }
 ];
 
-mongodb.connect(url, (err, client) => {
-  const db = client.db(dbName);
-  gs.open({ gs, provider: 'mongodb', client, db }, (err) => {
+const insertMany = (data, done) => {
+  persons.map((person, i) => gs.create(person, () => {
+    if (i === persons.length - 1) {
+      done();
+    }
+  }));
+};
 
-    if (err) throw err;
-    console.log('opened');
+const modifyQuery = (data, done) => {
+  gs.select({ category: 'Person', name: 'Marcus Aurelius' })
+    .modify({ name: 'Marcus' }, done);
+};
 
-    const insertMany = (data, done) => {
-      persons.map((person, i) => gs.create(person, () => {
-        if (i === persons.length - 1) {
-          console.log('create done');
-          done();
-        }
-      }));
-    };
+const queryCursor = (data, done) => {
+  gs.select({ category: 'Person', born: '> 1000' })
+    .order('born')
+    .limit(3)
+    //.projection(['name', 'city', 'born'])
+    //.distinct()
+    .fetch((err) => done(err));
+};
 
-    const modifyQuery = (data, done) => {
-      gs.select({ category: 'Person', name: 'Marcus Aurelius' })
-        .modify({ name: 'Marcus' }, (err) => {
-          if (err) throw err;
-          console.log('modify done');
+const deletePersons = (data, done) => {
+  gs.delete({ category: 'Person' }, done);
+};
+
+module.exports = (data, done) => {
+  mongodb.connect(url, (err, client) => {
+    const db = client.db(dbName);
+    metatests.test('mongodb test', (test) => {
+      gs.open({ gs, provider: 'mongodb', client, db }, (err) => {
+        if (err) return test.throws(err, 'error opening');
+
+        metasync(
+          [insertMany, modifyQuery, queryCursor, deletePersons]
+        )({}, (err) => {
+          if (err) test.throws(err);
+          else test.end('bye');
           done();
         });
-    };
-
-    const queryCursor = (data, done) => {
-      gs.select({ category: 'Person', born: '> 1000' })
-        .order('born')
-        .limit(3)
-        //.projection(['name', 'city', 'born'])
-        //.distinct()
-        .fetch((err, data) => {
-          if (err) throw err;
-          console.dir({ queryCursor: data });
-          done();
-        });
-    };
-
-    const deletePersons = (data, done) => {
-      gs.delete({ category: 'Person' }, (err) => {
-        if (err) throw err;
-        console.log('delete done');
-        done();
       });
-    };
-
-    metasync(
-      [insertMany, modifyQuery, queryCursor, deletePersons]
-    )({}, () => {
-      console.log('bye');
-      process.exit(0);
     });
-
   });
-});
+};
