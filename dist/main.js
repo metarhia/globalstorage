@@ -679,22 +679,22 @@ var map = {
 	"./fs.provider.js": 10,
 	"./localstorage.provider": 11,
 	"./localstorage.provider.js": 11,
-	"./memory.cursor": 15,
-	"./memory.cursor.js": 15,
-	"./memory.provider": 16,
-	"./memory.provider.js": 16,
-	"./mongodb.cursor": 17,
-	"./mongodb.cursor.js": 17,
-	"./mongodb.provider": 18,
-	"./mongodb.provider.js": 18,
+	"./memory.cursor": 13,
+	"./memory.cursor.js": 13,
+	"./memory.provider": 14,
+	"./memory.provider.js": 14,
+	"./mongodb.cursor": 15,
+	"./mongodb.cursor.js": 15,
+	"./mongodb.provider": 16,
+	"./mongodb.provider.js": 16,
 	"./operations": 5,
 	"./operations.js": 5,
-	"./provider": 14,
-	"./provider.js": 14,
-	"./remote.cursor": 20,
-	"./remote.cursor.js": 20,
-	"./remote.provider": 21,
-	"./remote.provider.js": 21,
+	"./provider": 12,
+	"./provider.js": 12,
+	"./remote.cursor": 18,
+	"./remote.cursor.js": 18,
+	"./remote.provider": 19,
+	"./remote.provider.js": 19,
 	"./transformations": 4,
 	"./transformations.js": 4
 };
@@ -1066,19 +1066,37 @@ module.exports = { FsCursor };
 
 "use strict";
 
+/* eslint-env browser */
 
 const common = __webpack_require__(1);
-const localStorage = __webpack_require__(12);
-const { StorageProvider } = __webpack_require__(14);
-const { MemoryCursor } = __webpack_require__(15);
+const { StorageProvider } = __webpack_require__(12);
+const { MemoryCursor } = __webpack_require__(13);
 
 function LocalstorageProvider() {}
 
 common.inherits(LocalstorageProvider, StorageProvider);
 
+// Key of object containing current global id
 LocalstorageProvider.ID_LABEL = '_LocalstorageProviderId';
-LocalstorageProvider.IDS_LABEL = '_LocalstorageProviderIds';
+// Prefix for globalstorage objects in localstorage
 LocalstorageProvider.ID_ITEM_LABEL = '_LocalstorageProvider_item_';
+
+LocalstorageProvider.prototype.open = (options = {}, callback) => {
+  StorageProvider.prototype.open.call(this, options, () => {
+    let localStorage = null;
+    /* eslint-disable no-var */
+    var window;
+    /* eslint-enable no-var */
+    if (window) localStorage = window.localStorage;
+    if (!options.localStorage && !localStorage) {
+      const err =
+        new Error('There is no window.indexedDb and options.indexedDb');
+      return callback(err);
+    }
+    options.localStorage = options.localStorage || localStorage;
+    this.options = options;
+  });
+};
 
 LocalstorageProvider.prototype.close = (callback) => (
   common.once(callback)(null)
@@ -1143,93 +1161,6 @@ module.exports = { LocalstorageProvider };
 
 /***/ }),
 /* 12 */
-/***/ (function(module, exports, __webpack_require__) {
-
-/* WEBPACK VAR INJECTION */(function(global) {// http://www.rajdeepd.com/articles/chrome/localstrg/LocalStorageSample.htm
-
-// NOTE:
-// this varies from actual localStorage in some subtle ways
-
-// also, there is no persistence
-// TODO persist
-(function () {
-  "use strict";
-
-  var db;
-
-  function LocalStorage() {
-  }
-  db = LocalStorage;
-
-  db.prototype.getItem = function (key) {
-    if (this.hasOwnProperty(key)) {
-      return String(this[key]);
-    }
-    return null;
-  };
-
-  db.prototype.setItem = function (key, val) {
-    this[key] = String(val);
-  };
-
-  db.prototype.removeItem = function (key) {
-    delete this[key];
-  };
-
-  db.prototype.clear = function () {
-    var self = this;
-    Object.keys(self).forEach(function (key) {
-      self[key] = undefined;
-      delete self[key];
-    });
-  };
-
-  db.prototype.key = function (i) {
-    i = i || 0;
-    return Object.keys(this)[i];
-  };
-
-  db.prototype.__defineGetter__('length', function () {
-    return Object.keys(this).length;
-  });
-
-  if (global.localStorage) {
-    module.exports = localStorage;
-  } else {
-    module.exports = new LocalStorage();
-  }
-}());
-
-/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(13)))
-
-/***/ }),
-/* 13 */
-/***/ (function(module, exports) {
-
-var g;
-
-// This works in non-strict mode
-g = (function() {
-	return this;
-})();
-
-try {
-	// This works if eval is allowed (see CSP)
-	g = g || Function("return this")() || (1, eval)("this");
-} catch (e) {
-	// This works if the window reference is available
-	if (typeof window === "object") g = window;
-}
-
-// g can still be undefined, but nothing to do about it...
-// We return undefined, instead of nothing here, so it's
-// easier to handle this case. if(!global) { ...}
-
-module.exports = g;
-
-
-/***/ }),
-/* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1347,7 +1278,7 @@ module.exports = { StorageProvider };
 
 
 /***/ }),
-/* 15 */
+/* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1421,7 +1352,7 @@ module.exports = { MemoryCursor };
 
 
 /***/ }),
-/* 16 */
+/* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1430,7 +1361,7 @@ module.exports = { MemoryCursor };
 const common = __webpack_require__(1);
 
 const core = __webpack_require__(3);
-const { StorageProvider } = __webpack_require__(14);
+const { StorageProvider } = __webpack_require__(12);
 
 function MemoryProvider() {
   StorageProvider.call(this);
@@ -1486,7 +1417,7 @@ module.exports = { MemoryProvider };
 
 
 /***/ }),
-/* 17 */
+/* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1592,7 +1523,7 @@ module.exports = { MongodbCursor };
 
 
 /***/ }),
-/* 18 */
+/* 16 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1601,8 +1532,8 @@ module.exports = { MongodbCursor };
 const common = __webpack_require__(1);
 
 const transformations = __webpack_require__(4);
-const { StorageProvider } = __webpack_require__(14);
-const { MongodbCursor } = __webpack_require__(17);
+const { StorageProvider } = __webpack_require__(12);
+const { MongodbCursor } = __webpack_require__(15);
 
 const DUPLICATE_KEY = 11000;
 
@@ -1819,10 +1750,10 @@ MongodbProvider.prototype.index = function(def, callback) {
 
 module.exports = { MongodbProvider };
 
-/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(19)))
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(17)))
 
 /***/ }),
-/* 19 */
+/* 17 */
 /***/ (function(module, exports) {
 
 // shim for using process in browser
@@ -2012,7 +1943,7 @@ process.umask = function() { return 0; };
 
 
 /***/ }),
-/* 20 */
+/* 18 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2032,7 +1963,7 @@ module.exports = { RemoteCursor };
 
 
 /***/ }),
-/* 21 */
+/* 19 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2040,7 +1971,7 @@ module.exports = { RemoteCursor };
 
 const common = __webpack_require__(1);
 
-const { StorageProvider } = __webpack_require__(14);
+const { StorageProvider } = __webpack_require__(12);
 
 function RemoteProvider() {
   StorageProvider.call(this);
