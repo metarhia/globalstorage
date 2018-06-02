@@ -1,9 +1,10 @@
 'use strict';
 
 const gs = require('..');
-const mt = require('metatests');
+const metatests = require('metatests');
+const metasync = require('metasync');
 
-mt.test('dataset transaction: item field change', (test) => {
+const testItemFieldChange = (done) => (test) => {
   const persons = [{
     category: 'Person',
     name: 'Marcus Aurelius',
@@ -22,9 +23,10 @@ mt.test('dataset transaction: item field change', (test) => {
   transaction.commit();
   test.strictSame(persons, expected);
   test.end('dataset transaction end');
-});
+  done();
+};
 
-mt.test('dataset transaction: pop item', (test) => {
+const testPopItem = (done) => (test) => {
   const persons = [{
     category: 'Person',
     name: 'Marcus Aurelius',
@@ -48,9 +50,10 @@ mt.test('dataset transaction: pop item', (test) => {
   transaction.commit();
   test.strictSame(persons, expected);
   test.end('dataset transaction end');
-});
+  done();
+};
 
-mt.test('dataset transaction: reassign item', (test) => {
+const testReassignItem = (done) => (test) => {
   const persons = [{
     category: 'Person',
     name: 'Marcus Aurelius',
@@ -84,9 +87,10 @@ mt.test('dataset transaction: reassign item', (test) => {
   transaction.commit();
   test.strictSame(persons, expected);
   test.end('dataset transaction end');
-});
+  done();
+};
 
-mt.test('dataset transaction: pushing item', (test) => {
+const testPushingItem = (done) => (test) => {
   const persons = [{
     category: 'Person',
     name: 'Marcus Aurelius',
@@ -115,9 +119,10 @@ mt.test('dataset transaction: pushing item', (test) => {
   transaction.commit();
   test.strictSame(persons, expected);
   test.end('dataset transaction end');
-});
+  done();
+};
 
-mt.test('dataset transaction: rollback, commit', (test) => {
+const testRollbackCommit = (done) => (test) => {
   const persons = [{
     category: 'Person',
     name: 'Marcus Aurelius',
@@ -138,9 +143,10 @@ mt.test('dataset transaction: rollback, commit', (test) => {
   transaction.commit();
   test.strictSame(persons, expected);
   test.end('data transaction end');
-});
+  done();
+};
 
-mt.test('dataset transaction: clone', (test) => {
+const testClone = (done) => (test) => {
   const persons = [{
     category: 'Person',
     name: 'Marcus Aurelius',
@@ -159,4 +165,29 @@ mt.test('dataset transaction: clone', (test) => {
   transaction.clone().commit();
   test.strictSame(persons, expected);
   test.end('data transaction end');
-});
+  done();
+};
+
+module.exports = (data, done) => {
+  metasync([{
+    name: 'dataset transaction: item field change',
+    test: testItemFieldChange,
+  }, {
+    name: 'dataset transaction: pop item',
+    test: testPopItem,
+  }, {
+    name: 'dataset transaction: reassign item',
+    test: testReassignItem,
+  }, {
+    name: 'dataset transaction: pushing item',
+    test: testPushingItem,
+  }, {
+    name: 'dataset transaction: rollback, commit',
+    test: testRollbackCommit,
+  }, {
+    name:  'dataset transaction: clone',
+    test: testClone,
+  }].map(
+    ({ name, test }) => (data, done) => metatests.test(name, test(done)))
+  )(done);
+};
