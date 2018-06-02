@@ -1,5 +1,5 @@
 'use strict';
 
 module.exports = {
-  entry: '.',
+  entry: './test-browser/test.all.js',
 };
