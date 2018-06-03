@@ -3,11 +3,10 @@
 const metatests = require('./metatests');
 const metasync = require('metasync');
 const { IndexedDBProvider } = require('..');
-const indexedDB = require('fake-indexeddb');
 
 const open = (callback) => {
   const provider = new IndexedDBProvider();
-  provider.open({ indexedDB }, (err) => {
+  provider.open({}, (err) => {
     if (err) return callback(err);
     callback(null, provider);
   });
