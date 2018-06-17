@@ -3,9 +3,9 @@
 const metasync = require('metasync');
 
 const subtests = [
-  'memory', 'mongodb', 'indexeddb.provider',
-].map(name => require('./' + name));
+  require('./indexeddb.provider'),
+];
 
 metasync(subtests)(() => {
-  process.exit(0);
+  console.log('Tests have been executed');
 });
