@@ -36,17 +36,32 @@
 /******/ 	// define getter function for harmony exports
 /******/ 	__webpack_require__.d = function(exports, name, getter) {
 /******/ 		if(!__webpack_require__.o(exports, name)) {
-/******/ 			Object.defineProperty(exports, name, {
-/******/ 				configurable: false,
-/******/ 				enumerable: true,
-/******/ 				get: getter
-/******/ 			});
+/******/ 			Object.defineProperty(exports, name, { enumerable: true, get: getter });
 /******/ 		}
 /******/ 	};
 /******/
 /******/ 	// define __esModule on exports
 /******/ 	__webpack_require__.r = function(exports) {
+/******/ 		if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 			Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 		}
 /******/ 		Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 	};
+/******/
+/******/ 	// create a fake namespace object
+/******/ 	// mode & 1: value is a module id, require it
+/******/ 	// mode & 2: merge all properties of value into the ns
+/******/ 	// mode & 4: return value when already ns object
+/******/ 	// mode & 8|1: behave like require
+/******/ 	__webpack_require__.t = function(value, mode) {
+/******/ 		if(mode & 1) value = __webpack_require__(value);
+/******/ 		if(mode & 8) return value;
+/******/ 		if((mode & 4) && typeof value === 'object' && value && value.__esModule) return value;
+/******/ 		var ns = Object.create(null);
+/******/ 		__webpack_require__.r(ns);
+/******/ 		Object.defineProperty(ns, 'default', { enumerable: true, value: value });
+/******/ 		if(mode & 2 && typeof value != 'string') for(var key in value) __webpack_require__.d(ns, key, function(key) { return value[key]; }.bind(null, key));
+/******/ 		return ns;
 /******/ 	};
 /******/
 /******/ 	// getDefaultExport function for compatibility with non-harmony modules
@@ -290,7 +305,7 @@ module.exports = Object.assign({}, ...submodules);
 /***/ (function(module, exports) {
 
 function webpackEmptyContext(req) {
-	var e = new Error('Cannot find module "' + req + '".');
+	var e = new Error("Cannot find module '" + req + "'");
 	e.code = 'MODULE_NOT_FOUND';
 	throw e;
 }
@@ -702,13 +717,12 @@ var map = {
 
 function webpackContext(req) {
 	var id = webpackContextResolve(req);
-	var module = __webpack_require__(id);
-	return module;
+	return __webpack_require__(id);
 }
 function webpackContextResolve(req) {
 	var id = map[req];
 	if(!(id + 1)) { // check for number or string
-		var e = new Error('Cannot find module "' + req + '".');
+		var e = new Error("Cannot find module '" + req + "'");
 		e.code = 'MODULE_NOT_FOUND';
 		throw e;
 	}
@@ -1081,12 +1095,9 @@ LocalstorageProvider.ID_LABEL = '_LocalstorageProviderId';
 // Prefix for globalstorage objects in localstorage
 LocalstorageProvider.ID_ITEM_LABEL = '_LocalstorageProvider_item_';
 
-LocalstorageProvider.prototype.open = (options = {}, callback) => {
+LocalstorageProvider.prototype.open = function(options = {}, callback) {
   StorageProvider.prototype.open.call(this, options, () => {
     let localStorage = null;
-    /* eslint-disable no-var */
-    var window;
-    /* eslint-enable no-var */
     if (window) localStorage = window.localStorage;
     if (!options.localStorage && !localStorage) {
       const err =
@@ -1095,6 +1106,8 @@ LocalstorageProvider.prototype.open = (options = {}, callback) => {
     }
     options.localStorage = options.localStorage || localStorage;
     this.options = options;
+    this.localStorage = options.localStorage;
+    callback(null);
   });
 };
 
@@ -1102,17 +1115,17 @@ LocalstorageProvider.prototype.close = (callback) => (
   common.once(callback)(null)
 );
 
-LocalstorageProvider.prototype.generateId = (callback) => {
+LocalstorageProvider.prototype.generateId = function(callback) {
   callback = common.once(callback);
-  const id = +localStorage[LocalstorageProvider.ID_LABEL];
-  localStorage[LocalstorageProvider.ID_LABEL] = id + 1;
+  const id = +this.localStorage[LocalstorageProvider.ID_LABEL];
+  this.localStorage[LocalstorageProvider.ID_LABEL] = id + 1;
   callback(null, id);
 };
 
-LocalstorageProvider.prototype.get = (id, callback) => {
+LocalstorageProvider.prototype.get = function(id, callback) {
   callback = common.once(callback);
   const key = LocalstorageProvider.ID_ITEM_LABEL + id;
-  const obj = localStorage[key];
+  const obj = this.localStorage[key];
   callback(null, obj ? JSON.parse(obj) : obj);
 };
 
@@ -1123,29 +1136,29 @@ LocalstorageProvider.prototype.create = function(obj, callback) {
     if (err) return callback(err);
     obj.id = id;
     const key = LocalstorageProvider.ID_ITEM_LABEL + id;
-    localStorage[key] = JSON.stringify(obj);
+    this.localStorage[key] = JSON.stringify(obj);
     callback(null, id);
   });
 };
 
-LocalstorageProvider.prototype.update = (obj, callback) => {
+LocalstorageProvider.prototype.update = function(obj, callback) {
   callback = common.once(callback);
   const key = LocalstorageProvider.ID_ITEM_LABEL + obj.id;
-  localStorage[key] = JSON.stringify(obj);
+  this.localStorage[key] = JSON.stringify(obj);
   callback(null);
 };
 
-LocalstorageProvider.prototype.delete = (id, callback) => {
+LocalstorageProvider.prototype.delete = function(id, callback) {
   callback = common.once(callback);
   const key = LocalstorageProvider.ID_ITEM_LABEL + id;
-  localStorage.removeItem(key);
+  this.localStorage.removeItem(key);
   callback(null);
 };
 
-LocalstorageProvider.prototype.select = (query, options) => {
-  const ds = Object.keys(localStorage)
+LocalstorageProvider.prototype.select = function(query, options) {
+  const ds = Object.keys(this.localStorage)
     .filter(id => id.startsWith(LocalstorageProvider.ID_ITEM_LABEL))
-    .map(id => JSON.parse(localStorage[id]));
+    .map(id => JSON.parse(this.localStorage[id]));
   const cursor = new MemoryCursor(ds);
   cursor.provider = this;
   cursor.jsql.push({ op: 'select', query, options });
