@@ -1,14 +1,29 @@
 'use strict';
+/* eslint-env browser */
 
 const metatests = require('./metatests');
 const metasync = require('metasync');
 const { IndexedDBProvider } = require('..');
 
+const clear = (provider, callback) => {
+  const tx = provider.db.transaction(provider.options.storeName, 'readwrite');
+  const store = tx.objectStore(provider.options.storeName);
+  const req = store.clear();
+  req.onsuccess = () => {
+    store.add({ idCounter: 0 }, provider.options.idLabel);
+  };
+  tx.oncomplete = () => callback(null);
+  tx.onerror = () => callback(tx.error);
+};
+
 const open = (callback) => {
   const provider = new IndexedDBProvider();
   provider.open({}, (err) => {
     if (err) return callback(err);
-    callback(null, provider);
+    clear(provider, (err) => {
+      if (err) return callback(err);
+      callback(null, provider);
+    });
   });
 };
 

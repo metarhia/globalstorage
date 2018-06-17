@@ -11,8 +11,7 @@ const formatErr = (v1, v2) => 'strictSame:\n' +
         'expected: ' + JSON.stringify(v2) + '\n';
 
 const equal = (v1, v2) => {
-  if (typeof(v1) !== 'object' && v1 === v2) return true;
-  if (!v1 && v1 === v2) return true;
+  if (typeof(v1) !== 'object' || !v1 || !v2) return v1 === v2;
   const k1 = new Set(Object.keys(v1));
   const k2 = Object.keys(v2);
   if (k1.size !== k2.length) return false;
