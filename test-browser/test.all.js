@@ -3,9 +3,9 @@
 const metasync = require('metasync');
 
 const subtests = [
-  'memory', 'mongodb', 'localstorage.provider',
-].map(name => require('./' + name));
+  require('./localstorage.provider'),
+];
 
 metasync(subtests)(() => {
-  process.exit(0);
+  console.log('Tests have been executed');
 });

@@ -12,6 +12,7 @@ const submodules = [
   'remote.provider', 'remote.cursor',
   'fs.provider', 'fs.cursor',
   'mongodb.provider', 'mongodb.cursor',
+  'localstorage.provider',
 ];
 
 const lib = {};
