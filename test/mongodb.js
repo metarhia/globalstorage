@@ -35,7 +35,7 @@ const persons = [
   }
 ];
 
-mongodb.connect(url, (err, client) => {
+mongodb.connect(url, { useNewUrlParser: true }, (err, client) => {
 
   api.metatests.test('mongodb connection', (test) => {
     if (err) return test.throws(err);
