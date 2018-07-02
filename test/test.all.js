@@ -1,9 +1,7 @@
 'use strict';
 
-const metasync = require('metasync');
+const metatests = require('metatests');
+global.api = { metatests };
 
-const subtests = ['memory', 'mongodb'].map(name => require('./' + name));
-
-metasync(subtests)(() => {
-  process.exit(0);
-});
+require('./memory');
+require('./mongodb');

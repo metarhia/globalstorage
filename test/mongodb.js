@@ -1,9 +1,7 @@
 'use strict';
 
 const gs = require('..');
-const metasync = require('metasync');
 const mongodb = require('mongodb').MongoClient;
-const metatests = require('metatests');
 
 const url = 'mongodb://127.0.0.1:27017/globalstorage';
 const dbName = url.substr(url.lastIndexOf('/') + 1);
@@ -37,47 +35,57 @@ const persons = [
   }
 ];
 
-const insertMany = (data, done) => {
-  persons.map((person, i) => gs.create(person, () => {
-    if (i === persons.length - 1) {
-      done();
-    }
-  }));
-};
+mongodb.connect(url, (err, client) => {
 
-const modifyQuery = (data, done) => {
-  gs.select({ category: 'Person', name: 'Marcus Aurelius' })
-    .modify({ name: 'Marcus' }, done);
-};
+  api.metatests.test('mongodb connection', (test) => {
+    if (err) return test.throws(err);
+    test.end();
+  });
 
-const queryCursor = (data, done) => {
-  gs.select({ category: 'Person', born: '> 1000' })
-    .order('born')
-    .limit(3)
-    //.projection(['name', 'city', 'born'])
-    //.distinct()
-    .fetch((err) => done(err));
-};
+  const db = client.db(dbName);
+  gs.open({ gs, provider: 'mongodb', client, db }, (err) => {
 
-const deletePersons = (data, done) => {
-  gs.delete({ category: 'Person' }, done);
-};
+    api.metatests.test('globalstorage connection', (test) => {
+      if (err) return test.throws(err);
+      test.end();
+    });
 
-module.exports = (data, done) => {
-  mongodb.connect(url, (err, client) => {
-    const db = client.db(dbName);
-    metatests.test('mongodb test', (test) => {
-      gs.open({ gs, provider: 'mongodb', client, db }, (err) => {
-        if (err) return test.throws(err, 'error opening');
+    api.metatests.test('insertMany', (test) => {
+      persons.map((person, i) => gs.create(person, () => {
+        if (i === persons.length - 1) test.end();
+      }));
+    });
 
-        metasync(
-          [insertMany, modifyQuery, queryCursor, deletePersons]
-        )({}, (err) => {
-          if (err) test.throws(err);
-          else test.end('bye');
-          done();
+    // insert many
+
+    api.metatests.test('modify from select', (test) => {
+      gs.select({ category: 'Person', name: 'Marcus Aurelius' })
+        .modify({ name: 'Marcus' }, () => {
+          if (err) return test.throws(err);
+          test.end();
         });
+    });
+
+    api.metatests.test('select, order, limit, fetch', (test) => {
+      gs.select({ category: 'Person', born: '> 1000' })
+        .order('born')
+        .limit(3)
+        //.projection(['name', 'city', 'born'])
+        //.distinct()
+        .fetch((err) => {
+          if (err) return test.throws(err);
+          test.end();
+        });
+    });
+
+    api.metatests.test('delete', (test) => {
+      gs.delete({ category: 'Person' }, (err) => {
+        if (err) return test.throws(err);
+        test.end();
+        api.metatests.report();
+        process.exit(0);
       });
     });
+
   });
-};
+});
