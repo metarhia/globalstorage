@@ -176,4 +176,3 @@ GlobalStorage.prototype.generateId = function(
 ) {
   return this.nextId++;
 };
-
