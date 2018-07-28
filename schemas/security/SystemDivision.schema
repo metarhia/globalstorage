@@ -1,0 +1,4 @@
+{
+  Name: { domain: 'Nomen', required: true },
+  Parent: Parent({ category: 'SystemDivision' })
+}

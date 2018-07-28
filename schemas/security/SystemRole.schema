@@ -1,0 +1,4 @@
+{
+  Name: { domain: 'Nomen', required: true, unique: true },
+  Blocked: { domain: 'Logical', default: false }
+}
