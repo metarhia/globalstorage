@@ -1,0 +1,25 @@
+{
+  Login: {
+    domain: 'Login',
+    unique: true,
+    example: 'Marcus Aurelius',
+    control: 'InputBox',
+    validate: login => {
+      // TODO: implement OWASP recomendations
+      return login.length > 5;
+    }
+  },
+  Password: {
+    domain: 'PasswordHash',
+    required: true,
+    control: 'InputBox',
+    validate: password => {
+      // TODO: implement OWASP recomendations
+      // See https://www.owasp.org/index.php/Authentication_Cheat_Sheet
+      return Auth.passwordStrength(password);
+    }
+  },
+  FullName: Include({ category: 'FullName' }),
+  Blocked: { domain: 'Logical', default: false },
+  Roles: Many({ category: 'SystemRole' })
+}

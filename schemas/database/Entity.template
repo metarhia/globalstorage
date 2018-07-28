@@ -1,0 +1,44 @@
+Dictionary({
+  FieldName: {
+    domain: 'DomainName', required: true,
+    unique: true, index: true,
+    default: 'Value', example: 'Value', control: 'ControlName',
+    validate: () => true/false, transform: () => {},
+    comment: 'string'
+  },
+  CalculatedFieldName: {
+    domain: 'DomainName', control: 'ControlName',
+    expression: () => {},
+    comment: 'string'
+  },
+  FieldSetName: Include({
+    category: 'CategoryName', required: true,
+    unique: true, index: true,
+    comment: 'string'
+  }),
+  MasterName: Master({
+    category: 'CategoryName', control: 'ControlName',
+    comment: 'string'
+  }),
+  RelationName: {
+    category: 'CategoryName', required: true,
+    control: 'ControlName',
+    comment: 'string'
+  },
+  ManyName: Many({
+    category: 'CategoryName',
+    comment: 'string'
+  }),
+  RuleName: Validate(record => {
+    if (record.FieldName) return true;
+    const val = record.MasterName.FieldName;
+    return record.FirldSetName.Field1.includes(val);
+  }),
+  IndexName: Index('Field1', 'Field2'),
+})
+
+View({
+  select: { category: 'Person', age: '>20' }
+  order: 'Name',
+  limit: 100
+})
