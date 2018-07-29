@@ -1,11 +1,11 @@
 {
-  Role: { domain: 'SystemRole', index: true }
+  Role: { domain: 'SystemRole', index: true },
   Category: { domain: 'Nomen', index: true },
   Filter: {
     domain: 'Values',
     comment: 'Field values to limit user access to category'
   },
-  Access: { domain: 'UserAccess', requires: true },
+  Access: { domain: 'UserAccess', required: true },
 
   Search: Index('Role', 'Category')
 }
