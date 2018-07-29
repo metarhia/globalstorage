@@ -1,5 +1,5 @@
 {
-  Role: { domain: 'SystemRole', index: true }
+  Role: { domain: 'SystemRole', index: true },
   Category: { domain: 'Nomen', index: true },
   Filter: {
     domain: 'Values',
