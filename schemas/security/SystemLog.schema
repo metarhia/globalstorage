@@ -1,7 +1,7 @@
 {
   User: { category: 'SystemUser', required: true },
   Category: { domain: 'Id', required: true },
-  Timestamp: { domain: 'Timestamp', requires: true },
-  Operation: { domain: 'UserAccess', requires: true },
+  Timestamp: { domain: 'Timestamp', required: true },
+  Operation: { domain: 'UserAccess', required: true },
   Ids: { domain: 'List' }
 }
