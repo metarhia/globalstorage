@@ -9,6 +9,7 @@ const submodules = [
   'remote.provider', 'remote.cursor',
   'fs.provider', 'fs.cursor',
   'pg.provider', 'pg.cursor',
+  'webstorage.provider',
 ];
 
 let gs = null;
