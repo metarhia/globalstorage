@@ -65,9 +65,13 @@ Data types:
 - Links to other data structures in GlobalStorage
 - Links to other data structures in Application
 
-## JavaScript Query Languaged 
+## JavaScript Query Language
 
-JSQL is a query language for data structures manipulation. JSQL have syntax for: filter, projection, dataset join and set operations. We have separate repositories for examples and specification: [metarhia/JSQL](https://github.com/metarhia/JSQL) Implementation of JSQL is a part of JSTP library.
+JSQL is a query language for data structures manipulation. JSQL have syntax for:
+filter, projection, dataset join and set operations. We have a separate
+repository for examples and specification:
+[metarhia/JSQL](https://github.com/metarhia/JSQL). Current Implementation can
+be found in [`lib/transformations.js`](lib/transformations.js).
 
 ## Distributed Metamodel Repository
 
