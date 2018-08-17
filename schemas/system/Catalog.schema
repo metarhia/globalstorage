@@ -1,0 +1,4 @@
+System({
+  Caption: { domain: 'Nomen' },
+  Parent: Parent({ category: 'Catalog' })
+})
