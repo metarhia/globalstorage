@@ -1,4 +1,4 @@
-{
+System({
   Role: { domain: 'SystemRole', index: true },
   Category: { domain: 'Nomen', index: true },
   Filter: {
@@ -8,4 +8,4 @@
   Access: { domain: 'UserAccess', required: true },
 
   Search: Index('Role', 'Category')
-}
+})

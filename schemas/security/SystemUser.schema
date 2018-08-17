@@ -1,4 +1,4 @@
-{
+System({
   Login: {
     domain: 'Login',
     unique: true,
@@ -22,4 +22,4 @@
   FullName: Include({ category: 'FullName' }),
   Blocked: { domain: 'Logical', default: false },
   Roles: Many({ category: 'SystemRole' })
-}
+})
