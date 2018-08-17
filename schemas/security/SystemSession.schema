@@ -1,6 +1,6 @@
-{
+System({
   SID: { domain: 'SID', unique: true },
   User: { domain: 'SystemUser', required: true },
   Start: { domain: 'Timestamp' },
   LastActivity: { domain: 'Timestamp' }
-}
+})
