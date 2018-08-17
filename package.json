@@ -28,7 +28,7 @@
     "node": ">=6.0.0"
   },
   "dependencies": {
-    "metarhia-common": "^0.0.30",
+    "metarhia-common": "^0.0.31",
     "metarhia-jstp": "^1.1.1",
     "metasync": "^0.3.29",
     "mkdirp": "^0.5.1"
