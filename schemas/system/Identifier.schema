@@ -1,0 +1,7 @@
+System({
+  Family: Enum('Registry', 'Dictionary', 'File', 'Cache'),
+  Status: Enum('Preallocated', 'Intialization', 'Actual', 'Historical'),
+  Lock:  Enum('Free', 'Locked'),
+  Create: { domain: 'Timestamp' },
+  Change: { domain: 'Timestamp' }
+})

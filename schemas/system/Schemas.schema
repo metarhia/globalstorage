@@ -1,0 +1,4 @@
+System({
+  Version: { domain: 'Id' },
+  Schema: { domain: 'JSON' }
+})
