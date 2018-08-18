@@ -6,15 +6,7 @@
   default: { domain: 'Nomen' },
   example: { domain: 'Nomen' },
   control: { domain: 'Nomen' },
-  validate: { domain: 'Lambda' },
-  transform: { domain: 'Lambda' },
   comment: { domain: 'Lambda' },
   expression: { domain: 'Lambda' },
-
-  RuleName: Validate(record => {
-    if (record.FieldName) return true;
-    const val = record.MasterName.FieldName;
-    return record.FirldSetName.Field1.includes(val);
-  }),
-  IndexName: Index('Field1', 'Field2'),
+  validate: { domain: 'Lambda' }
 }
