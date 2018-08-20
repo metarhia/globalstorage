@@ -82,10 +82,10 @@ mongodb.connect(url, { useNewUrlParser: true }, (err, client) => {
       gs.delete({ category: 'Person' }, (err) => {
         if (err) return test.throws(err);
         test.end();
-        api.metatests.report();
         process.exit(0);
       });
     });
 
+    api.metatests.report();
   });
 });
