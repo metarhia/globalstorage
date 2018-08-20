@@ -20,6 +20,7 @@ System({
     }
   },
   FullName: Include({ category: 'FullName' }),
-  Blocked: { domain: 'Logical', default: false },
-  Roles: Many({ category: 'SystemRole' })
+  Division: { category: 'Division' },
+  Roles: Many({ category: 'Role' }),
+  Blocked: { domain: 'Logical', default: false }
 })

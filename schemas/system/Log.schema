@@ -1,5 +1,5 @@
 Log({
-  User: { category: 'SystemUser', required: true },
+  User: { category: 'User', required: true },
   Category: { domain: 'Id', required: true },
   Timestamp: { domain: 'Timestamp', required: true },
   Operation: { domain: 'UserAccess', required: true },

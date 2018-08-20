@@ -1,6 +1,7 @@
 System({
-  Role: { domain: 'SystemRole', index: true },
+  Role: { domain: 'Role', index: true },
   Category: { domain: 'Nomen', index: true },
+  Catalog: { category: 'Catalog' },
   Filter: {
     domain: 'Values',
     comment: 'Field values to limit user access to category'
