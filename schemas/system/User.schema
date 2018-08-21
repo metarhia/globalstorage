@@ -1,6 +1,7 @@
 System({
   Login: {
     domain: 'Login',
+    required: true,
     unique: true,
     example: 'Marcus Aurelius',
     control: 'InputBox',
