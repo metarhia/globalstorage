@@ -1,0 +1,5 @@
+System({
+  Name: { domain: 'Nomen', display: true, required: true, unique: true },
+  Realm: Enum('Global', 'System', 'Server'),
+  Family: Enum('Registry', 'Dictionary', 'Category', 'Detail', 'Log', 'View')
+})

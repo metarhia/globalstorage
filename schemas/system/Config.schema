@@ -1,4 +1,4 @@
 System({
-  Name: { domain: 'Nomen' },
+  Name: { domain: 'Nomen', display: true, required: true, unique: true },
   Config: { domain: 'JSON' }
 })

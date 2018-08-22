@@ -1,4 +1,4 @@
 System({
-  Caption: { domain: 'Nomen' },
-  Parent: Parent({ category: 'Catalog' })
+  Caption: { domain: 'Nomen', display: true, required: true, index: true },
+  Parent: Parent('Catalog')
 })

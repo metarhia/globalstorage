@@ -1,4 +1,7 @@
 System({
-  Version: { domain: 'Id' },
-  Schema: { domain: 'JSON' }
+  Version: { domain: 'Version', display: true, required: true, index: true },
+  Category: { category: 'Category', display: true, required: true, index: true },
+  Schema: { domain: 'JSON' },
+
+  NaturalKey: Unique('Role', 'Category')
 })
