@@ -1,8 +1,14 @@
 System({
-  Role: { category: 'Role', index: true },
-  Category: { category: 'Category' },
+  Role: { category: 'Role', required: true, index: true },
+  Category: { category: 'Category', required: true },
   Catalog: { category: 'Catalog' },
+  Division: { category: 'Division' },
   Access: { domain: 'UserAccess', required: true },
 
-  NaturalKey: Index('Role', 'Category')
+  NaturalKey: Index('Role', 'Category'),
+
+  CatalogOrDivision: Validate(record => {
+    const notDivision = !record.Division;
+    record.Catalog ? notDivision : !notDivision;
+  })
 })

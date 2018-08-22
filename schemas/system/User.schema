@@ -22,7 +22,6 @@ System({
     }
   },
   FullName: Include('FullName'),
-  Division: { category: 'Division' },
   Roles: Many('Role'),
   Blocked: { domain: 'Logical', default: false }
 })
