@@ -1,6 +1,6 @@
 {
-  SID: { domain: 'SID', unique: true },
-  User: { domain: 'User', required: true },
-  Start: { domain: 'Timestamp' },
-  LastActivity: { domain: 'Timestamp' }
+  SID: { domain: 'SID', display: true, required: true, unique: true },
+  User: { domain: 'User', display: true, required: true, index: true },
+  Start: { domain: 'Timestamp', required: true },
+  LastActivity: { domain: 'Timestamp, required: true' }
 }

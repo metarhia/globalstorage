@@ -1,6 +1,7 @@
 System({
   Login: {
     domain: 'Login',
+    display: true,
     required: true,
     unique: true,
     example: 'Marcus Aurelius',
@@ -20,8 +21,8 @@ System({
       return Auth.passwordStrength(password);
     }
   },
-  FullName: Include({ category: 'FullName' }),
+  FullName: Include('FullName'),
   Division: { category: 'Division' },
-  Roles: Many({ category: 'Role' }),
+  Roles: Many('Role'),
   Blocked: { domain: 'Logical', default: false }
 })

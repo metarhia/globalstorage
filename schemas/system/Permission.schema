@@ -1,8 +1,8 @@
 System({
-  Role: { domain: 'Role', index: true },
-  Category: { domain: 'Nomen', index: true },
+  Role: { category: 'Role', index: true },
+  Category: { category: 'Category' },
   Catalog: { category: 'Catalog' },
   Access: { domain: 'UserAccess', required: true },
 
-  Search: Index('Role', 'Category')
+  NaturalKey: Index('Role', 'Category')
 })
