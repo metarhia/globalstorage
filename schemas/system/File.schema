@@ -1,0 +1,12 @@
+{
+  Filename: { domain: 'Nomen', required: true, index: true },
+  Checksum: { domain: 'Number', required: true, index: true, comment: 'CRC-32' },
+  AccessCount: { domain: 'Count', require: true },
+  Compression: { domain: 'Compression', required: true },
+  OriginalSize: { domain: 'DataSize', required: true },
+  CompressedSize: { domain: 'DataSize', required: true },
+  CompressRatio: {
+    domain: 'Ratio',
+    expression: record => record.CompressedSize / record.OriginalSize
+  }
+}

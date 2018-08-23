@@ -3,5 +3,6 @@
   IdKind: Enum('Category', 'File', 'Cache'),
   CategoryRealm: Enum('Global', 'System', 'Server'),
   CategoryFamily: Enum('Registry', 'Dictionary', 'Table', 'Log', 'View'),
-  UserAccess: Enum('Read', 'Insert', 'Update', 'Delete', 'Execute', 'Audit')
+  UserAccess: Enum('Read', 'Insert', 'Update', 'Delete', 'Execute', 'Audit'),
+  Compression: Enum('None', 'GZIP', 'ZIP')
 }
