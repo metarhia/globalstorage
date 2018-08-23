@@ -1,7 +1,7 @@
 System({
-  Version: { domain: 'Version', display: true, required: true, index: true },
   Category: { category: 'Category', display: true, required: true, index: true },
-  Schema: { domain: 'JSON' },
+  Version: { domain: 'Version', display: true, required: true, index: true },
+  Schema: { domain: 'JSON', required: true },
 
-  NaturalKey: Unique('Role', 'Category')
+  NaturalKey: Unique('Category', 'Version')
 })
