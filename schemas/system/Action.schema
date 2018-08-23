@@ -1,0 +1,7 @@
+System({
+  Name: { category: 'Nomen', display: true, required: true },
+  Category: { category: 'Category', display: true, required: true, index: true },
+  Execute: { domain: 'Lambda', required: true },
+
+  NaturalKey: Unique('Category', 'Name')
+})

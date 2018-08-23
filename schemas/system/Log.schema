@@ -1,6 +1,6 @@
 Log({
   User: { category: 'User', required: true },
-  Identifier: { domain: 'Id', required: true },
+  Identifier: { category: 'Identifier', required: true },
   Timestamp: { domain: 'Timestamp', required: true },
   Operation: { domain: 'UserAccess', required: true }
 })

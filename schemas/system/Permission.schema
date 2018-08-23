@@ -3,13 +3,10 @@ System({
   Category: { category: 'Category', required: true },
   Access: { domain: 'UserAccess', required: true },
 
-  Catalog: { category: 'Catalog' },
-  Subdivision: { category: 'Subdivision' },
+  // Catalog, Subdivision, Action
+  Target: { category: 'Identifier', required: true },
 
-  NaturalKey: Index('Role', 'Category'),
+  NaturalKey: Unique('Role', 'Category', 'Target'),
 
-  CatalogOrSubdivision: Validate(record => {
-    const notSubdivision = !record.Subdivision;
-    return record.Catalog ? notSubdivision : !notSubdivision;
-  })
+  AllowedTarget: Validate(record => true)
 })
