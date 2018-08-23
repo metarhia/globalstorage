@@ -1,4 +1,4 @@
 System({
   Name: { domain: 'Nomen', display: true, required: true, unique: true },
-  Parent: Parent('Division')
+  Parent: Parent('Subdivision')
 })

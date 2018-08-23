@@ -1,7 +1,6 @@
 Log({
   User: { category: 'User', required: true },
-  Category: { domain: 'Id', required: true },
+  Identifier: { domain: 'Id', required: true },
   Timestamp: { domain: 'Timestamp', required: true },
-  Operation: { domain: 'UserAccess', required: true },
-  Ids: { domain: 'List' }
+  Operation: { domain: 'UserAccess', required: true }
 })
