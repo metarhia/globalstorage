@@ -1,6 +1,6 @@
 {
   Category: { category: 'Category', required: true, index: true },
-  Kind: { domain: 'IdKind', required: true, index: true },
+  StorageKind: { domain: 'StorageKind', required: true, index: true },
   Status: { domain: 'IdStatus', required: true, index: true },
   Create: { domain: 'Timestamp', required: true },
   Change: { domain: 'Timestamp', required: true },
