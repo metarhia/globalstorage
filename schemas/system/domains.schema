@@ -1,6 +1,6 @@
 {
   IdStatus: Enum('Preallocated', 'Initialization', 'Actual', 'Historical'),
-  IdKind: Enum('Category', 'File', 'Cache'),
+  StorageKind: Enum('Master', 'Cache', 'Backup', 'Replica'),
   CategoryRealm: Enum('Global', 'System', 'Server'),
   CategoryFamily: Enum('Registry', 'Dictionary', 'Table', 'Log', 'View'),
   UserAccess: Enum('Read', 'Insert', 'Update', 'Delete', 'Execute', 'Audit'),
