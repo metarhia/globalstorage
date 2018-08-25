@@ -30,8 +30,7 @@ module.exports = (data, done) => {
     }, (err) => {
       if (err) return test.error(err, 'error opening gs');
       console.time('insert');
-      let i;
-      for (i = 0; i < 10; i++) {
+      for (let i = 0; i < 10; i++) {
         queue.add({ num: i });
       }
       gs.select({ category: 'Person', name: 'Marcus' })
