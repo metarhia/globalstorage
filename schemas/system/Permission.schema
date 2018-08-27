@@ -1,12 +1,10 @@
 System({
   Role: { category: 'Role', required: true, index: true },
   Category: { category: 'Category', required: true },
+  Bound: { category: 'Identifier' }, // Catalog or Subdivision
   Access: { domain: 'UserAccess', required: true },
 
-  // Catalog, Subdivision, Action
-  Target: { category: 'Identifier', required: true },
-
-  NaturalKey: Unique('Role', 'Category', 'Target'),
+  NaturalKey: Unique('Role', 'Category', 'Bound'),
 
   AllowedTarget: Validate(record => true)
 })
