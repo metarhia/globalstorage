@@ -33,14 +33,14 @@ function GlobalStorage() {
 }
 
 common.inherits(GlobalStorage, lib.StorageProvider);
-
 const gs = Object.assign(new GlobalStorage(), lib);
 module.exports = gs;
 
 gs.providers = {
   fs: gs.FsProvider,
   memory: gs.MemoryProvider,
-  mongodb: gs.MongodbProvider
+  mongodb: gs.MongodbProvider,
+  indexeddb: gs.IndexedDBProvider,
 };
 
 gs.cursors = {
