@@ -6,5 +6,5 @@ System({
 
   NaturalKey: Unique('Role', 'Category', 'Bound'),
 
-  AllowedTarget: Validate(record => true)
+  CheckBound: Validate(record => true)
 })

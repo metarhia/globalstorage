@@ -1,7 +1,10 @@
 {
   Filename: { domain: 'Nomen', required: true, index: true },
   Checksum: { domain: 'Number', required: true, index: true, comment: 'CRC-32' },
-  AccessCount: { domain: 'Count', require: true },
+  DedupHash: { domain: 'FileHash', comment: 'SHA-256' },
+  LastAccess: { domain: 'Timestamp', required: true },
+  AccessCount: { domain: 'Count', required: true },
+  MimeType: { domain: 'MimeType' },
   Compression: { domain: 'Compression', required: true },
   OriginalSize: { domain: 'DataSize', required: true },
   CompressedSize: { domain: 'DataSize', required: true },
