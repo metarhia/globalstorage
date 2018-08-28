@@ -1,9 +1,17 @@
 {
-  Category: { category: 'Category', required: true, index: true },
+  Category: { category: 'Category', index: true },
   StorageKind: { domain: 'StorageKind', required: true, index: true },
   Status: { domain: 'IdStatus', required: true, index: true },
   Create: { domain: 'Timestamp', required: true },
   Change: { domain: 'Timestamp', required: true },
   Lock: { domain: 'Timestamp' },
-  LockedBy: { domain: 'SID' }
+  LockedBy: { category: 'User' }, // ref to session
+
+  CheckCategory: Validate(record => {
+    if (record.Status === 'Actual' || record.Status === 'Historical') {
+      return !!record.Category;
+    } else {
+      return !record.Category;
+    }
+  })
 }

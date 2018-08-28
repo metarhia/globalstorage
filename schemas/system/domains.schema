@@ -1,8 +1,22 @@
 {
-  IdStatus: Enum('Preallocated', 'Initialization', 'Actual', 'Historical'),
+  IdStatus: Enum('Prealloc', 'Init', 'Actual', 'Historical'),
   StorageKind: Enum('Master', 'Cache', 'Backup', 'Replica'),
-  CategoryRealm: Enum('Global', 'System', 'Server'),
+  CategoryRealm: Enum('Global', 'System', 'Local'),
   CategoryFamily: Enum('Registry', 'Dictionary', 'Table', 'Log', 'View'),
   UserAccess: Bitmask('Read', 'Insert', 'Update', 'Delete', 'Execute', 'Audit'),
-  Compression: Enum('None', 'GZIP', 'ZIP')
+  Compression: Enum('None', 'GZIP', 'ZIP'),
+  SessionToken: { type: 'string', length: 64 },
+  MimeType: Enum(
+    'text/plain',
+    'text/csv',
+    'image/png',
+    'image/gif',
+    'image/jpeg',
+    'image/svg+xml',
+    'image/tiff',
+    'application/pdf',
+    'application/rtf',
+    'application/zip',
+    'application/json'
+  )
 }
