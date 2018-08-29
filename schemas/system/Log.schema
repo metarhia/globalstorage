@@ -3,5 +3,5 @@ Log({
   Identifier: { category: 'Identifier', required: true },
   Timestamp: { domain: 'Timestamp', required: true },
   Operation: { domain: 'UserAccess', required: true },
-  Changes: { domain: 'JSON', required: true }
+  Query: { domain: 'JSON', required: true }
 })

@@ -4,7 +4,7 @@ System({
   Bound: { category: 'Identifier' }, // Catalog or Subdivision
   Access: { domain: 'UserAccess', required: true },
 
-  NaturalKey: Unique('Role', 'Category', 'Bound'),
+  NaturalKey: Index('Role', 'Category'),
 
   CheckBound: Validate(record => true)
 })

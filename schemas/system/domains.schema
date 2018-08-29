@@ -6,7 +6,7 @@
   UserAccess: Bitmask('Read', 'Insert', 'Update', 'Delete', 'Execute', 'Audit'),
   Compression: Enum('None', 'GZIP', 'ZIP'),
   SessionToken: { type: 'string', length: 64 },
-  MimeType: Enum(
+  MediaType: Enum(
     'text/plain',
     'text/csv',
     'image/png',
