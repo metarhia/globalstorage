@@ -1,0 +1,7 @@
+System({
+  ResourceKey: { domain: 'Nomen', display: true, required: true },
+  Language: { category: 'Language', required: true, index: true },
+  Text: { domain: 'Text' },
+
+  NaturalKey: Unique('Symbol', 'Language')
+})
