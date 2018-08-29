@@ -4,8 +4,7 @@
   Status: { domain: 'IdStatus', required: true, index: true },
   Create: { domain: 'Timestamp', required: true },
   Change: { domain: 'Timestamp', required: true },
-  Lock: { domain: 'Timestamp' },
-  LockedBy: { category: 'User' }, // ref to session
+  Lock: { domain: 'Logical', required: true },
 
   CheckCategory: Validate(record => {
     if (record.Status === 'Actual' || record.Status === 'Historical') {
