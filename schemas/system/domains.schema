@@ -4,7 +4,7 @@
   CategoryRealm: Enum('Global', 'System', 'Local'),
   CategoryFamily: Enum('Registry', 'Dictionary', 'Table', 'Log', 'View'),
   UserAccess: Enum('Read', 'Insert', 'Update', 'Delete', 'Execute', 'Audit'),
-  AccessFlags: Flags('UserAccess'),
+  AccessFlags: Flags.of('UserAccess'),
   Compression: Enum('None', 'GZIP', 'ZIP'),
   SessionToken: { type: 'string', length: 64 },
   MediaType: Enum(
