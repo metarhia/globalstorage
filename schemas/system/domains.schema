@@ -3,7 +3,8 @@
   StorageKind: Enum('Master', 'Cache', 'Backup', 'Replica'),
   CategoryRealm: Enum('Global', 'System', 'Local'),
   CategoryFamily: Enum('Registry', 'Dictionary', 'Table', 'Log', 'View'),
-  UserAccess: Bitmask('Read', 'Insert', 'Update', 'Delete', 'Execute', 'Audit'),
+  UserAccess: Enum('Read', 'Insert', 'Update', 'Delete', 'Execute', 'Audit'),
+  AccessFlags: Flags('UserAccess'),
   Compression: Enum('None', 'GZIP', 'ZIP'),
   SessionToken: { type: 'string', length: 64 },
   MediaType: Enum(

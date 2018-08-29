@@ -2,7 +2,7 @@ System({
   Role: { category: 'Role', required: true, index: true },
   Category: { category: 'Category', required: true },
   Bound: { category: 'Identifier' }, // Catalog, Subdivision or Action
-  Access: { domain: 'UserAccess', required: true },
+  Access: { domain: 'AccessFlags', required: true },
 
   NaturalKey: Index('Role', 'Category'),
 
