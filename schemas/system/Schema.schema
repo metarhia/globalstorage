@@ -1,6 +1,6 @@
 System({
-  Category: { category: 'Category', display: true, required: true, index: true },
-  Version: { domain: 'Version', display: true, required: true, index: true },
+  Category: { category: 'Category', lookup: true, required: true, index: true },
+  Version: { domain: 'Version', required: true, index: true },
   Schema: { domain: 'JSON', required: true },
 
   NaturalKey: Unique('Category', 'Version')
