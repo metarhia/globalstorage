@@ -1,7 +1,7 @@
 System({
   Login: {
     domain: 'Login',
-    display: true,
+    lookup: true,
     required: true,
     unique: true,
     example: 'Marcus Aurelius',
