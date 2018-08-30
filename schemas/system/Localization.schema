@@ -1,5 +1,5 @@
 System({
-  Symbol: { domain: 'Nomen', display: true, required: true },
+  ResourceKey: { domain: 'Nomen', display: true, required: true },
   Language: { category: 'Language', required: true, index: true },
   Text: { domain: 'Text' },
 
