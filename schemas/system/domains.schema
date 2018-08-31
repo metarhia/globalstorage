@@ -20,7 +20,8 @@
     'application/zip',
     'application/json'
   ),
-  ServerType: Enum('GlobalRoot', 'GlobalServer', 'Root', 'Server'),
+  SystemType: Enum('Global', 'Autonomous', 'Standalone'),
+  ServerType: Enum('Root', 'Server', 'Backup', 'Reserve'),
   NodeType: Enum('Master', 'Worker', 'Task'),
   NodeStatus: Enum('Init', 'Active', 'Pause', 'Restart', 'Hang')
 }
