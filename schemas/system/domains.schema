@@ -19,5 +19,8 @@
     'application/rtf',
     'application/zip',
     'application/json'
-  )
+  ),
+  ServerType: Enum('GlobalRoot', 'GlobalServer', 'Root', 'Server'),
+  NodeType: Enum('Master', 'Worker', 'Task'),
+  NodeStatus: Enum('Init', 'Active', 'Pause', 'Restart', 'Hang')
 }
