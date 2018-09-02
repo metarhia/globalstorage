@@ -5,6 +5,8 @@
   Create: { domain: 'Timestamp', required: true },
   Change: { domain: 'Timestamp', required: true },
   Lock: { domain: 'Logical', required: true },
+  Version: { domain: 'Version', default: 0, required: true },
+  Checksum: { domain: 'SHA256', required: true },
 
   CheckCategory: Validate(record => {
     if (record.Status === 'Actual' || record.Status === 'Historical') {

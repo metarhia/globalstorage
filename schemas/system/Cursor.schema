@@ -2,5 +2,6 @@ Local({
   QueryHash: { domain: 'SHA256', require: true, unique: true },
   Timestamp: { domain: 'Timestamp', required: true },
   Query: { domain: 'JSON', required: true },
+  Version: { domain: 'Version', default: 0, required: true },
   Subscribers: Many('Session')
 })
