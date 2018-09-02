@@ -2,7 +2,9 @@
   IdStatus: Enum('Prealloc', 'Init', 'Actual', 'Historical'),
   StorageKind: Enum('Master', 'Cache', 'Backup', 'Replica'),
   CategoryRealm: Enum('Global', 'System', 'Local'),
-  CategoryFamily: Enum('Registry', 'Dictionary', 'Table', 'Log', 'View'),
+  CategoryFamily: Enum(
+    'Registry', 'Dictionary', 'Table', 'Log', 'View', 'History', 'Memory'
+  ),
   UserAccess: Enum('Read', 'Insert', 'Update', 'Delete', 'Execute', 'Audit'),
   AccessFlags: Flags.of('UserAccess'),
   Compression: Enum('None', 'GZIP', 'ZIP'),
