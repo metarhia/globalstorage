@@ -5,6 +5,7 @@ Local({
   Request: { domain: 'Timestamp', required: true, index: true },
   Start: { domain: 'Timestamp', index: true },
   Expire: { domain: 'Timestamp', index: true },
+  Updates: { domain: 'Version', default: 0, required: true },
 
   NaturalKey: Unique('Identifier', 'User')
 })
