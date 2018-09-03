@@ -1,6 +1,7 @@
 'use strict';
 
 const gs = require('..');
+const metaschema = require('metaschema');
 
 const ds1 = [ { id: 1, name: 'qwerty' }, { id: 2 } ];
 const ds2 = [ { id: 2 }, { id: 3 } ];
@@ -73,4 +74,26 @@ api.metatests.test('cursor select', (test) => {
       test.strictSame(data, expected, 'Wrong data');
       test.end('select test done');
     });
+});
+
+api.metatests.test('cursor schema', (test) => {
+  const languages = [
+    { Name: 'English', Locale: 'en' },
+    { Name: 'Ukrainian', Locale: 'uk' },
+    { Name: 'Russian', Locale: 'ru' },
+  ];
+  metaschema.load('schemas/system', (err, schemas) => {
+    if (err) throw err;
+    metaschema.build(schemas);
+    const schema = metaschema.categories.get('Language').definition;
+    const mcLanguages = new gs.MemoryCursor(languages).definition(schema);
+    mcLanguages.select({ Locale: '> en' })
+      .order('Name')
+      .fetch((err, data, cursor) => {
+        console.dir({ err, data, cursor }, { depth: null });
+        test.strictSame(data.length, 2);
+        test.strictSame(Object.keys(cursor.schema).length, 2);
+        test.end();
+      });
+  });
 });
