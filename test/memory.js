@@ -85,11 +85,12 @@ api.metatests.test('cursor schema', (test) => {
   metaschema.load('schemas/system', (err, schemas) => {
     if (err) throw err;
     metaschema.build(schemas);
-    const { definition } = metaschema.categories.get('Language');
-    const mcLanguages = new gs.MemoryCursor(languages).metadata(definition);
+    const schema = metaschema.categories.get('Language').definition;
+    const mcLanguages = new gs.MemoryCursor(languages).definition(schema);
     mcLanguages.select({ Locale: '> en' })
       .order('Name')
       .fetch((err, data, cursor) => {
+        console.dir({ err, data, cursor }, { depth: null });
         test.strictSame(data.length, 2);
         test.strictSame(Object.keys(cursor.schema).length, 2);
         test.end();
