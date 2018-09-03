@@ -74,19 +74,6 @@ GlobalStorage.prototype.connect = function(
   callback(null, connection);
 };
 
-GlobalStorage.prototype.category = function(
-  // Get Category
-  name, // name of category
-  callback // function(err, category)
-) {
-  let cat = this.categories[name];
-  if (!cat) {
-    cat = new core.Category(name);
-    this.categories[name] = cat;
-  }
-  callback(null, cat);
-};
-
 GlobalStorage.prototype.get = function(
   // Get object by id
   id, // object id
