@@ -5,7 +5,7 @@ const metasync = require('metasync');
 const metatests = require('metatests');
 
 module.exports = (data, done) => {
-  metatests.test('fs test', (test) => {
+  metatests.test('fs test', test => {
     const queue = metasync.queue(100, 100);
 
     const processItem = (item, callback) => {
@@ -27,7 +27,7 @@ module.exports = (data, done) => {
       gs,
       provider: 'fs',
       path: './data'
-    }, (err) => {
+    }, err => {
       if (err) return test.error(err, 'error opening gs');
       console.time('insert');
       for (let i = 0; i < 10; i++) {
