@@ -37,20 +37,20 @@ const persons = [
 
 mongodb.connect(url, { useNewUrlParser: true }, (err, client) => {
 
-  api.metatests.test('mongodb connection', (test) => {
+  api.metatests.test('mongodb connection', test => {
     if (err) return test.throws(err);
     test.end();
   });
 
   const db = client.db(dbName);
-  gs.open({ gs, provider: 'mongodb', client, db }, (err) => {
+  gs.open({ gs, provider: 'mongodb', client, db }, err => {
 
-    api.metatests.test('globalstorage connection', (test) => {
+    api.metatests.test('globalstorage connection', test => {
       if (err) return test.throws(err);
       test.end();
     });
 
-    api.metatests.test('insertMany', (test) => {
+    api.metatests.test('insertMany', test => {
       persons.map((person, i) => gs.create(person, () => {
         if (i === persons.length - 1) test.end();
       }));
@@ -58,7 +58,7 @@ mongodb.connect(url, { useNewUrlParser: true }, (err, client) => {
 
     // insert many
 
-    api.metatests.test('modify from select', (test) => {
+    api.metatests.test('modify from select', test => {
       gs.select({ category: 'Person', name: 'Marcus Aurelius' })
         .modify({ name: 'Marcus' }, () => {
           if (err) return test.throws(err);
@@ -66,20 +66,20 @@ mongodb.connect(url, { useNewUrlParser: true }, (err, client) => {
         });
     });
 
-    api.metatests.test('select, order, limit, fetch', (test) => {
+    api.metatests.test('select, order, limit, fetch', test => {
       gs.select({ category: 'Person', born: '> 1000' })
         .order('born')
         .limit(3)
         //.projection(['name', 'city', 'born'])
         //.distinct()
-        .fetch((err) => {
+        .fetch(err => {
           if (err) return test.throws(err);
           test.end();
         });
     });
 
-    api.metatests.test('delete', (test) => {
-      gs.delete({ category: 'Person' }, (err) => {
+    api.metatests.test('delete', test => {
+      gs.delete({ category: 'Person' }, err => {
         if (err) return test.throws(err);
         test.end();
         process.exit(0);

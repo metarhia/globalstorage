@@ -6,7 +6,7 @@ const metaschema = require('metaschema');
 const ds1 = [ { id: 1, name: 'qwerty' }, { id: 2 } ];
 const ds2 = [ { id: 2 }, { id: 3 } ];
 
-api.metatests.test('dataset operation', (test) => {
+api.metatests.test('dataset operation', test => {
   const union = gs.transformations.union(ds1, ds2);
   const unionExpected = [{ id: 1, name: 'qwerty' }, { id: 2 }, { id: 3 }];
   test.strictSame(union, unionExpected, 'union should have all ids');
@@ -22,7 +22,7 @@ api.metatests.test('dataset operation', (test) => {
   test.end('operation tests done');
 });
 
-api.metatests.test('datasets tests', (test) => {
+api.metatests.test('datasets tests', test => {
   const mc1 = new gs.MemoryCursor(ds1, () => {});
   const mc2 = mc1.clone();
   const ds1Expected = [{ id: 1, name: 'qwerty' }, { id: 2 }];
@@ -32,7 +32,7 @@ api.metatests.test('datasets tests', (test) => {
   test.end('datasets tests done');
 });
 
-api.metatests.test('sort order', (test) => {
+api.metatests.test('sort order', test => {
   const mc = new gs.MemoryCursor(ds1, () => {});
   mc.clone()
     .order('id')
@@ -44,7 +44,7 @@ api.metatests.test('sort order', (test) => {
     });
 });
 
-api.metatests.test('sort order desc', (test) => {
+api.metatests.test('sort order desc', test => {
   const mc = new gs.MemoryCursor(ds1, () => {});
   mc.clone()
     .desc(['id', 'name'])
@@ -55,7 +55,7 @@ api.metatests.test('sort order desc', (test) => {
     });
 });
 
-api.metatests.test('cursor select', (test) => {
+api.metatests.test('cursor select', test => {
   const persons = [
     { name: 'Marcus Aurelius', city: 'Rome', born: 121 },
     { name: 'Victor Glushkov', city: 'Rostov on Don', born: 1923 },
@@ -76,7 +76,7 @@ api.metatests.test('cursor select', (test) => {
     });
 });
 
-api.metatests.test('cursor schema', (test) => {
+api.metatests.test('cursor schema', test => {
   const languages = [
     { Name: 'English', Locale: 'en' },
     { Name: 'Ukrainian', Locale: 'uk' },
