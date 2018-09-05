@@ -10,10 +10,10 @@ module.exports = (data, done) => {
 
     const processItem = (item, callback) => {
       gs.create(item, () => {
-        item.name = item.id % 2 ? 'Marcus' : 'Aurelius';
+        item.Name = item.Id % 2 ? 'Marcus' : 'Aurelius';
         gs.update(item, () => {
-          if (item.id % 3) {
-            gs.delete(item.id, callback);
+          if (item.Id % 3) {
+            gs.delete(item.Id, callback);
           } else {
             callback();
           }
@@ -31,9 +31,9 @@ module.exports = (data, done) => {
       if (err) return test.error(err, 'error opening gs');
       console.time('insert');
       for (let i = 0; i < 10; i++) {
-        queue.add({ num: i });
+        queue.add({ Num: i });
       }
-      gs.select({ category: 'Person', name: 'Marcus' })
+      gs.select({ category: 'Person', Name: 'Marcus' })
         .limit(10)
         .fetch((err, data) => {
           console.log(err);
