@@ -80,7 +80,7 @@ api.metatests.test('cursor schema', test => {
   const languages = [
     { Name: 'English', Locale: 'en' },
     { Name: 'Ukrainian', Locale: 'uk' },
-    { Name: 'Russian', Locale: 'ru' },
+    { Name: 'Russian', Locale: 'ru' }
   ];
   metaschema.load('schemas/system', (err, schemas) => {
     if (err) throw err;
@@ -90,10 +90,52 @@ api.metatests.test('cursor schema', test => {
     mcLanguages.select({ Locale: '> en' })
       .order('Name')
       .fetch((err, data, cursor) => {
-        console.dir({ err, data, cursor }, { depth: null });
         test.strictSame(data.length, 2);
         test.strictSame(Object.keys(cursor.schema).length, 2);
         test.end();
       });
   });
+});
+
+api.metatests.test('cursor union', test => {
+  const languages1 = [
+    { id: 1, Name: 'English', Locale: 'en' }
+  ];
+  const languages2 = [
+    { id: 2, Name: 'Ukrainian', Locale: 'uk' },
+    { id: 3, Name: 'Russian', Locale: 'ru' }
+  ];
+
+  const mcLanguages1 = new gs.MemoryCursor(languages1);
+  const mcLanguages2 = new gs.MemoryCursor(languages2);
+
+  mcLanguages1.select({})
+    .union(mcLanguages2)
+    .order('Name')
+    .fetch((err, data) => {
+      test.strictSame(data.length, 3);
+      test.end();
+    });
+});
+
+api.metatests.test('cursor intersection', test => {
+  const languages1 = [
+    { id: 1, Name: 'English', Locale: 'en' },
+    { id: 2, Name: 'Russian', Locale: 'ru' }
+  ];
+  const languages2 = [
+    { id: 3, Name: 'Ukrainian', Locale: 'uk' },
+    { id: 2, Name: 'Russian', Locale: 'ru' }
+  ];
+
+  const mcLanguages1 = new gs.MemoryCursor(languages1);
+  const mcLanguages2 = new gs.MemoryCursor(languages2);
+
+  mcLanguages1.select({})
+    .intersection(mcLanguages2)
+    .order('Name')
+    .fetch((err, data) => {
+      test.strictSame(data.length, 1);
+      test.end();
+    });
 });
