@@ -110,14 +110,6 @@ class GlobalStorage extends lib.StorageProvider {
     return this.local.select(query, options, callback);
   }
 
-  index(
-    // Create index
-    def, // declarative definotion
-    callback // function(err)
-  ) {
-    this.local.index(def, callback);
-  }
-
   infrastructureAssign(
     // Assign new infrastructure tree
     tree // new infrastructure tree
