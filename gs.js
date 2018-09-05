@@ -1,6 +1,5 @@
 'use strict';
 
-const core = require('./lib/core');
 const transformations = require('./lib/transformations');
 const operations = require('./lib/operations');
 
@@ -23,10 +22,6 @@ class GlobalStorage extends lib.StorageProvider {
     this.remotes = {};
     this.active = false;
     this.offline = true;
-    this.infrastructure = {};
-    this.infrastructureTree = {};
-    this.infrastructureIndex = [];
-    this.infrastructureMask = 0;
     this.nextId = 0;
     this.categories = {};
   }
@@ -65,9 +60,6 @@ class GlobalStorage extends lib.StorageProvider {
           callback(null, data);
           return;
         }
-        const sid = this.findServer(id);
-        const connection = this.infrastructure.index[sid];
-        connection.get(id, callback);
       });
     };
 
@@ -110,31 +102,11 @@ class GlobalStorage extends lib.StorageProvider {
     return this.local.select(query, options, callback);
   }
 
-  index(
-    // Create index
-    def, // declarative definotion
-    callback // function(err)
-  ) {
-    this.local.index(def, callback);
-  }
-
-  infrastructureAssign(
-    // Assign new infrastructure tree
-    tree // new infrastructure tree
-  ) {
-    this.infrastructure.servers = tree;
-    const index = core.buildIndex(tree);
-    this.infrastructure.index = index;
-    this.infrastructure.bits = Math.log(index.length) / Math.log(2);
-    this.infrastructure.mask = Math.pow(2, this.infrastructure.bits) - 1;
-  }
-
   findServer(
     // Get server for id
     id // object id
   ) {
-    const prefix = id & this.infrastructure.mask;
-    return this.infrastructure.index[prefix];
+    return id;
   }
 
   generateId(
