@@ -1,6 +1,6 @@
 {
   "name": "globalstorage",
-  "version": "0.2.8",
+  "version": "0.3.0",
   "author": "Timur Shemsedinov <timur.shemsedinov@gmail.com>",
   "description": "Global Storage is a Global Distributed Data Warehouse",
   "license": "MIT",
@@ -35,7 +35,7 @@
   },
   "devDependencies": {
     "eslint": "^4.19.1",
-    "metaschema": "^0.0.19",
+    "metaschema": "^0.0.20",
     "metatests": "^0.1.12"
   }
 }
