@@ -8,8 +8,7 @@ const submodules = [
   'provider', 'cursor',
   'memory.provider', 'memory.cursor',
   'remote.provider', 'remote.cursor',
-  'fs.provider', 'fs.cursor',
-  'mongodb.provider', 'mongodb.cursor',
+  'fs.provider', 'fs.cursor'
 ];
 
 let gs = null;
@@ -150,14 +149,12 @@ gs = Object.assign(new GlobalStorage(), lib);
 
 gs.providers = {
   fs: gs.FsProvider,
-  memory: gs.MemoryProvider,
-  mongodb: gs.MongodbProvider
+  memory: gs.MemoryProvider
 };
 
 gs.cursors = {
   fs: gs.FsCursor,
-  memory: gs.MemoryCursor,
-  mongodb: gs.MongodbCursor
+  memory: gs.MemoryCursor
 };
 
 gs.transformations = transformations;
