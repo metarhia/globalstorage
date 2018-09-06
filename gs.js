@@ -7,7 +7,7 @@ const submodules = [
   'provider', 'cursor',
   'memory.provider', 'memory.cursor',
   'remote.provider', 'remote.cursor',
-  'fs.provider', 'fs.cursor'
+  'fs.provider', 'fs.cursor',
 ];
 
 let gs = null;
@@ -64,6 +64,10 @@ class GlobalStorage extends lib.StorageProvider {
     };
 
     this.memoryStorageProvider.get(id, (err, data) => {
+      if (err) {
+        callback(err);
+        return;
+      }
       if (data) callback(null, data);
       else get(id, callback);
     });
@@ -121,12 +125,12 @@ gs = Object.assign(new GlobalStorage(), lib);
 
 gs.providers = {
   fs: gs.FsProvider,
-  memory: gs.MemoryProvider
+  memory: gs.MemoryProvider,
 };
 
 gs.cursors = {
   fs: gs.FsCursor,
-  memory: gs.MemoryCursor
+  memory: gs.MemoryCursor,
 };
 
 gs.transformations = transformations;

@@ -26,7 +26,7 @@ module.exports = (data, done) => {
     gs.open({
       gs,
       provider: 'fs',
-      path: './data'
+      path: './data',
     }, err => {
       if (err) return test.error(err, 'error opening gs');
       console.time('insert');
