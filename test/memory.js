@@ -2,11 +2,12 @@
 
 const gs = require('..');
 const metaschema = require('metaschema');
+const metatests = require('metatests');
 
 const ds1 = [ { Id: 1, Name: 'qwerty' }, { Id: 2 } ];
 const ds2 = [ { Id: 2 }, { Id: 3 } ];
 
-api.metatests.test('dataset operation', test => {
+metatests.test('dataset operation', test => {
   const union = gs.transformations.union(ds1, ds2);
   const unionExpected = [{ Id: 1, Name: 'qwerty' }, { Id: 2 }, { Id: 3 }];
   test.strictSame(union, unionExpected, 'union should have all ids');
@@ -22,7 +23,7 @@ api.metatests.test('dataset operation', test => {
   test.end('operation tests done');
 });
 
-api.metatests.test('datasets tests', test => {
+metatests.test('datasets tests', test => {
   const mc1 = new gs.MemoryCursor(ds1, () => {});
   const mc2 = mc1.clone();
   const ds1Expected = [{ Id: 1, Name: 'qwerty' }, { Id: 2 }];
@@ -32,19 +33,19 @@ api.metatests.test('datasets tests', test => {
   test.end('datasets tests done');
 });
 
-api.metatests.test('sort order', test => {
+metatests.test('sort order', test => {
   const mc = new gs.MemoryCursor(ds1, () => {});
   mc.clone()
     .order('Id')
     .fetch((err, data) => {
-      if (err) return test.throws(err, 'test order 1');
+      test.error(err, 'test order 1');
       const expected = [{ Id: 1, Name: 'qwerty' }, { Id: 2 }];
       test.strictSame(data, expected, 'Wrong data');
       test.end('test order 1 done');
     });
 });
 
-api.metatests.test('sort order desc', test => {
+metatests.test('sort order desc', test => {
   const mc = new gs.MemoryCursor(ds1, () => {});
   mc.clone()
     .desc(['Id', 'Name'])
@@ -55,7 +56,7 @@ api.metatests.test('sort order desc', test => {
     });
 });
 
-api.metatests.test('cursor select', test => {
+metatests.test('cursor select', test => {
   const persons = [
     { Id: 1, Name: 'Marcus Aurelius', City: 'Rome', Born: 121 },
     { Id: 2, Name: 'Victor Glushkov', City: 'Rostov on Don', Born: 1923 },
@@ -76,14 +77,14 @@ api.metatests.test('cursor select', test => {
     });
 });
 
-api.metatests.test('cursor schema', test => {
+metatests.test('cursor schema', test => {
   const languages = [
     { Id: 1, Name: 'English', Locale: 'en' },
     { Id: 2, Name: 'Ukrainian', Locale: 'uk' },
     { Id: 3, Name: 'Russian', Locale: 'ru' }
   ];
   metaschema.load('schemas/system', (err, schemas) => {
-    if (err) throw err;
+    test.error(err);
     metaschema.build(schemas);
     const schema = metaschema.categories.get('Language').definition;
     const mcLanguages = new gs.MemoryCursor(languages).definition(schema);
@@ -97,7 +98,7 @@ api.metatests.test('cursor schema', test => {
   });
 });
 
-api.metatests.test('cursor union', test => {
+metatests.test('cursor union', test => {
   const languages1 = [
     { Id: 1, Name: 'English', Locale: 'en' }
   ];
@@ -118,7 +119,7 @@ api.metatests.test('cursor union', test => {
     });
 });
 
-api.metatests.test('cursor intersection', test => {
+metatests.test('cursor intersection', test => {
   const languages1 = [
     { Id: 1, Name: 'English', Locale: 'en' },
     { Id: 2, Name: 'Russian', Locale: 'ru' }
