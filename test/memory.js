@@ -88,8 +88,10 @@ metatests.test('cursor schema', test => {
   metaschema.load('schemas/system', (err, schemas) => {
     test.error(err);
     metaschema.build(schemas);
-    const schema = metaschema.categories.get('Language').definition;
-    const mcLanguages = new gs.MemoryCursor(languages).definition(schema);
+    const schemaName = 'Language';
+    const schema = metaschema.categories.get(schemaName).definition;
+    const mcLanguages =
+      new gs.MemoryCursor(languages).definition(schemaName, schema);
     mcLanguages.select({ Locale: '> en' })
       .order('Name')
       .fetch((err, data, cursor) => {
