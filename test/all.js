@@ -2,3 +2,5 @@
 
 require('./memory');
 require('./system');
+require('./pg.cursor');
+require('./sqlgen.js');

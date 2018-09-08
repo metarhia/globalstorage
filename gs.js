@@ -7,7 +7,7 @@ const submodules = [
   'provider', 'cursor',
   'memory.provider', 'memory.cursor',
   'remote.provider', 'remote.cursor',
-  'fs.provider', 'fs.cursor',
+  'fs.provider', 'fs.cursor', 'pg.cursor',
 ];
 
 let gs = null;
