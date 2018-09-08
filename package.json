@@ -31,7 +31,8 @@
     "mdsf": "^1.0.1",
     "metarhia-common": "^0.0.32",
     "metasync": "^0.3.29",
-    "mkdirp": "^0.5.1"
+    "mkdirp": "^0.5.1",
+    "pg": "^7.4.3"
   },
   "devDependencies": {
     "eslint": "^5.5.0",
