@@ -24,7 +24,7 @@ metatests.test('dataset operation', test => {
 });
 
 metatests.test('datasets tests', test => {
-  const mc1 = new gs.MemoryCursor(ds1, () => {});
+  const mc1 = new gs.MemoryCursor(ds1);
   const mc2 = mc1.clone();
   const ds1Expected = [{ Id: 1, Name: 'qwerty' }, { Id: 2 }];
   test.strictSame(mc1.dataset, ds1Expected, 'Dataset 1 should be changed');
@@ -34,7 +34,7 @@ metatests.test('datasets tests', test => {
 });
 
 metatests.test('sort order', test => {
-  const mc = new gs.MemoryCursor(ds1, () => {});
+  const mc = new gs.MemoryCursor(ds1);
   mc.clone()
     .order('Id')
     .fetch((err, data) => {
@@ -46,7 +46,7 @@ metatests.test('sort order', test => {
 });
 
 metatests.test('sort order desc', test => {
-  const mc = new gs.MemoryCursor(ds1, () => {});
+  const mc = new gs.MemoryCursor(ds1);
   mc.clone()
     .desc(['Id', 'Name'])
     .fetch((err, data) => {
@@ -115,7 +115,7 @@ metatests.test('cursor union', test => {
   const mcLanguages1 = new gs.MemoryCursor(languages1);
   const mcLanguages2 = new gs.MemoryCursor(languages2);
 
-  mcLanguages1.select({})
+  mcLanguages1.selectToMemory()
     .union(mcLanguages2)
     .order('Name')
     .fetch((err, data) => {
@@ -138,7 +138,7 @@ metatests.test('cursor intersection', test => {
   const mcLanguages1 = new gs.MemoryCursor(languages1);
   const mcLanguages2 = new gs.MemoryCursor(languages2);
 
-  mcLanguages1.select({})
+  mcLanguages1.selectToMemory()
     .intersection(mcLanguages2)
     .order('Name')
     .fetch((err, data) => {
