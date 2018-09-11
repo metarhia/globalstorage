@@ -33,6 +33,40 @@ metatests.test('datasets tests', test => {
   test.end('datasets tests done');
 });
 
+metatests.test('limit test', test => {
+  const ds = [ { Id: 2 }, { Id: 3 } ];
+  new gs.MemoryCursor(ds)
+    .limit(1)
+    .fetch((err, data) => {
+      test.error(err);
+      test.strictSame(data, ds.slice(0, 1));
+      test.end();
+    });
+});
+
+metatests.test('offset test', test => {
+  const ds = [ { Id: 2 }, { Id: 3 } ];
+  new gs.MemoryCursor(ds)
+    .offset(1)
+    .fetch((err, data) => {
+      test.error(err);
+      test.strictSame(data, ds.slice(1));
+      test.end();
+    });
+});
+
+metatests.test('limit offset test', test => {
+  const ds = [ { Id: 2 }, { Id: 3 }, { Id: 4 }, { Id: 5 } ];
+  new gs.MemoryCursor(ds)
+    .offset(2)
+    .limit(1)
+    .fetch((err, data) => {
+      test.error(err);
+      test.strictSame(data, ds.slice(2, 3));
+      test.end();
+    });
+});
+
 metatests.test('sort order', test => {
   const mc = new gs.MemoryCursor(ds1);
   mc.clone()
