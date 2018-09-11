@@ -1,4 +1,4 @@
-{
+Registry({
   Category: { category: 'Category', index: true },
   StorageKind: { domain: 'StorageKind', required: true, index: true },
   Status: { domain: 'IdStatus', required: true, index: true },
@@ -15,4 +15,4 @@
       return !record.Category;
     }
   })
-}
+})

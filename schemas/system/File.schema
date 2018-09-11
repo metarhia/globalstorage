@@ -1,4 +1,4 @@
-{
+Registry({
   Filename: { domain: 'Nomen', lookup: true, required: true, index: true },
   Checksum: { domain: 'Number', required: true, index: true, comment: 'CRC-32' },
   DedupHash: { domain: 'SHA256', comment: 'use only to resolve collisions' },
@@ -12,4 +12,4 @@
     domain: 'Ratio',
     expression: record => record.CompressedSize / record.OriginalSize
   }
-}
+})
