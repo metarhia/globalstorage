@@ -2,7 +2,7 @@ Registry({
   Category: { category: 'Category', index: true },
   StorageKind: { domain: 'StorageKind', required: true, index: true },
   Status: { domain: 'IdStatus', required: true, index: true },
-  Create: { domain: 'Timestamp', required: true },
+  Creation: { domain: 'Timestamp', required: true },
   Change: { domain: 'Timestamp', required: true },
   Lock: { domain: 'Logical', required: true },
   Version: { domain: 'Version', default: 0, required: true },
