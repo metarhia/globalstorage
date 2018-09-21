@@ -1,7 +1,7 @@
 Local({
   Token: { domain: 'SessionToken', required: true, unique: true },
   SystemUser: { category: 'SystemUser', required: true, index: true },
-  Start: { domain: 'Timestamp', required: true },
-  LastActivity: { domain: 'Timestamp', required: true },
+  Start: { domain: 'DateTime', required: true },
+  LastActivity: { domain: 'DateTime', required: true },
   LastIP: { domain: 'IP', required: true }
 })
