@@ -2,7 +2,7 @@ Registry({
   Filename: { domain: 'Nomen', lookup: true, required: true, index: true },
   Checksum: { domain: 'CRC32', required: true, index: true },
   DedupHash: { domain: 'SHA256', comment: 'use only to resolve collisions' },
-  LastAccess: { domain: 'Timestamp', required: true },
+  LastAccess: { domain: 'DateTime', required: true },
   AccessCount: { domain: 'Count', required: true },
   MediaType: { domain: 'MediaType' },
   Compression: { domain: 'Compression', required: true },

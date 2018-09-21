@@ -1,7 +1,7 @@
 Log({
   SystemUser: { category: 'SystemUser', required: true },
   Identifier: { category: 'Identifier', required: true },
-  Timestamp: { domain: 'Timestamp', required: true },
+  DateTime: { domain: 'DateTime', required: true },
   IP: { domain: 'IP', required: true },
   Operation: { domain: 'UserAccess', required: true },
   Query: { domain: 'JSON', required: true }
