@@ -21,7 +21,6 @@ System({
       return Auth.passwordStrength(password);
     }
   },
-  FullName: Include('FullName'),
   Roles: Many('Role'),
   Blocked: { domain: 'Logical', default: false }
 })
