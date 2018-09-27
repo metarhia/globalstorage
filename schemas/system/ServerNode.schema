@@ -3,8 +3,8 @@ Local({
   Instance: { domain: 'Count', required: true, index: true },
   Process: { domain: 'Count', required: true, index: true },
   Port: { domain: 'Count', required: true, index: true },
-  NodeType: { domain: 'NodeType', required: true },
-  NodeStatus: { domain: 'NodeStatus', required: true },
+  NodeType: { domain: 'NodeType', required: true, default: 'Master' },
+  NodeStatus: { domain: 'NodeStatus', required: true, default: 'Init' },
 
   UniqueSequence: Unique('Server', 'Instance'),
   UniqueProcess: Unique('Server', 'Process'),
