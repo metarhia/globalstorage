@@ -3,7 +3,7 @@ Registry({
   Checksum: { domain: 'CRC32', required: true, index: true },
   DedupHash: { domain: 'SHA256', comment: 'use only to resolve collisions' },
   LastAccess: { domain: 'DateTime', required: true },
-  AccessCount: { domain: 'Count', required: true },
+  AccessCount: { domain: 'Count', required: true, default: 0 },
   MediaType: { domain: 'MediaType' },
   Compression: { domain: 'Compression', required: true },
   OriginalSize: { domain: 'DataSize', required: true },

@@ -1,5 +1,5 @@
 System({
   Name: { domain: 'Nomen', display: true, required: true, unique: true },
   Code: { domain: 'Id', required: true, unique: true },
-  SystemType: { domain: 'SystemType', required: true }
+  SystemType: { domain: 'SystemType', required: true, default: 'Autonomous' }
 })

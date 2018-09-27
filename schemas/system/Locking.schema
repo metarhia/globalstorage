@@ -4,5 +4,5 @@ Registry({
   Request: { domain: 'DateTime', required: true, index: true },
   Start: { domain: 'DateTime', index: true },
   Expire: { domain: 'DateTime', index: true },
-  Updates: { domain: 'Version', default: 0, required: true }
+  Updates: { domain: 'Version', required: true, default: 0 }
 })

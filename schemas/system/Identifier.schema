@@ -4,8 +4,8 @@ Registry({
   Status: { domain: 'IdStatus', required: true, index: true },
   Creation: { domain: 'DateTime', required: true },
   Change: { domain: 'DateTime', required: true },
-  Lock: { domain: 'Logical', required: true },
-  Version: { domain: 'Version', default: 0, required: true },
+  Lock: { domain: 'Logical', required: true, default: false },
+  Version: { domain: 'Version', required: true, default: 0 },
   Checksum: { domain: 'SHA256', required: true },
 
   CheckCategory: Validate(record => {
