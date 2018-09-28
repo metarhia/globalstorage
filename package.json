@@ -26,7 +26,7 @@
     "lib/fs.provider.js": false
   },
   "scripts": {
-    "test": "npm run lint && node test/all",
+    "test": "npm run lint && metatests test/",
     "lint": "eslint . --ignore-path .gitignore",
     "build": "babel gs.js -d dist && babel lib -d dist/lib --ignore lib/fs.provider.js,lib/fs.cursor.js",
     "prepublish": "npm run -s build"
@@ -43,14 +43,14 @@
     "mkdirp": "^0.5.1"
   },
   "devDependencies": {
+    "@babel/cli": "^7.0.0",
+    "@babel/core": "^7.0.0",
+    "@babel/preset-env": "^7.0.0",
     "eslint": "^5.5.0",
     "eslint-config-metarhia": "^4.0.0",
     "eslint-plugin-import": "^2.14.0",
     "metaschema": "^0.0.22",
-    "@babel/cli": "^7.0.0",
-    "@babel/core": "^7.0.0",
-    "@babel/preset-env": "^7.0.0",
-    "metatests": "^0.2.0",
+    "metatests": "^0.2.1",
     "pg": "^7.4.3"
   }
 }
