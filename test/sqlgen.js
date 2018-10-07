@@ -10,47 +10,47 @@ testSync('Select tests', test => {
 
   test.testSync('Simple all', (test, { builder }) => {
     builder.from('table');
-    test.strictSame(builder.toString(), 'SELECT * FROM table');
+    test.strictSame(builder.toString(), 'SELECT * FROM "table"');
   });
 
   test.testSync('Simple distinct select all', (test, { builder }) => {
     builder.from('table').distinct();
-    test.strictSame(builder.toString(), 'SELECT DISTINCT * FROM table');
+    test.strictSame(builder.toString(), 'SELECT DISTINCT * FROM "table"');
   });
 
   test.testSync('Simple field', (test, { builder }) => {
     builder.select('a').from('table');
-    test.strictSame(builder.toString(), 'SELECT a FROM table');
+    test.strictSame(builder.toString(), 'SELECT "a" FROM "table"');
   });
 
   test.testSync('Simple multiple field', (test, { builder }) => {
     builder.select('a', 'b').from('table');
-    test.strictSame(builder.toString(), 'SELECT a, b FROM table');
+    test.strictSame(builder.toString(), 'SELECT "a", "b" FROM "table"');
   });
 
   test.testSync('Simple distinct multiple field', (test, { builder }) => {
     builder.select('a', 'b').from('table').distinct();
     test.strictSame(builder.toString(),
-      'SELECT DISTINCT a, b FROM table');
+      'SELECT DISTINCT "a", "b" FROM "table"');
   });
 
   test.testSync('Select all single where', (test, { builder }) => {
     builder.from('table').where('f1', '=', 3);
     test.strictSame(builder.toString(),
-      'SELECT * FROM table WHERE f1 = 3');
+      'SELECT * FROM "table" WHERE "f1" = 3');
   });
 
   test.testSync('Select all single where not', (test, { builder }) => {
     builder.from('table').whereNot('f1', '=', 3);
     test.strictSame(builder.toString(),
-      'SELECT * FROM table WHERE NOT f1 = 3');
+      'SELECT * FROM "table" WHERE NOT "f1" = 3');
   });
 
   test.testSync('Select all multiple where', (test, { builder }) => {
     builder.from('table').where('f1', '=', 3).where('f2', '<', 'abc');
     test.strictSame(builder.toString(),
       // eslint-disable-next-line quotes
-      `SELECT * FROM table WHERE f1 = 3 AND f2 < 'abc'`);
+      `SELECT * FROM "table" WHERE "f1" = 3 AND "f2" < 'abc'`);
   });
 
   test.testSync('Select all multiple where count', (test, { builder }) => {
@@ -60,7 +60,7 @@ testSync('Select tests', test => {
       .count('f0');
     test.strictSame(builder.toString(),
       // eslint-disable-next-line quotes
-      `SELECT count(f0) FROM table WHERE f1 = 3 AND f2 < 'abc'`);
+      `SELECT count("f0") FROM "table" WHERE "f1" = 3 AND "f2" < 'abc'`);
   });
 
   test.testSync('Select few where avg', (test, { builder }) => {
@@ -74,7 +74,7 @@ testSync('Select tests', test => {
     //  or be used in an aggregate function'.
     //  But this is not the job of an SQL generator to catch these
     test.strictSame(builder.toString(),
-      'SELECT f1, f2, avg(f0) FROM table WHERE f1 = 3');
+      'SELECT "f1", "f2", avg("f0") FROM "table" WHERE "f1" = 3');
   });
 
   test.testSync('Select few where avg', (test, { builder }) => {
@@ -84,8 +84,8 @@ testSync('Select tests', test => {
       .groupBy('f1', 'f2')
       .min('f0');
     test.strictSame(builder.toString(),
-      'SELECT f1, f2, min(f0) FROM table ' +
-      'WHERE f1 = 3 GROUP BY f1, f2');
+      'SELECT "f1", "f2", min("f0") FROM "table" ' +
+      'WHERE "f1" = 3 GROUP BY "f1", "f2"');
   });
 
   test.testSync('Select all where max', (test, { builder }) => {
@@ -93,7 +93,7 @@ testSync('Select tests', test => {
       .where('f2', '=', 3)
       .max('f1');
     test.strictSame(builder.toString(),
-      'SELECT max(f1) FROM table WHERE f2 = 3');
+      'SELECT max("f1") FROM "table" WHERE "f2" = 3');
   });
 
   test.testSync('Select all where limit', (test, { builder }) => {
@@ -101,7 +101,7 @@ testSync('Select tests', test => {
       .where('f2', '=', 3)
       .limit(10);
     test.strictSame(builder.toString(),
-      'SELECT * FROM table WHERE f2 = 3 LIMIT 10');
+      'SELECT * FROM "table" WHERE "f2" = 3 LIMIT 10');
   });
 
   test.testSync('Select all where offset', (test, { builder }) => {
@@ -109,7 +109,7 @@ testSync('Select tests', test => {
       .where('f2', '=', 3)
       .offset(10);
     test.strictSame(builder.toString(),
-      'SELECT * FROM table WHERE f2 = 3 OFFSET 10');
+      'SELECT * FROM "table" WHERE "f2" = 3 OFFSET 10');
   });
 
   test.testSync('Select all order offset', (test, { builder }) => {
@@ -117,7 +117,7 @@ testSync('Select tests', test => {
       .orderBy('f1')
       .offset(10);
     test.strictSame(builder.toString(),
-      'SELECT * FROM table ORDER BY f1 ASC OFFSET 10');
+      'SELECT * FROM "table" ORDER BY "f1" ASC OFFSET 10');
   });
 
   test.testSync('Select few order desc limit', (test, { builder }) => {
@@ -126,7 +126,7 @@ testSync('Select tests', test => {
       .orderBy('f1', 'desc')
       .limit(10);
     test.strictSame(builder.toString(),
-      'SELECT f1, f2 FROM table ORDER BY f1 DESC LIMIT 10');
+      'SELECT "f1", "f2" FROM "table" ORDER BY "f1" DESC LIMIT 10');
   });
 
   test.testSync('Select few where order limit offset', (test, { builder }) => {
@@ -137,8 +137,8 @@ testSync('Select tests', test => {
       .orderBy('f1')
       .select('f3');
     test.strictSame(builder.toString(),
-      'SELECT f1, f3 FROM table WHERE f2 = 3 ' +
-      'ORDER BY f1 ASC OFFSET 10');
+      'SELECT "f1", "f3" FROM "table" WHERE "f2" = 3 ' +
+      'ORDER BY "f1" ASC OFFSET 10');
   });
 
   test.testSync('Select where date', (test, { builder }) => {
@@ -147,7 +147,7 @@ testSync('Select tests', test => {
     builder.from('table')
       .where('f2', '=', date, { date: 'date' });
     test.strictSame(builder.toString(),
-      `SELECT * FROM table WHERE f2 = '${dateStr}'`);
+      `SELECT * FROM "table" WHERE "f2" = '${dateStr}'`);
   });
 
   test.testSync('Select where time with timezone', (test, { builder }) => {
@@ -156,7 +156,7 @@ testSync('Select tests', test => {
     builder.from('table')
       .where('f2', '=', time, { date: 'time with time zone' });
     test.strictSame(builder.toString(),
-      `SELECT * FROM table WHERE f2 = '${timeStr}'`);
+      `SELECT * FROM "table" WHERE "f2" = '${timeStr}'`);
   });
 
   test.testSync('Select where timestamp with timezone', (test, { builder }) => {
@@ -165,28 +165,29 @@ testSync('Select tests', test => {
     builder.from('table')
       .where('f2', '=', time, { date: 'timestamp with time zone' });
     test.strictSame(builder.toString(),
-      `SELECT * FROM table WHERE f2 = '${timeStr}'`);
+      `SELECT * FROM "table" WHERE "f2" = '${timeStr}'`);
   });
 
   test.testSync('Select where in numbers', (test, { builder }) => {
     builder.from('table')
       .whereIn('f1', [1, 2, 3]);
     test.strictSame(builder.toString(),
-      'SELECT * FROM table WHERE f1 IN (1, 2, 3)');
+      'SELECT * FROM "table" WHERE "f1" IN (1, 2, 3)');
   });
 
   test.testSync('Select where not in numbers', (test, { builder }) => {
     builder.from('table')
       .whereNotIn('f1', [1, 2, 3]);
     test.strictSame(builder.toString(),
-      'SELECT * FROM table WHERE NOT f1 IN (1, 2, 3)');
+      'SELECT * FROM "table" WHERE NOT "f1" IN (1, 2, 3)');
   });
 
   test.testSync('Select multiple operations', (test, { builder }) => {
     builder.from('table')
       .avg('f1')
       .sum('f2');
-    test.strictSame(builder.toString(), 'SELECT avg(f1), sum(f2) FROM table');
+    test.strictSame(builder.toString(),
+      'SELECT avg("f1"), sum("f2") FROM "table"');
   });
 
   test.testSync('Select multiple operations groupBy', (test, { builder }) => {
@@ -195,20 +196,20 @@ testSync('Select tests', test => {
       .sum('f2')
       .groupBy('a', 'b');
     test.strictSame(builder.toString(),
-      'SELECT avg(f1), sum(f2) FROM table GROUP BY a, b');
+      'SELECT avg("f1"), sum("f2") FROM "table" GROUP BY "a", "b"');
   });
 
   test.testSync('Select where like', (test, { builder }) => {
     builder.from('table')
       .where('f1', 'like', 'abc');
     test.strictSame(builder.toString(),
-      'SELECT * FROM table WHERE f1 LIKE \'abc\'');
+      'SELECT * FROM "table" WHERE "f1" LIKE \'abc\'');
   });
 
   test.testSync('Select where !=', (test, { builder }) => {
     builder.from('table')
       .where('f1', '!=', 'abc');
     test.strictSame(builder.toString(),
-      'SELECT * FROM table WHERE f1 != \'abc\'');
+      'SELECT * FROM "table" WHERE "f1" != \'abc\'');
   });
 }, { parallelSubtests: true });

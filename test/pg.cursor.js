@@ -27,9 +27,9 @@ const rowData = [
 
 function prepareDB(callback) {
   sequential([
-    (data, cb) => pool.query(`DROP TABLE IF EXISTS ${tableName}`, cb),
+    (data, cb) => pool.query(`DROP TABLE IF EXISTS "${tableName}"`, cb),
     (data, cb) => pool.query(
-      `CREATE TABLE ${tableName} (
+      `CREATE TABLE "${tableName}" (
          id int,
          text varchar(255),
          date timestamp with time zone)`,
@@ -37,7 +37,7 @@ function prepareDB(callback) {
     ),
     (data, cb) => {
       const insert =
-        `INSERT INTO ${tableName} (id, text, date) VALUES ` +
+        `INSERT INTO "${tableName}" (id, text, date) VALUES ` +
         rowData
           .map(row => `(${row.id}, '${row.text}', '${row.date.toISOString()}')`)
           .join(', ');
