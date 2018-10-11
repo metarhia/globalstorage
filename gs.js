@@ -7,7 +7,8 @@ const submodules = [
   'provider', 'cursor',
   'memory.provider', 'memory.cursor',
   'remote.provider', 'remote.cursor',
-  'fs.provider', 'fs.cursor', 'pg.cursor',
+  'fs.provider', 'fs.cursor',
+  'pg.provider', 'pg.cursor',
 ];
 
 let gs = null;
@@ -126,6 +127,7 @@ gs = Object.assign(new GlobalStorage(), lib);
 gs.providers = {
   fs: gs.FsProvider,
   memory: gs.MemoryProvider,
+  pg: gs.PostgresProvider,
 };
 
 gs.cursors = {

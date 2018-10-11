@@ -37,7 +37,9 @@
   "dependencies": {
     "mdsf": "^1.0.1",
     "metarhia-common": "^0.0.32",
-    "metasync": "^0.3.29"
+    "metaschema": "^0.0.22",
+    "metasync": "^0.3.29",
+    "pg": "^7.4.3"
   },
   "optionalDependencies": {
     "mkdirp": "^0.5.1"
@@ -49,8 +51,6 @@
     "eslint": "^5.5.0",
     "eslint-config-metarhia": "^4.0.0",
     "eslint-plugin-import": "^2.14.0",
-    "metaschema": "^0.0.22",
-    "metatests": "^0.2.1",
-    "pg": "^7.4.3"
+    "metatests": "^0.2.1"
   }
 }
