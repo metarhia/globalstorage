@@ -67,6 +67,28 @@ metatests.test('limit offset test', test => {
     });
 });
 
+metatests.test('count all test', test => {
+  const ds = [ { Id: 2, a: 1 }, { Id: 3, a: 2 }, { Id: 4 } ];
+  new gs.MemoryCursor(ds)
+    .count()
+    .fetch((err, data) => {
+      test.error(err);
+      test.strictSame(data, [ds.length]);
+      test.end();
+    });
+});
+
+metatests.test('count field test', test => {
+  const ds = [ { Id: 2, a: 1 }, { Id: 3, a: 2 }, { Id: 4 } ];
+  new gs.MemoryCursor(ds)
+    .count('a')
+    .fetch((err, data) => {
+      test.error(err);
+      test.strictSame(data, [ds.filter(d => d.hasOwnProperty('a')).length]);
+      test.end();
+    });
+});
+
 metatests.test('sort order', test => {
   const mc = new gs.MemoryCursor(ds1);
   mc.clone()
