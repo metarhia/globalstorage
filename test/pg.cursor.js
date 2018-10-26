@@ -1,10 +1,11 @@
 'use strict';
 
 const { Pool } = require('pg');
-const { test } = require('metatests');
+const { test, testSync } = require('metatests');
 const { sequential } = require('metasync');
 
-const { PostgresCursor } = require('..');
+const gs = require('..');
+const { PostgresCursor } = gs;
 
 const tableName = 'GSTestTable';
 
@@ -124,4 +125,10 @@ test('PostgresCursor test', test => {
 
     test.on('done', () => pool.end());
   });
+});
+
+testSync('PostgresCursor must be present in gs.cursors', test => {
+  // eslint-disable-next-line new-cap
+  const cursor = new gs.cursors.pg();
+  test.type(cursor, 'PostgresCursor');
 });

@@ -131,6 +131,7 @@ gs.providers = {
 gs.cursors = {
   fs: gs.FsCursor,
   memory: gs.MemoryCursor,
+  pg: gs.PostgresCursor,
 };
 
 gs.transformations = transformations;
