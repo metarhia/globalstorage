@@ -1,5 +1,6 @@
 {
   IdStatus: Enum('Prealloc', 'Init', 'Actual', 'Historical'),
+  HistoryStatus: Enum('Future', 'Actual', 'Historical'),
   StorageKind: Enum('Master', 'Cache', 'Backup', 'Replica'),
   CategoryRealm: Enum('Global', 'System', 'Local'),
   CategoryFamily: Enum(

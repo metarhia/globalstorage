@@ -22,5 +22,26 @@ System({
     }
   },
   Roles: Many('Role'),
-  Blocked: { domain: 'Logical', default: false }
+  Blocked: { domain: 'Logical', default: false },
+
+  SignIn: Action(({ Login, Password }, callback) => {
+    // Hint: you can use destructing arguments for `data`
+    // Hint: If we have `FormName.schema` with same name as `ActionName`
+    // TODO: implement session creation
+    // Hint: action may use async calls so it will end
+    //   `callback(err, resourceKey)` where
+    //     `err` - instance of Error
+    //     `resourceKey` - key to `Localization` category
+    // Hint: You can access globalstorage by injected `gs`
+    // Hint: Also common and other APIs can be injected here as `api.*`
+  }),
+
+  SignOut: Action((data, callback) => {
+    // TODO: implement remove session
+  }),
+
+  SignUp: Action((data, callback) => {
+    // TODO: implement user registration
+  })
+
 })
