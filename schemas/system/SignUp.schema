@@ -1,0 +1,15 @@
+Form({
+  Login: { domain: 'Login', required: true },
+  Password1: { domain: 'PasswordHash', required: true },
+  Password2: { domain: 'PasswordHash', required: true },
+  Email: { domain: 'Email', required: true },
+  PhoneNumber: { domain: 'PhoneNumber' },
+
+  Check: Validate(record => {
+    return (
+      login.length > 5 &&
+      record.Password1.length > 7 &&
+      record.Password1 === record.Password2
+    );
+  })
+})
