@@ -1,4 +1,4 @@
-Registry({
+Local({
   Identifier: { category: 'Identifier', required: true, index: true },
   Session: { category: 'Session', required: true, index: true },
   SystemUser: { category: 'SystemUser', required: true },
