@@ -36,7 +36,7 @@
   },
   "dependencies": {
     "mdsf": "^1.0.1",
-    "metarhia-common": "^0.0.32",
+    "metarhia-common": "0.0.34",
     "metasync": "^0.3.29"
   },
   "optionalDependencies": {
