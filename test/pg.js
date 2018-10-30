@@ -3,6 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 
+const common = require('@metarhia/common');
 const metaschema = require('metaschema');
 const metasync = require('metasync');
 const metatests = require('metatests');
@@ -28,6 +29,8 @@ const provider = gs('pg', {
   serverBitmask: new Uint64(0x7ffffff),
 });
 
+let userId;
+
 function prepareDB(callback) {
   metasync.sequential([
     (ctx, cb) => {
@@ -44,7 +47,7 @@ function prepareDB(callback) {
         cb(err);
       });
     },
-    (ctx, cb) => {
+    cb => {
       metaschema.fs.loadAndCreate([
         getPathFromCurrentDir('..', 'schemas', 'system'),
         getPathFromCurrentDir('fixtures', 'pg-test-schemas'),
@@ -66,6 +69,82 @@ function prepareDB(callback) {
     },
     cb => {
       provider[uploadCategoriesAndActions](cb);
+    },
+    (ctx, cb) => {
+      provider.create('SystemUser', {
+        Login: 'admin',
+        Password: '$argon2id$v=19$m=4096,t=3,p=1$S1xPG8hsOCYip1dKOkjVYQ$ItOI' +
+          'LC/Hc97nR2d/Ocq5pNAFOWM0QZv06Em10EiRevE',
+      }, (err, userId) => {
+        ctx.userId = userId;
+        cb(err);
+      });
+    },
+    (ctx, cb) => {
+      provider.create('Role', {
+        Name: 'Admin',
+      }, (err, roleId) => {
+        ctx.roleId = roleId;
+        cb(err);
+      });
+    },
+    (ctx, cb) => {
+      provider.select('Category', {
+        Name: 'SystemUser',
+      }).fetch((err, res) => {
+        ctx.categoryId = res && res[0] && res[0].Id;
+        cb(err);
+      });
+    },
+    (ctx, cb) => {
+      provider.create('Permission', {
+        Role: ctx.roleId,
+        Category: ctx.categoryId,
+        Access: new common.Uint64('0b11111'),
+      }, (err, permissionId) => {
+        ctx.permissionId = permissionId;
+        cb(err);
+      });
+    },
+    (ctx, cb) => {
+      pool.query(
+        'INSERT INTO "PermissionActions"' +
+        ' SELECT $1, "Id" FROM "Action" WHERE "Name" = \'SignIn\'',
+        [ctx.permissionId],
+        err => {
+          cb(err);
+        }
+      );
+    },
+    (ctx, cb) => {
+      pool.query(
+        'INSERT INTO "SystemUserRoles" VALUES ($1, $2)',
+        [ctx.userId, ctx.roleId],
+        err => {
+          cb(err);
+        }
+      );
+    },
+    (ctx, cb) => {
+      provider[gs.selectWithId]([
+        'Action',
+        'Category',
+        'Catalog',
+        'Permission',
+        'PermissionActions',
+        'Role',
+        'Subdivision',
+        'SystemUser',
+        'SystemUserRoles',
+      ], (err, result) => {
+        ctx.cache = result;
+        cb(err);
+      });
+    },
+    (ctx, cb) => {
+      provider.cachePermissions(ctx.cache);
+      userId = ctx.userId;
+      cb();
     },
   ], callback);
 }
@@ -256,6 +335,30 @@ prepareDB(err => {
       });
     });
 
+    test.test('gs.execute', test => {
+      const session = new Map();
+      session.set('Id', userId);
+      provider.execute('SystemUser', 'SignIn', session, {
+        Login: 'admin',
+        Password: 'PaSsWoRd',
+      }, (err, msg) => {
+        test.error(err);
+        test.strictSame(msg, 'Signed in');
+        test.end();
+      });
+    });
+
+    test.test('gs.execute', test => {
+      const session = new Map();
+      session.set('Id', userId);
+      provider.execute('SystemUser', 'SignIn', session, {
+        Login: 'admin',
+        Password: 42,
+      }, err => {
+        test.strictSame(err.code, 1005);
+        test.end();
+      });
+    });
   }, { dependentSubtests: true });
 
   metatests.test('PostgresProvider test', test => {

@@ -14,6 +14,8 @@ Errors taken from [`lib/errors.js`][errors]:
 | 1003 | INVALID_CATEGORY_TYPE |
 | 1004 | INVALID_DELETION_OPERATION |
 | 1005 | INVALID_CREATION_OPERATION |
+| 1006 | NOT_AUTHORIZED |
+| 1007 | INVALID_SIGNATURE |
 
 ### Interface `provider`
 
@@ -157,6 +159,25 @@ Select a record or multiple records in the category using provided jsql.
 ###### Callback arguments
 
 * `data` [`<Object[]>`][object], fetched data
+
+---
+
+##### `execute(category, name, args)`
+
+Execute an Action
+
+###### Call arguments
+
+* `category` [`<string>`][], category to execute action on
+* `name` [`<string>`][], name of the Action
+* `args` [`<Object>`][], arguments of the Action
+    * `Identifier` [`<string>`][], optional
+    * `Catalog` [`<string>`][], optional
+    * `Subdivision` [`<string>`][], optional
+
+###### Callback arguments
+
+* `message` [`<string>`][], message returned by an action
 
 [errors]: https://github.com/metarhia/globalstorage/blob/master/lib/errors.js
 [`<Object>`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object
