@@ -51,6 +51,6 @@
     "eslint": "^5.5.0",
     "eslint-config-metarhia": "^4.0.0",
     "eslint-plugin-import": "^2.14.0",
-    "metatests": "^0.2.1"
+    "metatests": "^0.2.2"
   }
 }
