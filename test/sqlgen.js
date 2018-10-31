@@ -206,7 +206,7 @@ testSync('Select tests', test => {
       .whereNotIn('f1', [1, 2, 3]);
     const [query, params] = builder.build();
     test.strictSame(query,
-      'SELECT * FROM "table" WHERE NOT "f1" IN ($1, $2, $3)');
+      'SELECT * FROM "table" WHERE "f1" NOT IN ($1, $2, $3)');
     test.strictSame(params, [1, 2, 3]);
   });
 
