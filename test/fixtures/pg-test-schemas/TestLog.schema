@@ -1,0 +1,4 @@
+Log({
+  Service: { domain: 'Service', required: true },
+  IP: { domain: 'IP' },
+})
