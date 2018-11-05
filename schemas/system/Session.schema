@@ -1,4 +1,4 @@
-Local({
+System({
   Token: { domain: 'SessionToken', required: true, unique: true },
   SystemUser: { category: 'SystemUser', required: true, index: true },
   Start: { domain: 'DateTime', required: true },

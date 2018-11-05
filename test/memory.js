@@ -141,13 +141,12 @@ metatests.test('cursor schema', test => {
     { Id: 2, Name: 'Ukrainian', Locale: 'uk' },
     { Id: 3, Name: 'Russian', Locale: 'ru' },
   ];
-  metaschema.load('schemas/system', (err, schemas) => {
+  metaschema.fs.loadAndCreate('schemas/system', null, (err, schema) => {
     test.error(err);
-    metaschema.build(schemas);
     const schemaName = 'Language';
-    const schema = metaschema.categories.get(schemaName).definition;
+    const category = schema.categories.get(schemaName).definition;
     const mcLanguages =
-      new gs.MemoryCursor(languages).definition(schema, schemaName);
+      new gs.MemoryCursor(languages).definition(category, schemaName);
     mcLanguages.select({ Locale: '> en' })
       .order('Name')
       .fetch((err, data, cursor) => {

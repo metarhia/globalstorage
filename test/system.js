@@ -2,7 +2,6 @@
 
 const metaschema = require('metaschema');
 
-metaschema.load('schemas/system', (err, schema) => {
+metaschema.fs.loadAndCreate('schemas/system', null, err => {
   if (err) throw err;
-  metaschema.build(schema);
 });
