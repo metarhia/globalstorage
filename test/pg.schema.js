@@ -3,48 +3,53 @@
 const metaschema = require('metaschema');
 const metatests = require('metatests');
 const { generateDDL } = require('../lib/pg.ddl');
-const { iter } = require('metarhia-common');
 
-const getDomains = domainNames => iter(metaschema.domains)
-  .filter(([name]) => domainNames.includes(name))
-  .collectTo(Map);
+metatests.test('Unsupported domain class', test => {
+  const expectedErrorMessage =
+    'Unsupported domain class \'__UNSUPPORTED_CLASS__\' in domain \'Test\'';
 
-metatests.test('Undefined domain', test => {
-  const expectedErrorMessage = 'Domain UndefinedDomain referenced from ' +
-     'Test.Name is not defined';
-
-  metaschema.load('test/fixtures/undefined-domain', (err, schema) => {
-    test.error(err);
-    test.throws(
-      () => generateDDL(schema, new Map()),
-      new Error(expectedErrorMessage)
-    );
-    test.end();
-  });
+  metaschema.fs.loadAndCreate(
+    'test/fixtures/unsupported-domain-class',
+    null,
+    (err, schema) => {
+      test.error(err);
+      test.throws(
+        () => generateDDL(schema),
+        new Error(expectedErrorMessage)
+      );
+      test.end();
+    }
+  );
 });
 
 metatests.test('Too many flags', test => {
   const expectedErrorMessage = 'Too many flags in ErrorFlags, ' +
     'must not be bigger than 64';
 
-  metaschema.load('test/fixtures/too-many-flags/', (err, schema) => {
-    test.error(err);
-    test.throws(
-      () => generateDDL(schema, getDomains(['ErrorFlags', 'LongEnum'])),
-      new Error(expectedErrorMessage)
-    );
-    test.end();
-  });
+  metaschema.fs.loadAndCreate(
+    'test/fixtures/too-many-flags/',
+    null,
+    (err, schema) => {
+      test.error(err);
+      test.throws(
+        () => generateDDL(schema),
+        new Error(expectedErrorMessage)
+      );
+      test.end();
+    }
+  );
 });
 
 metatests.test('Incorrect domain definition', test => {
   const expectedErrorMessage = 'Unsupported domain: IncorrectDomainDefinition';
 
-  metaschema.load('test/fixtures/incorrect-domain-definition/',
+  metaschema.fs.loadAndCreate(
+    'test/fixtures/incorrect-domain-definition/',
+    null,
     (err, schema) => {
       test.error(err);
       test.throws(
-        () => generateDDL(schema, getDomains(['IncorrectDomainDefinition'])),
+        () => generateDDL(schema),
         new Error(expectedErrorMessage)
       );
       test.end();
@@ -60,13 +65,18 @@ class InvalidLink {
 metatests.test('Not supported decorator', test => {
   const expectedErrorMessage = 'InvalidLink decorator is not supported';
 
-  metaschema.load('test/fixtures/not-supported-decorator', (err, schema) => {
-    test.error(err);
-    schema.Test.InvalidLink = new InvalidLink({ category: 'Config' });
-    test.throws(
-      () => generateDDL(schema, getDomains(['Days'])),
-      new Error(expectedErrorMessage)
-    );
-    test.end();
-  });
+  metaschema.fs.loadAndCreate(
+    'test/fixtures/not-supported-decorator',
+    null,
+    (err, schema) => {
+      test.error(err);
+      schema.categories.get('Test').definition.InvalidLink =
+        new InvalidLink({ category: 'Config' });
+      test.throws(
+        () => generateDDL(schema),
+        new Error(expectedErrorMessage)
+      );
+      test.end();
+    }
+  );
 });

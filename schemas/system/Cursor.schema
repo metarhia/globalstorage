@@ -1,5 +1,5 @@
 Local({
-  QueryHash: { domain: 'SHA256', required: true, unique: true },
+  QueryHash: { domain: 'SHA2', required: true, unique: true },
   Created: { domain: 'DateTime', required: true },
   Query: { domain: 'JSON', required: true },
   Version: { domain: 'Version', default: 0, required: true },

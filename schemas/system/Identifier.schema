@@ -6,7 +6,7 @@ Registry({
   Change: { domain: 'DateTime', required: true },
   Lock: { domain: 'Logical', required: true, default: false },
   Version: { domain: 'Version', required: true, default: 0 },
-  Checksum: { domain: 'SHA256', required: true },
+  Checksum: { domain: 'SHA2', required: true },
 
   CheckCategory: Validate(record => {
     if (record.Status === 'Actual' || record.Status === 'Historical') {

@@ -37,7 +37,7 @@
   "dependencies": {
     "mdsf": "^1.0.1",
     "metarhia-common": "^0.0.32",
-    "metaschema": "^0.0.22",
+    "metaschema": "0.0.27",
     "metasync": "^0.3.29",
     "pg": "^7.4.3"
   },
