@@ -72,8 +72,9 @@ metatests.test('Incorrect domain definition', test => {
 });
 
 class InvalidLink {
-  constructor({ category }) {
+  constructor({ category, definition }) {
     this.category = category;
+    this.definition = definition;
   }
 }
 
@@ -85,8 +86,11 @@ metatests.test('Not supported decorator', test => {
     null,
     (err, schema) => {
       test.error(err);
-      schema.categories.get('Test').definition.InvalidLink =
-        new InvalidLink({ category: 'Config' });
+      schema.categories.get('Test').definition.InvalidLink = new InvalidLink({
+        category: 'Config',
+        definition: schema.categories.get('Config'),
+      });
+
       test.throws(
         () => generateDDL(schema),
         new Error(expectedErrorMessage)
