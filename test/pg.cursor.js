@@ -7,15 +7,11 @@ const { sequential } = require('metasync');
 const gs = require('..');
 const { PostgresCursor } = gs;
 
+const { pgOptions } = require('./utils');
+
 const tableName = 'GSTestTable';
 
-const pool = new Pool({
-  user: process.env.DB_USER || 'postgres',
-  password: process.env.DB_PASSWORD || '',
-  host: 'localhost',
-  database: process.env.DB_NAME || 'test_globalstorage_database',
-  port: process.env.DB_PORT || 5432,
-});
+const pool = new Pool(pgOptions);
 
 const now = Date.now();
 const rowData = [
@@ -123,7 +119,11 @@ test('PostgresCursor test', test => {
         });
     });
 
-    test.on('done', () => pool.end());
+    test.on('done', () => {
+      pool.query(`DROP TABLE "${tableName}"`, () => {
+        pool.end();
+      });
+    });
   });
 });
 
