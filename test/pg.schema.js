@@ -4,6 +4,21 @@ const metaschema = require('metaschema');
 const metatests = require('metatests');
 const { generateDDL } = require('../lib/pg.ddl');
 
+metatests.test('Fully supports schemas/system', test => {
+  metaschema.fs.loadAndCreate(
+    'schemas/system',
+    null,
+    (err, schema) => {
+      test.error(err, 'System schemas must be compliant with metaschema');
+      test.doesNotThrow(
+        () => generateDDL(schema),
+        'DDL generator must fully support current system schema'
+      );
+      test.end();
+    }
+  );
+});
+
 metatests.test('Unsupported domain class', test => {
   const expectedErrorMessage =
     'Unsupported domain class \'__UNSUPPORTED_CLASS__\' in domain \'Test\'';
