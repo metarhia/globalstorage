@@ -1,7 +1,7 @@
 Form({
   Login: { domain: 'Login', required: true },
-  Password1: { domain: 'PasswordHash', required: true },
-  Password2: { domain: 'PasswordHash', required: true },
+  Password1: { domain: 'Password', required: true },
+  Password2: { domain: 'Password', required: true },
   Email: { domain: 'Email', required: true },
   PhoneNumber: { domain: 'PhoneNumber' },
 
