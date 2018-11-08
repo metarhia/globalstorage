@@ -94,35 +94,18 @@ category.
 
 ---
 
-##### `select(category, query)`
+##### `select(category, jsql)`
 
-Select a record or multiple records that satisfy the `query` in the specified
-category.
+Select a record or multiple records in the category using provided jsql.
 
 ###### Call arguments
 
 * `category` [`<string>`][]
-* `query` [`<Object>`][]
-
-###### Callback arguments
-
-* `cursorId` [`<number>`][], id of the created cursor
-
-
-### Interface `cursor`
-
-##### `fetch(cursorId, jsql)`
-
-Fetch all the data from the corresponding cursor.
-
-###### Call arguments
-
-* `cursorId` [`<number>`][]
 * `jsql` [`<Object[]>`][object]
 
 ###### Callback arguments
 
-* `data` [`<Object[]>`][object], data fetched from the cursor
+* `data` [`<Object[]>`][object], fetched data
 
 [errors]: https://github.com/metarhia/globalstorage/blob/master/lib/errors.js
 [`<Object>`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object
