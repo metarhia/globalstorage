@@ -1,7 +1,9 @@
 System({
   Role: { category: 'Role', required: true, index: true },
   Category: { category: 'Category', required: true },
-  Bound: { category: 'Identifier' }, // Catalog, Subdivision or Action
+  Target: { category: 'Identifier' },
+  Catalog: { category: 'Catalog' },
+  Subdivision: { category: 'Subdivision' },
   Access: { domain: 'AccessFlags', required: true },
   Actions: Many('Action'),
 
