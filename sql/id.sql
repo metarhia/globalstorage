@@ -68,7 +68,7 @@ CREATE FUNCTION trigger_creator(
 BEGIN
     EXECUTE format(
         'CREATE TRIGGER idgen BEFORE UPDATE ON "Identifier"'
-        ' FOR EACH STATEMENT EXECUTE FUNCTION idgen(%L, %L, %L, %L);',
+        ' FOR EACH STATEMENT EXECUTE PROCEDURE idgen(%L, %L, %L, %L);',
         max_count, refill_percent, server_id, id_bit_length
     );
 END;
