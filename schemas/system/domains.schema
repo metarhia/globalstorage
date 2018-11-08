@@ -6,7 +6,7 @@
   CategoryFamily: Enum(
     'Registry', 'Dictionary', 'Table', 'Log', 'View', 'History', 'Memory'
   ),
-  UserAccess: Enum('Read', 'Insert', 'Update', 'Delete', 'Execute', 'Audit'),
+  UserAccess: Enum('Read', 'Insert', 'Update', 'Delete', 'Audit'),
   AccessFlags: Flags.of('UserAccess'),
   Compression: Enum('None', 'GZIP', 'ZIP'),
   SessionToken: { type: 'string', length: 64 },
