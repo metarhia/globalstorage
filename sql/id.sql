@@ -58,3 +58,18 @@ BEGIN
     END IF;
 END;
 $$ LANGUAGE plpgsql;
+
+CREATE FUNCTION trigger_creator(
+    max_count bigint,
+    refill_percent integer,
+    server_id bigint,
+    id_bit_length integer
+) RETURNS void AS $$
+BEGIN
+    EXECUTE format(
+        'CREATE TRIGGER idgen BEFORE UPDATE ON "Identifier"'
+        ' FOR EACH STATEMENT EXECUTE FUNCTION idgen(%L, %L, %L, %L);',
+        max_count, refill_percent, server_id, id_bit_length
+    );
+END;
+$$ LANGUAGE plpgsql;
