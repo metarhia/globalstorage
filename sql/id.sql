@@ -37,8 +37,8 @@ BEGIN
     FROM "Identifier"
     WHERE "Status" = 'Prealloc';
 
-    SELECT max(unsigned_right_shift("Id", id_bit_length)) INTO last_id
-    FROM "Identifier";
+    SELECT COALESCE(max(unsigned_right_shift("Id", id_bit_length)), 0)
+    INTO last_id FROM "Identifier";
 
     IF prealloc_count < max_count * refill_percent / 100 THEN
         to_add_count := max_count - prealloc_count;
@@ -56,6 +56,7 @@ BEGIN
             );
         END LOOP;
     END IF;
+    RETURN NULL;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -71,5 +72,7 @@ BEGIN
         ' FOR EACH STATEMENT EXECUTE PROCEDURE idgen(%L, %L, %L, %L);',
         max_count, refill_percent, server_id, id_bit_length
     );
+    -- run trigger function at least once before first update
+    UPDATE "Identifier" SET "Id" = 0 WHERE FALSE;
 END;
 $$ LANGUAGE plpgsql;
