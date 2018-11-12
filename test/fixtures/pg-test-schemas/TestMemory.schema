@@ -1,4 +1,4 @@
-Log({
+Memory({
   Service: { domain: 'Service', required: true },
   IP: { domain: 'IP' },
 })

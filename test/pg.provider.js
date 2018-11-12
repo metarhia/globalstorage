@@ -8,8 +8,6 @@ const metasync = require('metasync');
 const metatests = require('metatests');
 const { Pool } = require('pg');
 
-metatests.runner.instance.runTodo();
-
 const getPathFromCurrentDir = path.join.bind(path, __dirname);
 
 const gs = require('..');
@@ -57,6 +55,9 @@ function prepareDB(callback) {
     },
     cb => {
       provider[gs.recreateIdTrigger](1000, 30, cb);
+    },
+    cb => {
+      provider[gs.uploadCategoriesAndActions](cb);
     },
   ], callback);
 }
@@ -123,7 +124,7 @@ metatests.test('PostgresProvider test', test => {
     });
 
     test.test('create on ignored category', test => {
-      provider.create('TestLog', {
+      provider.create('TestMemory', {
         Service: 'gs',
       }, err => {
         test.isError(err, new GSError());
@@ -138,7 +139,7 @@ metatests.test('PostgresProvider test', test => {
         test.error(err);
         test.end();
       });
-    }, { todo: true });
+    });
 
     test.test('gs.get', test => {
       provider.get(record.value.Id, (err, res) => {
@@ -146,7 +147,7 @@ metatests.test('PostgresProvider test', test => {
         test.strictSame(res, record.value);
         test.end();
       });
-    }, { todo: true });
+    });
 
     test.test('gs.update', test => {
       const newName = 'Peter';
@@ -160,7 +161,7 @@ metatests.test('PostgresProvider test', test => {
         record.value.Name = newName;
         test.end();
       });
-    }, { todo: true });
+    });
 
     test.test('gs.delete', test => {
       provider.delete(record.category, {
@@ -170,6 +171,6 @@ metatests.test('PostgresProvider test', test => {
         test.strictSame(count, 1);
         test.end();
       });
-    }, { todo: true });
+    });
   });
 }, { dependentSubtests: true });
