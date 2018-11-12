@@ -76,3 +76,19 @@ BEGIN
     UPDATE "Identifier" SET "Id" = 0 WHERE FALSE;
 END;
 $$ LANGUAGE plpgsql;
+
+CREATE FUNCTION get_checksum(
+    category text,
+    id bigint,
+    algorithm text
+) RETURNS bytea AS $$
+DECLARE
+    rec record;
+    result bytea;
+BEGIN
+    EXECUTE format('SELECT * FROM %I WHERE "Id" = $1', category)
+        INTO STRICT rec USING id;
+    SELECT digest(rec::text, algorithm) INTO STRICT result;
+    RETURN result;
+END;
+$$ LANGUAGE plpgsql;
