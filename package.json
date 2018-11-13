@@ -50,7 +50,7 @@
     "@babel/core": "^7.1.5",
     "@babel/preset-env": "^7.1.5",
     "eslint": "^5.9.0",
-    "eslint-config-metarhia": "^4.0.0",
+    "eslint-config-metarhia": "^6.0.0",
     "eslint-plugin-import": "^2.14.0",
     "metatests": "^0.2.4"
   }

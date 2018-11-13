@@ -28,7 +28,10 @@ module.exports = (data, done) => {
       provider: 'fs',
       path: './data',
     }, err => {
-      if (err) return test.error(err, 'error opening gs');
+      if (err) {
+        test.error(err, 'error opening gs');
+        return;
+      }
       console.time('insert');
       for (let i = 0; i < 10; i++) {
         queue.add({ Num: i });
@@ -37,7 +40,10 @@ module.exports = (data, done) => {
         .limit(10)
         .fetch((err, data) => {
           console.log(err);
-          if (err) return test.throws(err, 'error fetching Marcus');
+          if (err) {
+            test.throws(err, 'error fetching Marcus');
+            return;
+          }
           test.strictSame([err, data], [null, []]);
           test.end('select test end');
         });
