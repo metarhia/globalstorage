@@ -34,11 +34,10 @@ class GlobalStorage extends lib.StorageProvider {
     this.systemBitmask = ids.systemBitmask;
   }
 
-  open(
-    // Open database
-    options, // options
-    callback // callback
-  ) {
+  // Open database
+  //   options - <Object>
+  //   callback - <Function>
+  open(options, callback) {
     this.memory.open({ gs: options.gs });
     const providerName = options.provider || 'memory';
     const Provider = gs.providers[providerName];
@@ -47,21 +46,26 @@ class GlobalStorage extends lib.StorageProvider {
     this.local.open(options, callback);
   }
 
-  connect(
-    // Connect to Global Storage server
-    options, // connection parammeters
-    // Example: { url: 'gs://user:password@host:port/database' }
-    callback // on connect function(err, connection)
-  ) {
+  // Connect to Global Storage server
+  //   options - <Object>, connection parameters
+  //   callback - <Function>, called on connect
+  //     err - <Error> | <null>
+  //     connection - <Object>, gs.RemoteProvider
+  //
+  // Example:
+  // connect({ url: 'gs://user:password@host:port/database' },
+  //   (err, connection) => { ... });
+  connect(options, callback) {
     const connection = new gs.RemoteProvider(options);
     callback(null, connection);
   }
 
-  get(
-    // Get object by id
-    id, // object id
-    callback // function(err, object)
-  ) {
+  // Get object by id
+  //   id - <string>, object id
+  //   callback - <Function>
+  //     err - <Error> | <null>
+  //     data - <Object>
+  get(id, callback) {
     const get = (id, callback) => {
       this.local.get(id, (err, data) => {
         if (!err) {
@@ -81,50 +85,50 @@ class GlobalStorage extends lib.StorageProvider {
     });
   }
 
-  create(
-    // Create new object
-    obj, // object
-    callback // function(err, id)
-  ) {
+  // Create new object
+  //   obj - <Object>
+  //   callback - <Function>
+  //     err - <Error> | <null>
+  //     id - <string>
+  create(obj, callback) {
     this.local.create(obj, callback);
   }
 
-  update(
-    // Update Object
-    obj, // object
-    callback // function(err)
-  ) {
+  // Update Object
+  //   obj - <Object>
+  //   callback - <Function>
+  //     err - <Error> | <null>
+  update(obj, callback) {
     this.local.update(obj, callback);
   }
 
-  delete(
-    // Delete object
-    id, // object id
-    callback // function(err)
-  ) {
+  // Delete object
+  //   id - <string>, object id
+  //   callback - <Function>
+  //     err - <Error> | <null>
+  delete(id, callback) {
     this.local.delete(id, callback);
   }
 
-  select(
-    // Select dataset
-    query, // object
-    options, // object
-    callback // function(err, cursor)
-  ) {
+  // Select dataset
+  //   query - <Object>
+  //   options - <Object>
+  //   callback - <Function>
+  //     err - <Error> | <null>
+  //     cursor - <MemoryCursor>
+  select(query, options, callback) {
     return this.local.select(query, options, callback);
   }
 
-  findServer(
-    // Get server for id
-    id // object id
-  ) {
+  // Get server for id
+  //   id - <string>, object id
+  findServer(id) {
     return id;
   }
 
-  generateId(
-    // Get server for id
-    // This function not used now
-  ) {
+  // Get server for id
+  // This function is not used now
+  generateId() {
     return this.nextId++;
   }
 
