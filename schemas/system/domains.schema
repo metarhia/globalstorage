@@ -4,7 +4,8 @@
   StorageKind: Enum('Master', 'Cache', 'Backup', 'Replica'),
   CategoryRealm: Enum('Global', 'System', 'Local'),
   CategoryFamily: Enum(
-    'Registry', 'Dictionary', 'Table', 'Log', 'View', 'History', 'Memory'
+    'Registry', 'Dictionary', 'System', 'Log', 'Local', 'Table', 'History',
+    'View', 'Memory', 'Form', 'Arguments'
   ),
   UserAccess: Enum('Read', 'Insert', 'Update', 'Delete', 'Audit'),
   AccessFlags: Flags.of('UserAccess'),
