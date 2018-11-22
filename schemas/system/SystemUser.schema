@@ -8,7 +8,7 @@ System({
     control: 'InputBox',
     validate: login => {
       // TODO: implement OWASP recomendations
-      return login.length > 5;
+      return login.length >= 5;
     }
   },
   Password: {
@@ -18,7 +18,7 @@ System({
     validate: password => {
       // TODO: implement OWASP recomendations
       // See https://www.owasp.org/index.php/Authentication_Cheat_Sheet
-      return Auth.passwordStrength(password);
+      return true;
     }
   },
   Subdivision: { category: 'Subdivision' },
@@ -35,6 +35,7 @@ System({
     //     `resourceKey` - key to `Localization` category
     // Hint: You can access globalstorage by injected `gs`
     // Hint: Also common and other APIs can be injected here as `api.*`
+    callback(null, 'Signed in')
   }),
 
   SignOut: Action((data, callback) => {
