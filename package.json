@@ -21,14 +21,15 @@
   },
   "main": "gs.js",
   "browser": {
-    "gs.js": "dist/gs.js",
-    "lib/fs.cursor.js": false,
-    "lib/fs.provider.js": false
+    "./gs.js": "./dist/gs.js",
+    "./dist/lib/fs.cursor.js": false,
+    "./dist/lib/fs.provider.js": false,
+    "./dist/lib/pg.provider.js": false
   },
   "scripts": {
     "test": "npm run lint && metatests test/",
     "lint": "eslint . --ignore-path .gitignore",
-    "build": "babel gs.js -d dist && babel lib -d dist/lib --ignore lib/fs.provider.js,lib/fs.cursor.js",
+    "build": "babel gs.js -d dist && babel lib -d dist/lib",
     "prepublish": "npm run -s build"
   },
   "engines": {
