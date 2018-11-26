@@ -12,6 +12,8 @@ Errors taken from [`lib/errors.js`][errors]:
 | 1001 | NOT_FOUND |
 | 1002 | INVALID_SCHEMA |
 | 1003 | INVALID_CATEGORY_TYPE |
+| 1004 | NOT_AUTHORIZED |
+| 1005 | INVALID_SIGNATURE |
 
 ### Interface `provider`
 
@@ -74,7 +76,7 @@ category.
 
 ###### Callback arguments
 
-* `count` [`<number>`][], updated records count
+* `message` [`<string>`][], message returned by an action
 
 ---
 
@@ -102,6 +104,20 @@ Select a record or multiple records in the category using provided jsql.
 
 * `category` [`<string>`][]
 * `jsql` [`<Object[]>`][object]
+
+###### Callback arguments
+
+* `data` [`<Object[]>`][object], fetched data
+
+##### `execute(connection, category, name, args)`
+
+Execute an Action
+
+###### Call arguments
+
+* `category` [`<string>`][]
+* `name` [`<string>`][]
+* `args` [`<Object>`][]
 
 ###### Callback arguments
 
