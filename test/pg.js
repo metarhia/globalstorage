@@ -21,7 +21,7 @@ gs.serverIdBitCount = 3;
 const pool = new Pool(pgOptions);
 const provider = new gs.PostgresProvider(gs);
 
-//let userId;
+let userId;
 
 function prepareDB(callback) {
   metasync.sequential([
@@ -135,7 +135,7 @@ function prepareDB(callback) {
     },
     (ctx, cb) => {
       provider.cachePermissions(ctx.cache);
-      //userId = ctx.userId;
+      userId = ctx.userId;
       cb();
     },
   ], callback);
@@ -269,12 +269,26 @@ prepareDB(err => {
     });
 
     test.test('gs.execute', test => {
-      provider.execute('SystemUser', 'SignIn', null, {
+      const session = new Map();
+      session.set('Id', userId);
+      provider.execute('SystemUser', 'SignIn', session, {
         Login: 'admin',
         Password: 'PaSsWoRd',
       }, (err, msg) => {
         test.error(err);
         test.strictSame(msg, 'Signed in');
+        test.end();
+      });
+    });
+
+    test.test('gs.execute', test => {
+      const session = new Map();
+      session.set('Id', userId);
+      provider.execute('SystemUser', 'SignIn', session, {
+        Login: 'admin',
+        Password: 42,
+      }, err => {
+        test.strictSame(err.code, 1005);
         test.end();
       });
     });

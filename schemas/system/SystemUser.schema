@@ -25,7 +25,7 @@ System({
   Roles: Many('Role'),
   Blocked: { domain: 'Logical', default: false },
 
-  SignIn: Action(({ Login, Password }, callback) => {
+  SignIn: Action((session, { Login, Password }, callback) => {
     // Hint: you can use destructing arguments for `data`
     // Hint: If we have `FormName.schema` with same name as `ActionName`
     // TODO: implement session creation
@@ -38,11 +38,11 @@ System({
     callback(null, 'Signed in')
   }),
 
-  SignOut: Action((data, callback) => {
+  SignOut: Action((session, data, callback) => {
     // TODO: implement remove session
   }),
 
-  SignUp: Action((data, callback) => {
+  SignUp: Action((session, data, callback) => {
     // TODO: implement user registration
   })
 

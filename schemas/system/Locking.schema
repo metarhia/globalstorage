@@ -7,7 +7,7 @@ Local({
   Expire: { domain: 'DateTime', index: true },
   Updates: { domain: 'Version', required: true, default: 0 },
 
-  Lock: Action(({ Identifier }, callback) => {
+  Lock: Action((session, { Identifier }, callback) => {
     const now = new Date();
     gs.create({
       Identifier,
@@ -19,7 +19,7 @@ Local({
     });
   }),
 
-  Unlock: Action(({ Identifier }, callback) => {
+  Unlock: Action((session, { Identifier }, callback) => {
     gs.select({
       Identifier,
       Session: client.sessionId,
@@ -31,7 +31,7 @@ Local({
     });
   }),
 
-  CheckLock: Action(({ Identifier }, callback) => {
+  CheckLock: Action((session, { Identifier }, callback) => {
     // to be implemented
   }),
 
