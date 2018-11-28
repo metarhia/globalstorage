@@ -4,6 +4,7 @@ const transformations = require('./lib/transformations');
 const operations = require('./lib/operations');
 const { createRemoteProviderJstpApi } =
   require('./lib/remote.provider.jstp.api.js');
+const common = require('@metarhia/common');
 
 const submodules = [
   'provider', 'cursor',
@@ -18,7 +19,7 @@ const lib = {};
 submodules.forEach(name => Object.assign(lib, require('./lib/' + name)));
 
 class GlobalStorage extends lib.StorageProvider {
-  constructor() {
+  constructor(ids) {
     super();
     this.memory = new lib.MemoryProvider();
     this.local = null;
@@ -27,6 +28,10 @@ class GlobalStorage extends lib.StorageProvider {
     this.offline = true;
     this.nextId = 0;
     this.categories = {};
+    this.serverBitmask = ids.serverBitmask;
+    this.serverSuffix = ids.serverSuffix;
+    this.systemSuffix = ids.systemSuffix;
+    this.systemBitmask = ids.systemBitmask;
   }
 
   open(
@@ -122,9 +127,66 @@ class GlobalStorage extends lib.StorageProvider {
   ) {
     return this.nextId++;
   }
+
+  // Get system suffix for given id
+  //   id - <common.Uint64>
+  //
+  // Returns: <common.Uint64>
+  getSystemSuffix(id) {
+    return common.Uint64.and(id, this.systemBitmask);
+  }
+
+  // Check whether data with given id is stored on this system
+  //   id - <common.Uint64>
+  //
+  // Returns: <boolean>
+  curSystem(id) {
+    return common.Uint64.cmp(this.getSystemSuffix(id),
+      this.systemSuffix) === 0;
+  }
+
+  // Get server suffix for given id
+  //   id - <common.Uint64>
+  //
+  // Returns: <common.Uint64>
+  getServerSuffix(id) {
+    return common.Uint64.and(id, this.serverBitmask);
+  }
+
+  // Check whether data with given id is stored on this server
+  //   id - <common.Uint64>
+  //
+  // Returns: <boolean>
+  curServer(id) {
+    return common.Uint64.cmp(this.getServerSuffix(id),
+      this.serverSuffix) === 0;
+  }
+
+  // Get id without system and server suffix
+  //   id - <common.Uint64>
+  //
+  // Returns: <common.Uint64>
+  getLocalId(id) {
+    return common.Uint64.and(common.Uint64.not(this.serverBitmask), id);
+  }
+
+  // Parse id
+  //   id - <common.Uint64>
+  //
+  // Returns: <Object>
+  //   systemSuffix - <common.Uint64>, system suffix for given id
+  //   serverSuffix - <common.Uint64>, server suffix for given id
+  //   localId - <common.Uint64>, id without system and server suffix
+  parseId(id) {
+    return {
+      systemSuffix: this.getSystemSuffix(id),
+      serverSuffix: this.getServerSuffix(id),
+      localId: this.getLocalId(id),
+    };
+  }
 }
 
-gs = Object.assign(new GlobalStorage(), lib);
+gs = Object.assign(new GlobalStorage({}), lib);
 
 gs.providers = {
   fs: gs.FsProvider,
