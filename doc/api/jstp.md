@@ -76,7 +76,7 @@ category.
 
 ###### Callback arguments
 
-* `message` [`<string>`][], message returned by an action
+* `count` [`<number>`][], updated records count
 
 ---
 
@@ -109,19 +109,24 @@ Select a record or multiple records in the category using provided jsql.
 
 * `data` [`<Object[]>`][object], fetched data
 
+---
+
 ##### `execute(connection, category, name, args)`
 
 Execute an Action
 
 ###### Call arguments
 
-* `category` [`<string>`][]
-* `name` [`<string>`][]
-* `args` [`<Object>`][]
+* `category` [`<string>`][], category to execute action on
+* `name` [`<string>`][], name of as Action
+* `args` [`<Object>`][], arguments of an Action
+    * `Identifier` [`<string>`][], optional
+    * `Catalog` [`<string>`][], optional
+    * `Subdivision` [`<string>`][], optional
 
 ###### Callback arguments
 
-* `data` [`<Object[]>`][object], fetched data
+* `message` [`<string>`][], message returned by an action
 
 [errors]: https://github.com/metarhia/globalstorage/blob/master/lib/errors.js
 [`<Object>`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object
