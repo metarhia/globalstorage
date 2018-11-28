@@ -245,4 +245,67 @@ testSync('Select tests', test => {
     test.strictSame(query, 'SELECT * FROM "table" WHERE "f1" != $1');
     test.strictSame(params, ['abc']);
   });
+
+  test.testSync('Select multiple from', (test, { builder }) => {
+    builder.from('table1')
+      .from('table2');
+    const [query, params] = builder.build();
+    test.strictSame(query, 'SELECT * FROM "table1", "table2"');
+    test.strictSame(params, []);
+  });
+
+  test.testSync('Select name with table', (test, { builder }) => {
+    builder.from('table')
+      .where('table.a', '=', 1);
+    const [query, params] = builder.build();
+    test.strictSame(query, 'SELECT * FROM "table" WHERE "table"."a" = $1');
+    test.strictSame(params, [1]);
+  });
+
+  test.testSync('Select multiple from with where', (test, { builder }) => {
+    builder.from('table1')
+      .from('table2')
+      .where('f1', '=', 'abc');
+    const [query, params] = builder.build();
+    test.strictSame(query, 'SELECT * FROM "table1", "table2" WHERE "f1" = $1');
+    test.strictSame(params, ['abc']);
+  });
+
+  test.testSync('Select multiple from with where', (test, { builder }) => {
+    builder.from('table1')
+      .from('table2')
+      .where('table1.f', '=', 'abc')
+      .where('table2.f', '=', 'abc');
+    const [query, params] = builder.build();
+    test.strictSame(query,
+      'SELECT * FROM "table1", "table2" ' +
+      'WHERE "table1"."f" = $1 AND "table2"."f" = $2');
+    test.strictSame(params, ['abc', 'abc']);
+  });
+
+  test.testSync('Select with inner join', (test, { builder }) => {
+    builder.from('table1')
+      .innerJoin('table2', 'table1.f', 'table2.f')
+      .where('table1.f', '=', 'abc');
+    const [query, params] = builder.build();
+    test.strictSame(query,
+      'SELECT * FROM "table1" ' +
+      'INNER JOIN "table2" ON "table1"."f" = "table2"."f" ' +
+      'WHERE "table1"."f" = $1');
+    test.strictSame(params, ['abc']);
+  });
+
+  test.testSync('Select with multiple inner joins', (test, { builder }) => {
+    builder.from('table1')
+      .innerJoin('table2', 'table1.f', 'table2.f')
+      .innerJoin('table3', 'table1.f', 'table3.f')
+      .where('table1.f', '=', 'abc');
+    const [query, params] = builder.build();
+    test.strictSame(query,
+      'SELECT * FROM "table1" ' +
+      'INNER JOIN "table2" ON "table1"."f" = "table2"."f" ' +
+      'INNER JOIN "table3" ON "table1"."f" = "table3"."f" ' +
+      'WHERE "table1"."f" = $1');
+    test.strictSame(params, ['abc']);
+  });
 }, { parallelSubtests: true });

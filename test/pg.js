@@ -63,15 +63,17 @@ function prepareDB(callback) {
 }
 
 
-metatests.test('PostgresProvider test', test => {
-  prepareDB(err => {
-    if (err) {
-      console.error('Cannot setup PostgresDB, skipping PostgresProvider tests');
-      console.error(err);
-      test.end();
-      return;
-    }
+metatests.runner.instance.wait();
 
+prepareDB(err => {
+  metatests.runner.instance.resume();
+  if (err) {
+    console.error('Cannot setup PostgresDB, skipping PostgresProvider tests');
+    console.error(err);
+    return;
+  }
+
+  metatests.test('PostgresProvider test', test => {
     test.endAfterSubtests();
 
     const record = {
@@ -186,5 +188,10 @@ metatests.test('PostgresProvider test', test => {
         test.end();
       });
     });
+  }, { dependentSubtests: true });
+
+  metatests.test('PostgresProvider test', test => {
+    test.endAfterSubtests();
+    // TODO: add tests
   });
-}, { dependentSubtests: true });
+});

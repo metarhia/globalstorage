@@ -58,7 +58,11 @@ test('PostgresCursor test', test => {
     test.beforeEach((test, callback) => {
       pool.connect((err, client, done) => {
         test.error(err);
-        const cursor = new PostgresCursor(client, { category: tableName });
+        const gs = { schema: { categories: new Map([[tableName, {} ]]) } };
+        const cursor = new PostgresCursor(
+          { gs, pool: client },
+          { category: tableName }
+        );
         callback({ cursor, done });
       });
     });
@@ -129,6 +133,5 @@ test('PostgresCursor test', test => {
 
 testSync('PostgresCursor must be present in gs.cursors', test => {
   // eslint-disable-next-line new-cap
-  const cursor = new gs.cursors.pg();
-  test.type(cursor, 'PostgresCursor');
+  test.strictSame(gs.cursors.pg, PostgresCursor);
 });
