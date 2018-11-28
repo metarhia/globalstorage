@@ -2,6 +2,8 @@
 
 const transformations = require('./lib/transformations');
 const operations = require('./lib/operations');
+const { createRemoteProviderJstpApi } =
+  require('./lib/remote.provider.jstp.api.js');
 
 const submodules = [
   'provider', 'cursor',
@@ -138,5 +140,7 @@ gs.cursors = {
 
 gs.transformations = transformations;
 gs.operations = operations;
+
+gs.createRemoteProviderJstpApi = createRemoteProviderJstpApi;
 
 module.exports = gs;
