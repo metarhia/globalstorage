@@ -218,6 +218,6 @@ prepareDB(err => {
           }
         );
       });
-    }, { todo: true });
+    });
   });
 });
