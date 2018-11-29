@@ -192,6 +192,32 @@ prepareDB(err => {
 
   metatests.test('PostgresProvider test', test => {
     test.endAfterSubtests();
-    // TODO: add tests
+
+    test.test('gs.select from category with Include', test => {
+      const company = {
+        Name: 'CompanyName',
+        Address: {
+          Country: 'Country',
+          City: 'City',
+        },
+      };
+
+      provider.create('Company', company, (err, id) => {
+        test.error(err);
+        test.assert(id);
+        company.Id = id;
+        company.Address.Id = id;
+
+        provider.select('Company', { Name: company.Name }).fetch(
+          (error, result) => {
+            test.error(error);
+            test.strictEqual(result.length, 1);
+            const [selectedCompany] = result;
+            test.strictSame(selectedCompany, company);
+            test.end();
+          }
+        );
+      });
+    }, { todo: true });
   });
 });
