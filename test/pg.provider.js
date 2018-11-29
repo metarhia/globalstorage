@@ -172,5 +172,19 @@ metatests.test('PostgresProvider test', test => {
         test.end();
       });
     });
+
+    test.test('gs.create with Include categories', test => {
+      provider.create('Company', {
+        Name: 'Metarhia',
+        Address: {
+          Country: 'Ukraine',
+          City: 'Kiev',
+        },
+      }, (err, id) => {
+        test.error(err);
+        test.assert(id);
+        test.end();
+      });
+    });
   });
 }, { dependentSubtests: true });
