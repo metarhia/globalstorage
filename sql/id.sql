@@ -27,13 +27,19 @@ DECLARE
     last_id        bigint;
     server_id      bigint;
     id_bit_length  integer;
+    lock_obtained  boolean;
 BEGIN
     max_count := TG_ARGV[0]::bigint;
     refill_percent := TG_ARGV[1]::integer;
     server_id := TG_ARGV[2]::bigint;
     id_bit_length := TG_ARGV[3]::integer;
 
-    SELECT count(1) INTO prealloc_count
+    SELECT pg_try_advisory_xact_lock(0) INTO lock_obtained;
+    IF NOT lock_obtained THEN
+        RETURN NULL;
+    END IF;
+
+    SELECT count(*) INTO prealloc_count
     FROM "Identifier"
     WHERE "Status" = 'Prealloc';
 
