@@ -7,6 +7,7 @@ const metaschema = require('metaschema');
 const metasync = require('metasync');
 const metatests = require('metatests');
 const { Pool } = require('pg');
+const { Uint64 } = require('@metarhia/common');
 
 const getPathFromCurrentDir = path.join.bind(path, __dirname);
 
@@ -14,11 +15,18 @@ const gs = require('..');
 const { codes: errorCodes, GSError } = require('../lib/errors');
 const { generateDDL } = require('../lib/pg.ddl');
 const { pgOptions } = require('./utils');
+const {
+  symbols: {
+    recreateIdTrigger,
+    uploadCategoriesAndActions,
+  },
+} = require('../lib/pg.utils');
 
-gs.serverId = 4;
-gs.serverIdBitCount = 3;
 const pool = new Pool(pgOptions);
-const provider = new gs.PostgresProvider(gs);
+const provider = gs('pg', {
+  serverSuffix: new Uint64(0x4000000),
+  serverBitmask: new Uint64(0x7ffffff),
+});
 
 function prepareDB(callback) {
   metasync.sequential([
@@ -41,23 +49,23 @@ function prepareDB(callback) {
         getPathFromCurrentDir('..', 'schemas', 'system'),
         getPathFromCurrentDir('fixtures', 'pg-test-schemas'),
       ], null, (err, schema) => {
-        gs.schema = schema;
-        cb(err);
+        if (err) {
+          cb(err);
+          return;
+        }
+        provider.open(Object.assign({ schema }, pgOptions), cb);
       });
     },
     (ctx, cb) => {
-      pool.query(generateDDL(gs.schema), err => {
+      pool.query(generateDDL(provider.schema), err => {
         cb(err);
       });
     },
     cb => {
-      provider.open(pgOptions, cb);
+      provider[recreateIdTrigger](1000, 30, cb);
     },
     cb => {
-      provider[gs.recreateIdTrigger](1000, 30, cb);
-    },
-    cb => {
-      provider[gs.uploadCategoriesAndActions](cb);
+      provider[uploadCategoriesAndActions](cb);
     },
   ], callback);
 }
