@@ -9,6 +9,7 @@ const metasync = require('metasync');
 const metatests = require('metatests');
 const jstp = require('@metarhia/jstp');
 const { Pool } = require('pg');
+const argon2 = require('argon2');
 
 const getPathFromCurrentDir = path.join.bind(path, __dirname);
 
@@ -33,6 +34,8 @@ const provider = new gs.PostgresProvider(gs);
 let userId;
 
 const isSetup = process.argv[2] === 'true';
+
+const api = { argon2, provider };
 
 function prepareDB(callback) {
   metasync.sequential([
@@ -61,8 +64,9 @@ function prepareDB(callback) {
     cb => {
       metaschema.fs.loadAndCreate([
         getPathFromCurrentDir('.', 'schemas', 'system'),
+        getPathFromCurrentDir('.', 'schemas', 'person_registry'),
         // TODO add other schemas here
-      ], null, (err, schema) => {
+      ], api, (err, schema) => {
         gs.schema = schema;
         cb(err);
       });
@@ -98,15 +102,34 @@ function prepareDB(callback) {
         cb();
         return;
       }
-      provider.create('SystemUser', {
-        Login: 'admin',
-        Password: '$argon2id$v=19$m=4096,t=3,p=1$S1xPG8hsOCYip1dKOkjVYQ$ItOI' +
-          'LC/Hc97nR2d/Ocq5pNAFOWM0QZv06Em10EiRevE',
-      }, (err, userId) => {
-        ctx.userId = userId;
-        cb(err);
-      });
+      argon2.hash('Password', { type: argon2.argon2id })
+        .then(Password => {
+          provider.create('SystemUser', {
+            Login: 'adminadmin',
+            Password,
+          }, (err, userId) => {
+            ctx.adminId = userId;
+            cb(err);
+          });
+        });
     },
+    (ctx, cb) => {
+      if (!isSetup) {
+        cb();
+        return;
+      }
+      argon2.hash('Password', { type: argon2.argon2id })
+        .then(Password => {
+          provider.create('SystemUser', {
+            Login: 'useruser',
+            Password,
+          }, (err, userId) => {
+            ctx.userId = userId;
+            cb(err);
+          });
+        });
+    },
+    // Admin rights
     (ctx, cb) => {
       if (!isSetup) {
         cb();
@@ -125,7 +148,7 @@ function prepareDB(callback) {
         return;
       }
       provider.select('Category', {
-        Name: 'SystemUser',
+        Name: 'Country',
       }).fetch((err, res) => {
         ctx.categoryId = res && res[0] && res[0].Id;
         cb(err);
@@ -150,14 +173,26 @@ function prepareDB(callback) {
         cb();
         return;
       }
-      pool.query(
-        'INSERT INTO "PermissionActions"' +
-        ' SELECT $1, "Id" FROM "Action" WHERE "Name" = \'SignIn\'',
-        [ctx.permissionId],
-        err => {
-          cb(err);
-        }
-      );
+      provider.select('Category', {
+        Name: 'SystemUser',
+      }).fetch((err, res) => {
+        ctx.userCategoryId = res && res[0] && res[0].Id;
+        cb(err);
+      });
+    },
+    (ctx, cb) => {
+      if (!isSetup) {
+        cb();
+        return;
+      }
+      provider.create('Permission', {
+        Role: ctx.roleId,
+        Category: ctx.userCategoryId,
+        Access: new common.Uint64('0b11111'),
+      }, (err, permissionId) => {
+        ctx.userCAtegoryPermission = permissionId;
+        cb(err);
+      });
     },
     (ctx, cb) => {
       if (!isSetup) {
@@ -166,12 +201,53 @@ function prepareDB(callback) {
       }
       pool.query(
         'INSERT INTO "SystemUserRoles" VALUES ($1, $2)',
-        [ctx.userId, ctx.roleId],
+        [ctx.adminId, ctx.roleId],
         err => {
           cb(err);
         }
       );
     },
+    // UserPerm
+    (ctx, cb) => {
+      if (!isSetup) {
+        cb();
+        return;
+      }
+      provider.create('Role', {
+        Name: 'User',
+      }, (err, roleId) => {
+        ctx.userRoleId = roleId;
+        cb(err);
+      });
+    },
+    (ctx, cb) => {
+      if (!isSetup) {
+        cb();
+        return;
+      }
+      provider.create('Permission', {
+        Role: ctx.userRoleId,
+        Category: ctx.categoryId,
+        Access: new common.Uint64('0b1'),
+      }, (err, permissionId) => {
+        ctx.permissionId = permissionId;
+        cb(err);
+      });
+    },
+    (ctx, cb) => {
+      if (!isSetup) {
+        cb();
+        return;
+      }
+      pool.query(
+        'INSERT INTO "SystemUserRoles" VALUES ($1, $2)',
+        [ctx.userId, ctx.userRoleId],
+        err => {
+          cb(err);
+        }
+      );
+    },
+    // End of perm
     (ctx, cb) => {
       provider[gs.selectWithId]([
         'Action',
@@ -204,7 +280,7 @@ prepareDB((err) => {
   }
 
   const api = createRemoteProviderJstpApi(provider, (provider, category, jsql) => {
-    return new gs.PostgresCursor(provider.pool, { category, jsql });
+    return new gs.PostgresCursor(provider, { category, jsql });
   });
   const app = new jstp.Application('console', api);
 

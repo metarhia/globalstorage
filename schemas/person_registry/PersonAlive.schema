@@ -1,0 +1,7 @@
+History({
+  Alive: { domain: 'Logical', required: true, default: true },
+
+  Check: Validate((data, prev) => (
+    !prev || (prev.Alive === true && data.Alive === false)
+  ))
+})

@@ -1,0 +1,5 @@
+History({
+  FirstName: { domain: 'Nomen', required: true },
+  Patronymic: { domain: 'Nomen' },
+  Surname: { domain: 'Nomen', required: true }
+})

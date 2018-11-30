@@ -1,0 +1,5 @@
+Dictionary({
+  Number: { domain: 'Nomen', required: true },
+  Street: { category: 'Street', required: true },
+  PostalCode: { domain: 'PostalCode' }
+})

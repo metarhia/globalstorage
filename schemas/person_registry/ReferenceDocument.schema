@@ -1,0 +1,6 @@
+History({
+  Number: { domain: 'DocumentNumber', required: true },
+  ReferenceType: { domain: 'ReferenceType', required: true },
+  Organization: { domain: 'Nomen', required: true },
+  IssueDate: { domain: 'DateDay', required: true }
+})

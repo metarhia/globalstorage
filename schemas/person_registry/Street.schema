@@ -1,0 +1,4 @@
+Dictionary({
+  Name: { domain: 'Nomen', required: true },
+  Settlement: { category: 'Settlement', required: true }
+})

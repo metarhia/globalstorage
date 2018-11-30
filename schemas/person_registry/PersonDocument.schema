@@ -1,0 +1,7 @@
+History({
+  Number: { domain: 'DocumentNumber', required: true },
+  DocumentType: { domain: 'DocumentType', required: true },
+  Authority: { domain: 'AuthorityId' },
+  IssueDate: { domain: 'DateDay', required: true },
+  ExpirationDate: { domain: 'DateDay', required: true }
+})

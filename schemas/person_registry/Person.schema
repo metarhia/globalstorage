@@ -1,0 +1,12 @@
+Registry({
+  Name: Include('PersonName'),
+  Sex: Include('PersonSex'),
+  Alive: Include('PersonAlive'),
+  Father: { category: 'Person' },
+  Mother: { category: 'Person' },
+  Trustee: Many('Person'),
+  Citizenship: Include('Citizenship'),
+  Address: Include('PersonAddress'),
+  Documents: Many('PersonDocument'),
+  References: Many('ReferenceDocument')
+})

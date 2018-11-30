@@ -38,6 +38,7 @@
   "dependencies": {
     "@metarhia/common": "^1.1.1",
     "@metarhia/jstp": "^2.1.0",
+    "argon2": "^0.19.3",
     "mdsf": "^1.0.2",
     "metaschema": "0.0.28",
     "metasync": "^0.3.31",

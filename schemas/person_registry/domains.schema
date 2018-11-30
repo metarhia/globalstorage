@@ -1,0 +1,15 @@
+{
+  Sex: Enum('Male', 'Female', 'Undefined'),
+  SettlementType: Enum('City', 'Town', 'Village', 'Hamlet'),
+  DocumentType: Enum(
+    'Passport',
+    'International Passport',
+    'Diplomatic passport',
+    'Birth Certificate',
+    'ID Card'
+  ),
+  AuthorityId: { type: 'number', length: 4 },
+  PassportType: Enum('P'),
+  DocumentNumber: { type: 'string', length: 8 },
+  ReferenceType: { type: 'string', length: 8 },
+}

@@ -1,0 +1,7 @@
+Dictionary({
+  Short: { domain: 'Nomen', required: true },
+  Name: { domain: 'Nomen', required: true },
+  Alpha2: { domain: 'CountryAlpha2', required: true },
+  Alpha3: { domain: 'CountryAlpha3', required: true },
+  Code: { domain: 'CountryNumeric', required: true }
+})

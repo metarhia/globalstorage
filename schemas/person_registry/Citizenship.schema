@@ -1,0 +1,5 @@
+History({
+  Country: { category: 'Country', required: true },
+
+  Check: Validate((data, prev) => !prev || data.Country !== prev.Country)
+})
