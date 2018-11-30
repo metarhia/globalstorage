@@ -175,33 +175,40 @@ prepareDB(err => {
       });
     });
 
-    let includeId;
+    const includeObj = {
+      Name: 'Metarhia',
+      Address: {
+        Country: 'Ukraine',
+        City: 'Kiev',
+      },
+    };
 
     test.test('gs.create with Include categories', test => {
-      provider.create('Company', {
-        Name: 'Metarhia',
-        Address: {
-          Country: 'Ukraine',
-          City: 'Kiev',
-        },
-      }, (err, id) => {
+      provider.create('Company', includeObj, (err, id) => {
         test.error(err);
         test.assert(id);
-        includeId = id;
+        includeObj.Id = id;
         test.end();
       });
     });
 
     test.test('gs.set with Include categories', test => {
-      provider.set({
-        Id: includeId,
-        Name: 'iBusiness',
-        Address: {
-          Country: 'USA',
-          City: 'San Francisco',
-        },
-      }, err => {
+      includeObj.Name = 'iBusiness';
+      includeObj.Address = {
+        Id: includeObj.Id,
+        Country: 'USA',
+        City: 'San Francisco',
+      };
+      provider.set(includeObj, err => {
         test.error(err);
+        test.end();
+      });
+    });
+
+    test.test('gs.get with Include categories', test => {
+      provider.get(includeObj.Id, (err, obj) => {
+        test.error(err);
+        test.strictSame(obj, includeObj);
         test.end();
       });
     });
