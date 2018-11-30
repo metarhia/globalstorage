@@ -175,6 +175,8 @@ prepareDB(err => {
       });
     });
 
+    let includeId;
+
     test.test('gs.create with Include categories', test => {
       provider.create('Company', {
         Name: 'Metarhia',
@@ -185,6 +187,21 @@ prepareDB(err => {
       }, (err, id) => {
         test.error(err);
         test.assert(id);
+        includeId = id;
+        test.end();
+      });
+    });
+
+    test.test('gs.set with Include categories', test => {
+      provider.set({
+        Id: includeId,
+        Name: 'iBusiness',
+        Address: {
+          Country: 'USA',
+          City: 'San Francisco',
+        },
+      }, err => {
+        test.error(err);
         test.end();
       });
     });
