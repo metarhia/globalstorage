@@ -1,7 +1,7 @@
 'use strict';
 
 const { testSync } = require('metatests');
-const { transformations } = require('../gs');
+const transformations = require('../lib/transformations');
 
 testSync('must correctly apply projection', test => {
   test.beforeEach((test, callback) => {

@@ -1,11 +1,10 @@
 'use strict';
 
 const { Pool } = require('pg');
-const { test, testSync } = require('metatests');
+const { test } = require('metatests');
 const { sequential } = require('metasync');
 
-const gs = require('..');
-const { PostgresCursor } = gs;
+const { PostgresCursor } = require('../lib/pg.cursor');
 
 const { pgOptions } = require('./utils');
 
@@ -58,9 +57,12 @@ test('PostgresCursor test', test => {
     test.beforeEach((test, callback) => {
       pool.connect((err, client, done) => {
         test.error(err);
-        const gs = { schema: { categories: new Map([[tableName, {} ]]) } };
+        const provider = {
+          schema: { categories: new Map([[tableName, {} ]]) },
+          pool: client,
+        };
         const cursor = new PostgresCursor(
-          { gs, pool: client },
+          provider,
           { category: tableName }
         );
         callback({ cursor, done });
@@ -129,9 +131,4 @@ test('PostgresCursor test', test => {
       });
     });
   });
-});
-
-testSync('PostgresCursor must be present in gs.cursors', test => {
-  // eslint-disable-next-line new-cap
-  test.strictSame(gs.cursors.pg, PostgresCursor);
 });
