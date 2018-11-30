@@ -111,15 +111,15 @@ Select a record or multiple records in the category using provided jsql.
 
 ---
 
-##### `execute(connection, category, name, args)`
+##### `execute(category, name, args)`
 
 Execute an Action
 
 ###### Call arguments
 
 * `category` [`<string>`][], category to execute action on
-* `name` [`<string>`][], name of as Action
-* `args` [`<Object>`][], arguments of an Action
+* `name` [`<string>`][], name of the Action
+* `args` [`<Object>`][], arguments of the Action
     * `Identifier` [`<string>`][], optional
     * `Catalog` [`<string>`][], optional
     * `Subdivision` [`<string>`][], optional
