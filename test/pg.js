@@ -212,6 +212,20 @@ prepareDB(err => {
         test.end();
       });
     });
+
+    test.test('gs.delete with Include categories', test => {
+      provider.delete('Company', {
+        'Address.Country': includeObj.Address.Country,
+      }, (err, count) => {
+        test.error(err);
+        test.strictSame(count, 1);
+        provider.get(includeObj.Id, err => {
+          test.isError(err, new GSError());
+          test.strictSame(err.code, errorCodes.NOT_FOUND);
+          test.end();
+        });
+      });
+    });
   }, { dependentSubtests: true });
 
   metatests.test('PostgresProvider test', test => {
