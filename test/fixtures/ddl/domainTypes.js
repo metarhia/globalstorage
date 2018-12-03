@@ -5,8 +5,9 @@ module.exports = () => ({
   schemas: {
     domains: {
       Text: { type: 'string' },
-      BigInt: { type: 'number' },
-      Floating: { type: 'number', floating: true },
+      Int: { type: 'number', subtype: 'int' },
+      BigInt: { type: 'bigint' },
+      Floating: { type: 'number' },
       Date: { type: 'object', class: 'Date' },
       Bytes: { type: 'object', class: 'Uint8Array' },
       Function: { type: 'function' },
@@ -14,6 +15,7 @@ module.exports = () => ({
     Schema: {
       logicalField: { domain: 'Logical' },
       textField: { domain: 'Text' },
+      intField: { domain: 'Int' },
       bigintField: { domain: 'BigInt' },
       floatingField: { domain: 'Floating' },
       dateField: { domain: 'Date' },
@@ -34,6 +36,7 @@ CREATE TABLE "Schema" (
   "Id"            bigserial,
   "logicalField"  boolean,
   "textField"     text,
+  "intField"      integer,
   "bigintField"   bigint,
   "floatingField" double precision,
   "dateField"     timestamp with time zone,
