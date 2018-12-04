@@ -5,7 +5,7 @@
   CategoryRealm: Enum('Global', 'System', 'Local'),
   CategoryFamily: Enum(
     'Registry', 'Dictionary', 'System', 'Log', 'Local', 'Table', 'History',
-    'View', 'Memory', 'Form', 'Arguments'
+    'View', 'Projection', 'Memory', 'Form', 'Arguments'
   ),
   UserAccess: Enum('Read', 'Insert', 'Update', 'Delete', 'Audit'),
   AccessFlags: Flags.of('UserAccess'),
