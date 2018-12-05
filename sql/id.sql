@@ -28,6 +28,8 @@ DECLARE
     server_id      bigint;
     id_bit_length  integer;
     lock_obtained  boolean;
+    cur_id         bigint;
+    last_to_add_id bigint;
 BEGIN
     max_count := TG_ARGV[0]::bigint;
     refill_percent := TG_ARGV[1]::integer;
@@ -48,18 +50,21 @@ BEGIN
 
     IF prealloc_count < max_count * refill_percent / 100 THEN
         to_add_count := max_count - prealloc_count;
-        FOR i IN last_id + 1 .. last_id + to_add_count LOOP
+        cur_id := last_id + 1;
+        last_to_add_id := last_id + to_add_count;
+        WHILE cur_id <= last_to_add_id LOOP
             INSERT INTO "Identifier"
             ("Id", "StorageKind", "Status", "Creation", "Change", "Checksum")
             VALUES
             (
-                (i << id_bit_length) | server_id,
+                (cur_id << id_bit_length) | server_id,
                 'Master', 'Prealloc', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
                 -- sha512 value for empty string:
                 E'\\xcf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d3'
                 '6ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327a'
                 'f927da3e'::bytea
             );
+            cur_id := cur_id + 1;
         END LOOP;
     END IF;
     RETURN NULL;
