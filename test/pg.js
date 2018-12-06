@@ -258,4 +258,111 @@ prepareDB(err => {
       });
     });
   });
+
+  metatests.test('PostgresProvider Many-to-many test', test => {
+    const writer = {
+      FullName: 'Douglas Adams',
+      Works: [
+        {
+          Name: 'The Hitchhiker\'s Guide to the Galaxy',
+          PublicationYear: 1979,
+        },
+        {
+          Name: 'The Restaurant at the End of the Universe',
+          PublicationYear: 1980,
+        },
+        {
+          Name: 'Life, the Universe and Everything',
+          PublicationYear: 1982,
+        },
+      ],
+    };
+
+    function prepareTest(callback) {
+      provider.create('Writer', {
+        FullName: writer.FullName,
+      }, (err, id) => {
+        writer.Id = id;
+        if (err) {
+          callback(err);
+          return;
+        }
+        metasync.each(writer.Works, (work, callback) => {
+          provider.create('Work', work, (err, id) => {
+            work.Id = id;
+            callback(err);
+          });
+        }, callback);
+      });
+    }
+
+    function runTests() {
+      test.endAfterSubtests();
+
+      const workId = writer.Works[0].Id;
+
+      test.test('gs.linkDetails with one item', test => {
+        provider.linkDetails('Writer', 'Works', writer.Id, workId, err => {
+          test.error(err);
+          provider.getDetails(writer.Id, 'Works', (err, works) => {
+            test.error(err);
+            test.strictSame(works.length, 1);
+            test.strictSame(works[0], writer.Works[0]);
+            test.end();
+          });
+        });
+      });
+
+      test.test('gs.unlinkDetails with one item', test => {
+        provider.unlinkDetails('Writer', 'Works', writer.Id, workId, err => {
+          test.error(err);
+          provider.getDetails(writer.Id, 'Works', (err, works) => {
+            test.error(err);
+            test.strictSame(works.length, 0);
+            test.end();
+          });
+        });
+      });
+
+      const worksIds = writer.Works.map(work => work.Id);
+
+      test.test('gs.linkDetails with multiple items', test => {
+        provider.linkDetails('Writer', 'Works', writer.Id, worksIds, err => {
+          test.error(err);
+          provider.getDetails(writer.Id, 'Works', (err, works) => {
+            test.error(err);
+            const sortFn = (a, b) => {
+              if (a.Id > b.Id) {
+                return 1;
+              }
+              if (a.Id < b.Id) {
+                return -1;
+              }
+              return 0;
+            };
+            test.strictSame(works.sort(sortFn), writer.Works.sort(sortFn));
+            test.end();
+          });
+        });
+      });
+
+      test.test('gs.unlinkDetails with multiple items', test => {
+        provider.unlinkDetails('Writer', 'Works', writer.Id, worksIds, err => {
+          test.error(err);
+          provider.getDetails(writer.Id, 'Works', (err, works) => {
+            test.error(err);
+            test.strictSame(works.length, 0);
+            test.end();
+          });
+        });
+      });
+    }
+
+    prepareTest(() => {
+      if (err) {
+        test.bailout(err.stack);
+      }
+      runTests();
+    });
+  });
 });
