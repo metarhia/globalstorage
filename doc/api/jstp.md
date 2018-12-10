@@ -31,6 +31,21 @@ Get a record by id.
 
 ---
 
+##### `getDetails(id, fieldName)`
+
+Get record's many-to-many details by id.
+
+###### Call arguments
+
+* `id` [`<string>`][], id of the record
+* `fieldName` [`<string>`][], field with the Many decorator
+
+###### Callback arguments
+
+* `details` [`<Object>[]`][]
+
+---
+
 ##### `set(record)`
 
 Set a record, `Id` field must be present in the record for it to work.
@@ -78,6 +93,40 @@ category.
 
 ---
 
+##### `linkDetails(category, field, fromId, toIds)`
+
+Link records with Many relation between them.
+
+###### Call arguments
+
+* `category` [`<string>`][]
+* `field` [`<string>`][]
+* `fromId` [`<string>`][]
+* `toIds` [`<string>`][] | [`<string[]>`][string]
+
+###### Callback arguments
+
+None.
+
+---
+
+##### `unlinkDetails(category, field, fromId, toIds)`
+
+Unlink records with Many relation between them.
+
+###### Call arguments
+
+* `category` [`<string>`][]
+* `field` [`<string>`][]
+* `fromId` [`<string>`][]
+* `toIds` [`<string>`][] | [`<string[]>`][string]
+
+###### Callback arguments
+
+None.
+
+---
+
 ##### `delete(category, query)`
 
 Delete a record or multiple records that satisfy the `query` in the specified
@@ -111,4 +160,5 @@ Select a record or multiple records in the category using provided jsql.
 [`<Object>`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object
 [object]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object
 [`<string>`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type
+[string]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type
 [`<number>`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type
