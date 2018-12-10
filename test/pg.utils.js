@@ -49,4 +49,10 @@ metatests.case('Test pgUtils', { pgUtils }, {
       ],
     ],
   ],
+  'pgUtils.escapeKey': [
+    ['A', '"A"'],
+    ['A.B', '"A"."B"'],
+    ['A.*', '"A".*'],
+    ['*', '*'],
+  ],
 });
