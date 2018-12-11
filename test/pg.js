@@ -234,6 +234,16 @@ prepareDB(err => {
         });
       });
     });
+
+    test.test('invalid gs.delete with Include categories', test => {
+      provider.delete('Address', {
+        'Country': includeObj.Address.Country,
+      }, err => {
+        test.isError(err, new GSError());
+        test.strictSame(err.code, errorCodes.INVALID_DELETION_OPERATION);
+        test.end();
+      });
+    });
   }, { dependentSubtests: true });
 
   metatests.test('PostgresProvider test', test => {

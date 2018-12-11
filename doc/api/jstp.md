@@ -12,6 +12,7 @@ Errors taken from [`lib/errors.js`][errors]:
 | 1001 | NOT_FOUND |
 | 1002 | INVALID_SCHEMA |
 | 1003 | INVALID_CATEGORY_TYPE |
+| 1004 | INVALID_DELETION_OPERATION |
 
 ### Interface `provider`
 
