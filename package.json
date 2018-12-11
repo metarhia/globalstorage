@@ -36,22 +36,22 @@
     "node": ">=6.0.0"
   },
   "dependencies": {
-    "@metarhia/common": "^1.0.0",
+    "@metarhia/common": "^1.2.1",
     "@metarhia/jstp": "^2.1.0",
     "mdsf": "^1.0.2",
-    "metaschema": "0.0.28",
+    "metaschema": "0.0.29",
     "metasync": "^0.3.31",
-    "pg": "^7.6.1"
+    "pg": "^7.7.1"
   },
   "optionalDependencies": {
     "mkdirp": "^0.5.1"
   },
   "devDependencies": {
-    "@babel/cli": "^7.1.5",
-    "@babel/core": "^7.1.6",
-    "@babel/preset-env": "^7.1.6",
-    "eslint": "^5.9.0",
-    "eslint-config-metarhia": "^6.0.0",
+    "@babel/cli": "^7.2.0",
+    "@babel/core": "^7.2.0",
+    "@babel/preset-env": "^7.2.0",
+    "eslint": "^5.10.0",
+    "eslint-config-metarhia": "^6.1.0",
     "eslint-plugin-import": "^2.14.0",
     "metatests": "^0.3.0"
   }
