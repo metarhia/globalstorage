@@ -1,6 +1,6 @@
 {
   "name": "globalstorage",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "author": "Timur Shemsedinov <timur.shemsedinov@gmail.com>",
   "description": "Global Storage is a Global Distributed Data Warehouse",
   "license": "MIT",
@@ -26,6 +26,14 @@
     "./dist/lib/fs.provider.js": false,
     "./dist/lib/pg.provider.js": false
   },
+  "files": [
+    ".babelrc",
+    "lib/",
+    "dist/",
+    "doc/",
+    "schemas/",
+    "sql/"
+  ],
   "scripts": {
     "test": "npm run lint && metatests test/",
     "lint": "eslint . --ignore-path .gitignore",
