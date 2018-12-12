@@ -244,6 +244,18 @@ prepareDB(err => {
         test.end();
       });
     });
+
+    test.test('invalid gs.create with Include categories', test => {
+      provider.create('Address', {
+        Country: 'France',
+        City: 'Paris',
+      }, err => {
+        test.isError(err, new GSError());
+        test.strictSame(err.code, errorCodes.INVALID_CREATION_OPERATION);
+        test.end();
+      });
+    });
+
   }, { dependentSubtests: true });
 
   metatests.test('PostgresProvider test', test => {
