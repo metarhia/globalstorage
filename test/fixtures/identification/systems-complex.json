@@ -1,0 +1,30 @@
+{
+  "0": {
+    "0": {
+      "0": {
+        "host": "gs1.metarhia.com",
+        "ports": [3000, [3]]
+      },
+      "1": {
+        "host": "gs2.metarhia.com",
+        "ports": [2000, [2]]
+      }
+    },
+    "1": {
+      "0": {
+        "0": {
+          "host": "gs3.metarhia.com",
+          "ports": [1337, null, 1340]
+        },
+        "1": {
+          "host": "gs4.metarhia.com",
+          "ports": [4000, [1]]
+        }
+      },
+      "1": {
+        "host": "gs.metarhia.com",
+        "ports": [1234]
+      }
+    }
+  }
+}
