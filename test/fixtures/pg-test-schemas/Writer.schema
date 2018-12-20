@@ -1,4 +1,7 @@
 Registry({
   FullName: { domain: 'Nomen', required: true },
   Works: Many('Work'),
+  VeryUsefulAction: Action((session, { Arg }, callback) => {
+    callback(null, Arg);
+  }),
 })
