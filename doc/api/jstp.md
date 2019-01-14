@@ -6,12 +6,12 @@
 
 Errors taken from [`lib/errors.js`][errors]:
 
-| Code | Name |
-| ---- | ---- |
-| 1000 | NOT_IMPLEMENTED |
-| 1001 | NOT_FOUND |
-| 1002 | INVALID_SCHEMA |
-| 1003 | INVALID_CATEGORY_TYPE |
+| Code | Name                       |
+| ---- | -------------------------- |
+| 1000 | NOT_IMPLEMENTED            |
+| 1001 | NOT_FOUND                  |
+| 1002 | INVALID_SCHEMA             |
+| 1003 | INVALID_CATEGORY_TYPE      |
 | 1004 | INVALID_DELETION_OPERATION |
 | 1005 | INVALID_CREATION_OPERATION |
 
@@ -25,11 +25,11 @@ Get a record by id.
 
 ###### Call arguments
 
-* `id` [`<string>`][], id of the record
+- `id` [`<string>`][], id of the record
 
 ###### Callback arguments
 
-* `record` [`<Object>`][]
+- `record` [`<Object>`][object]
 
 ---
 
@@ -39,12 +39,12 @@ Get record's many-to-many details by id.
 
 ###### Call arguments
 
-* `id` [`<string>`][], id of the record
-* `fieldName` [`<string>`][], field with the Many decorator
+- `id` [`<string>`][], id of the record
+- `fieldName` [`<string>`][], field with the Many decorator
 
 ###### Callback arguments
 
-* `details` [`<Object>[]`][object]
+- `details` [`<Object>[]`][object]
 
 ---
 
@@ -54,8 +54,8 @@ Set a record, `Id` field must be present in the record for it to work.
 
 ###### Call arguments
 
-* `record` [`<Object>`][]
-  * `Id` [`<string>`][]
+- `record` [`<Object>`][object]
+  - `Id` [`<string>`][]
 
 ###### Callback arguments
 
@@ -69,12 +69,12 @@ Create a record in the specified category.
 
 ###### Call arguments
 
-* `category` [`<string>`][]
-* `record` [`<Object>`][]
+- `category` [`<string>`][]
+- `record` [`<Object>`][object]
 
 ###### Callback arguments
 
-* `id` [`<string>`][], id of the created record
+- `id` [`<string>`][], id of the created record
 
 ---
 
@@ -85,13 +85,13 @@ category.
 
 ###### Call arguments
 
-* `category` [`<string>`][]
-* `query` [`<Object>`][]
-* `patch` [`<Object>`][]
+- `category` [`<string>`][]
+- `query` [`<Object>`][object]
+- `patch` [`<Object>`][object]
 
 ###### Callback arguments
 
-* `count` [`<number>`][], updated records count
+- `count` [`<number>`][], updated records count
 
 ---
 
@@ -101,10 +101,10 @@ Link records with Many relation between them.
 
 ###### Call arguments
 
-* `category` [`<string>`][]
-* `field` [`<string>`][]
-* `fromId` [`<string>`][]
-* `toIds` [`<string>`][] | [`<string[]>`][string]
+- `category` [`<string>`][]
+- `field` [`<string>`][]
+- `fromId` [`<string>`][]
+- `toIds` [`<string>`][] | [`<string[]>`][string]
 
 ###### Callback arguments
 
@@ -118,10 +118,10 @@ Unlink records with Many relation between them.
 
 ###### Call arguments
 
-* `category` [`<string>`][]
-* `field` [`<string>`][]
-* `fromId` [`<string>`][]
-* `toIds` [`<string>`][] | [`<string[]>`][string]
+- `category` [`<string>`][]
+- `field` [`<string>`][]
+- `fromId` [`<string>`][]
+- `toIds` [`<string>`][] | [`<string[]>`][string]
 
 ###### Callback arguments
 
@@ -136,12 +136,12 @@ category.
 
 ###### Call arguments
 
-* `category` [`<string>`][]
-* `query` [`<Object>`][]
+- `category` [`<string>`][]
+- `query` [`<Object>`][object]
 
 ###### Callback arguments
 
-* `count` [`<number>`][], deleted records count
+- `count` [`<number>`][], deleted records count
 
 ---
 
@@ -151,15 +151,14 @@ Select a record or multiple records in the category using provided jsql.
 
 ###### Call arguments
 
-* `category` [`<string>`][]
-* `jsql` [`<Object[]>`][object]
+- `category` [`<string>`][]
+- `jsql` [`<Object[]>`][object]
 
 ###### Callback arguments
 
-* `data` [`<Object[]>`][object], fetched data
+- `data` [`<Object[]>`][object], fetched data
 
 [errors]: https://github.com/metarhia/globalstorage/blob/master/lib/errors.js
-[`<Object>`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object
 [object]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object
 [`<string>`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type
 [string]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type

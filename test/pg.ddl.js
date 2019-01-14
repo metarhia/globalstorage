@@ -55,28 +55,31 @@ CREATE TYPE "Day" AS ENUM (
   'history',
   'localToGlobal',
   'globalCategories',
-].map(cfgName => require(path.join(__dirname, '/fixtures/ddl/', cfgName)))
+]
+  .map(cfgName => require(path.join(__dirname, '/fixtures/ddl/', cfgName)))
   .map(config => config(metaschema.decorators))
-  .forEach(config => metatests.test(config.name, test =>
-    metaschema.fs.load(null, null, (err, schemas) => {
-      test.error(err);
+  .forEach(config =>
+    metatests.test(config.name, test =>
+      metaschema.fs.load(null, null, (err, schemas) => {
+        test.error(err);
 
-      for (const schemaName in config.schemas) {
-        const schema = config.schemas[schemaName];
-        if (schemaName === 'domains') {
-          Object.assign(schemas[0][1], schema);
-        } else {
-          schemas.push([schemaName, schema]);
+        for (const schemaName in config.schemas) {
+          const schema = config.schemas[schemaName];
+          if (schemaName === 'domains') {
+            Object.assign(schemas[0][1], schema);
+          } else {
+            schemas.push([schemaName, schema]);
+          }
         }
-      }
 
-      const [msErr, ms] = metaschema.create(schemas);
-      test.error(msErr);
+        const [msErr, ms] = metaschema.create(schemas);
+        test.error(msErr);
 
-      const actualDDL = generateDDL(ms);
-      const expectedDDL = defaultDomainsSql + config.expectedSql;
+        const actualDDL = generateDDL(ms);
+        const expectedDDL = defaultDomainsSql + config.expectedSql;
 
-      test.equal(actualDDL, expectedDDL, 'must return correct sql string');
-      test.end();
-    })
-  ));
+        test.equal(actualDDL, expectedDDL, 'must return correct sql string');
+        test.end();
+      })
+    )
+  );

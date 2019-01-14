@@ -187,10 +187,13 @@ metatests.test('must properly load complex systems', test => {
   ];
 
   for (let i = 0; i < system.treeIndex.length; i++) {
-    const expected = Object.assign({
-      systemSuffix: new Uint64(0),
-      systemBitmask: new Uint64(0xffffff),
-    }, treeIndex[i]);
+    const expected = Object.assign(
+      {
+        systemSuffix: new Uint64(0),
+        systemBitmask: new Uint64(0xffffff),
+      },
+      treeIndex[i]
+    );
     contains(test, system.treeIndex[i], expected);
   }
 

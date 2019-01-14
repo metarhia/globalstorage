@@ -5,51 +5,41 @@ const metatests = require('metatests');
 const { generateDDL } = require('../lib/pg.ddl');
 
 metatests.test('Fully supports schemas/system', test => {
-  metaschema.fs.loadAndCreate(
-    'schemas/system',
-    null,
-    (err, schema) => {
-      test.error(err, 'System schemas must be compliant with metaschema');
-      test.doesNotThrow(
-        () => generateDDL(schema),
-        'DDL generator must fully support current system schema'
-      );
-      test.end();
-    }
-  );
+  metaschema.fs.loadAndCreate('schemas/system', null, (err, schema) => {
+    test.error(err, 'System schemas must be compliant with metaschema');
+    test.doesNotThrow(
+      () => generateDDL(schema),
+      'DDL generator must fully support current system schema'
+    );
+    test.end();
+  });
 });
 
 metatests.test('Unsupported domain class', test => {
   const expectedErrorMessage =
-    'Unsupported domain class \'__UNSUPPORTED_CLASS__\' in domain \'Test\'';
+    "Unsupported domain class '__UNSUPPORTED_CLASS__' in domain 'Test'";
 
   metaschema.fs.loadAndCreate(
     'test/fixtures/unsupported-domain-class',
     null,
     (err, schema) => {
       test.error(err);
-      test.throws(
-        () => generateDDL(schema),
-        new Error(expectedErrorMessage)
-      );
+      test.throws(() => generateDDL(schema), new Error(expectedErrorMessage));
       test.end();
     }
   );
 });
 
 metatests.test('Too many flags', test => {
-  const expectedErrorMessage = 'Too many flags in ErrorFlags, ' +
-    'must not be bigger than 64';
+  const expectedErrorMessage =
+    'Too many flags in ErrorFlags, must not be bigger than 64';
 
   metaschema.fs.loadAndCreate(
     'test/fixtures/too-many-flags/',
     null,
     (err, schema) => {
       test.error(err);
-      test.throws(
-        () => generateDDL(schema),
-        new Error(expectedErrorMessage)
-      );
+      test.throws(() => generateDDL(schema), new Error(expectedErrorMessage));
       test.end();
     }
   );
@@ -63,12 +53,10 @@ metatests.test('Incorrect domain definition', test => {
     null,
     (err, schema) => {
       test.error(err);
-      test.throws(
-        () => generateDDL(schema),
-        new Error(expectedErrorMessage)
-      );
+      test.throws(() => generateDDL(schema), new Error(expectedErrorMessage));
       test.end();
-    });
+    }
+  );
 });
 
 class InvalidLink {
@@ -91,10 +79,7 @@ metatests.test('Not supported decorator', test => {
         definition: schema.categories.get('Config'),
       });
 
-      test.throws(
-        () => generateDDL(schema),
-        new Error(expectedErrorMessage)
-      );
+      test.throws(() => generateDDL(schema), new Error(expectedErrorMessage));
       test.end();
     }
   );

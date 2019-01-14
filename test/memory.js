@@ -5,8 +5,8 @@ const transformations = require('../lib/transformations');
 const metaschema = require('metaschema');
 const metatests = require('metatests');
 
-const ds1 = [ { Id: 1, Name: 'qwerty' }, { Id: 2 } ];
-const ds2 = [ { Id: 2 }, { Id: 3 } ];
+const ds1 = [{ Id: 1, Name: 'qwerty' }, { Id: 2 }];
+const ds2 = [{ Id: 2 }, { Id: 3 }];
 
 metatests.test('dataset operation', test => {
   const union = transformations.union(ds1, ds2);
@@ -35,29 +35,25 @@ metatests.test('datasets tests', test => {
 });
 
 metatests.test('limit test', test => {
-  const ds = [ { Id: 2 }, { Id: 3 } ];
-  new MemoryCursor(ds)
-    .limit(1)
-    .fetch((err, data) => {
-      test.error(err);
-      test.strictSame(data, ds.slice(0, 1));
-      test.end();
-    });
+  const ds = [{ Id: 2 }, { Id: 3 }];
+  new MemoryCursor(ds).limit(1).fetch((err, data) => {
+    test.error(err);
+    test.strictSame(data, ds.slice(0, 1));
+    test.end();
+  });
 });
 
 metatests.test('offset test', test => {
-  const ds = [ { Id: 2 }, { Id: 3 } ];
-  new MemoryCursor(ds)
-    .offset(1)
-    .fetch((err, data) => {
-      test.error(err);
-      test.strictSame(data, ds.slice(1));
-      test.end();
-    });
+  const ds = [{ Id: 2 }, { Id: 3 }];
+  new MemoryCursor(ds).offset(1).fetch((err, data) => {
+    test.error(err);
+    test.strictSame(data, ds.slice(1));
+    test.end();
+  });
 });
 
 metatests.test('limit offset test', test => {
-  const ds = [ { Id: 2 }, { Id: 3 }, { Id: 4 }, { Id: 5 } ];
+  const ds = [{ Id: 2 }, { Id: 3 }, { Id: 4 }, { Id: 5 }];
   new MemoryCursor(ds)
     .offset(2)
     .limit(1)
@@ -69,25 +65,21 @@ metatests.test('limit offset test', test => {
 });
 
 metatests.test('count all test', test => {
-  const ds = [ { Id: 2, a: 1 }, { Id: 3, a: 2 }, { Id: 4 } ];
-  new MemoryCursor(ds)
-    .count()
-    .fetch((err, data) => {
-      test.error(err);
-      test.strictSame(data, [ds.length]);
-      test.end();
-    });
+  const ds = [{ Id: 2, a: 1 }, { Id: 3, a: 2 }, { Id: 4 }];
+  new MemoryCursor(ds).count().fetch((err, data) => {
+    test.error(err);
+    test.strictSame(data, [ds.length]);
+    test.end();
+  });
 });
 
 metatests.test('count field test', test => {
-  const ds = [ { Id: 2, a: 1 }, { Id: 3, a: 2 }, { Id: 4 } ];
-  new MemoryCursor(ds)
-    .count('a')
-    .fetch((err, data) => {
-      test.error(err);
-      test.strictSame(data, [ds.filter(d => d.hasOwnProperty('a')).length]);
-      test.end();
-    });
+  const ds = [{ Id: 2, a: 1 }, { Id: 3, a: 2 }, { Id: 4 }];
+  new MemoryCursor(ds).count('a').fetch((err, data) => {
+    test.error(err);
+    test.strictSame(data, [ds.filter(d => d.hasOwnProperty('a')).length]);
+    test.end();
+  });
 });
 
 metatests.test('sort order', test => {
@@ -123,7 +115,8 @@ metatests.test('cursor select', test => {
     { Id: 5, Name: 'Rene Descartes', City: 'La Haye en Touraine', Born: 1596 },
   ];
   const mcPersons = new MemoryCursor(persons);
-  mcPersons.select({ Born: '< 1500' })
+  mcPersons
+    .select({ Born: '< 1500' })
     .order('Born')
     .fetch((err, data) => {
       test.error(err);
@@ -146,9 +139,12 @@ metatests.test('cursor schema', test => {
     test.error(err);
     const schemaName = 'Language';
     const category = schema.categories.get(schemaName).definition;
-    const mcLanguages =
-      new MemoryCursor(languages).definition(category, schemaName);
-    mcLanguages.select({ Locale: '> en' })
+    const mcLanguages = new MemoryCursor(languages).definition(
+      category,
+      schemaName
+    );
+    mcLanguages
+      .select({ Locale: '> en' })
       .order('Name')
       .fetch((err, data, cursor) => {
         test.error(err);
@@ -160,9 +156,7 @@ metatests.test('cursor schema', test => {
 });
 
 metatests.test('cursor union', test => {
-  const languages1 = [
-    { Id: 1, Name: 'English', Locale: 'en' },
-  ];
+  const languages1 = [{ Id: 1, Name: 'English', Locale: 'en' }];
   const languages2 = [
     { Id: 2, Name: 'Ukrainian', Locale: 'uk' },
     { Id: 3, Name: 'Russian', Locale: 'ru' },
@@ -171,7 +165,8 @@ metatests.test('cursor union', test => {
   const mcLanguages1 = new MemoryCursor(languages1);
   const mcLanguages2 = new MemoryCursor(languages2);
 
-  mcLanguages1.selectToMemory()
+  mcLanguages1
+    .selectToMemory()
     .union(mcLanguages2)
     .order('Name')
     .fetch((err, data) => {
@@ -194,7 +189,8 @@ metatests.test('cursor intersection', test => {
   const mcLanguages1 = new MemoryCursor(languages1);
   const mcLanguages2 = new MemoryCursor(languages2);
 
-  mcLanguages1.selectToMemory()
+  mcLanguages1
+    .selectToMemory()
     .intersection(mcLanguages2)
     .order('Name')
     .fetch((err, data) => {

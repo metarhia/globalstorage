@@ -36,7 +36,8 @@
   ],
   "scripts": {
     "test": "npm run lint && metatests test/",
-    "lint": "eslint . --ignore-path .gitignore",
+    "lint": "eslint . --ignore-path .gitignore && prettier -c \"**/*.js\" \"**/*.json\" \"**/*.md\" \".*rc\" \"**/*.yml\"",
+    "fmt": "prettier --write \"**/*.js\" \"**/*.json\" \"**/*.md\" \".*rc\" \"**/*.yml\"",
     "build": "babel gs.js -d dist && babel lib -d dist/lib",
     "prepublish": "npm run -s build"
   },
@@ -60,7 +61,10 @@
     "@babel/preset-env": "^7.2.0",
     "eslint": "^5.10.0",
     "eslint-config-metarhia": "^6.1.0",
+    "eslint-config-prettier": "^3.3.0",
     "eslint-plugin-import": "^2.14.0",
-    "metatests": "^0.3.0"
+    "eslint-plugin-prettier": "^3.0.1",
+    "metatests": "^0.3.0",
+    "prettier": "1.16.x"
   }
 }
