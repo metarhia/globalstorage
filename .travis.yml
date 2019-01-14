@@ -9,7 +9,7 @@ sudo: false
 services:
   - postgresql
 addons:
-  postgresql: "10"
+  postgresql: '10'
 before_script:
   - psql -c 'create database test_globalstorage_database;' -U postgres
 script:

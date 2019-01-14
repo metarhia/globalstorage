@@ -16,10 +16,7 @@ const { codes: errorCodes, GSError } = require('../lib/errors');
 const { generateDDL } = require('../lib/pg.ddl');
 const { pgOptions } = require('./utils');
 const {
-  symbols: {
-    recreateIdTrigger,
-    uploadCategoriesAndActions,
-  },
+  symbols: { recreateIdTrigger, uploadCategoriesAndActions },
 } = require('../lib/pg.utils');
 
 const pool = new Pool(pgOptions);
@@ -29,47 +26,54 @@ const provider = gs('pg', {
 });
 
 function prepareDB(callback) {
-  metasync.sequential([
-    (ctx, cb) => {
-      fs.readFile(
-        getPathFromCurrentDir('..', 'sql', 'id.sql'),
-        'utf8',
-        (err, initSql) => {
-          ctx.initSql = initSql;
+  metasync.sequential(
+    [
+      (ctx, cb) => {
+        fs.readFile(
+          getPathFromCurrentDir('..', 'sql', 'id.sql'),
+          'utf8',
+          (err, initSql) => {
+            ctx.initSql = initSql;
+            cb(err);
+          }
+        );
+      },
+      (ctx, cb) => {
+        pool.query(ctx.initSql, err => {
           cb(err);
         });
-    },
-    (ctx, cb) => {
-      pool.query(ctx.initSql, err => {
-        cb(err);
-      });
-    },
-    (ctx, cb) => {
-      metaschema.fs.loadAndCreate([
-        getPathFromCurrentDir('..', 'schemas', 'system'),
-        getPathFromCurrentDir('fixtures', 'pg-test-schemas'),
-      ], null, (err, schema) => {
-        if (err) {
+      },
+      (ctx, cb) => {
+        metaschema.fs.loadAndCreate(
+          [
+            getPathFromCurrentDir('..', 'schemas', 'system'),
+            getPathFromCurrentDir('fixtures', 'pg-test-schemas'),
+          ],
+          null,
+          (err, schema) => {
+            if (err) {
+              cb(err);
+              return;
+            }
+            provider.open(Object.assign({ schema }, pgOptions), cb);
+          }
+        );
+      },
+      (ctx, cb) => {
+        pool.query(generateDDL(provider.schema), err => {
           cb(err);
-          return;
-        }
-        provider.open(Object.assign({ schema }, pgOptions), cb);
-      });
-    },
-    (ctx, cb) => {
-      pool.query(generateDDL(provider.schema), err => {
-        cb(err);
-      });
-    },
-    cb => {
-      provider[recreateIdTrigger](1000, 30, cb);
-    },
-    cb => {
-      provider[uploadCategoriesAndActions](cb);
-    },
-  ], callback);
+        });
+      },
+      cb => {
+        provider[recreateIdTrigger](1000, 30, cb);
+      },
+      cb => {
+        provider[uploadCategoriesAndActions](cb);
+      },
+    ],
+    callback
+  );
 }
-
 
 metatests.runner.instance.wait();
 
@@ -81,182 +85,222 @@ prepareDB(err => {
     return;
   }
 
-  metatests.test('PostgresProvider test', test => {
-    test.endAfterSubtests();
+  metatests.test(
+    'PostgresProvider test',
+    test => {
+      test.endAfterSubtests();
 
-    const record = {
-      category: 'Person',
-      value: {
-        DOB: new Date('2000-01-01'),
-        Name: 'Jason',
-      },
-    };
-
-    test.test('create on local category', test => {
-      provider.create('LocalCategory', {
-        SomeData: 'test data',
-        RequiredData: 'required test data',
-      }, (err, id) => {
-        test.error(err);
-        test.assert(id);
-        test.end();
-      });
-    });
-
-    test.test('invalid create on local category', test => {
-      provider.create('LocalCategory', {
-        SomeData: 'test data',
-      }, err => {
-        test.isError(err, new GSError());
-        test.strictSame(err.code, errorCodes.INVALID_SCHEMA);
-        test.end();
-      });
-    });
-
-    test.test('create on global category', test => {
-      const { category, value } = record;
-      provider.create(category, value, (err, id) => {
-        test.error(err);
-        test.assert(id);
-        record.value.Id = id;
-        test.end();
-      });
-    });
-
-    test.test('invalid create on global category', test => {
-      provider.create('Person', {
-        DOB: new Date('1999-01-01'),
-      }, err => {
-        test.isError(err, new GSError());
-        test.strictSame(err.code, errorCodes.INVALID_SCHEMA);
-        test.end();
-      });
-    });
-
-    test.test('create on ignored category', test => {
-      provider.create('TestMemory', {
-        Service: 'gs',
-      }, err => {
-        test.isError(err, new GSError());
-        test.strictSame(err.code, errorCodes.INVALID_CATEGORY_TYPE);
-        test.end();
-      });
-    });
-
-    test.test('gs.set', test => {
-      record.value.Name = 'John';
-      provider.set(record.value, err => {
-        test.error(err);
-        test.end();
-      });
-    });
-
-    test.test('gs.get', test => {
-      provider.get(record.value.Id, (err, res) => {
-        test.error(err);
-        test.strictSame(res, record.value);
-        test.end();
-      });
-    });
-
-    test.test('gs.update', test => {
-      const newName = 'Peter';
-      provider.update(record.category, {
-        Name: record.value.Name,
-      }, {
-        Name: newName,
-      }, (err, count) => {
-        test.error(err);
-        test.strictSame(count, 1);
-        record.value.Name = newName;
-        test.end();
-      });
-    });
-
-    test.test('gs.delete', test => {
-      provider.delete(record.category, {
-        Name: record.value.Name,
-      }, (err, count) => {
-        test.error(err);
-        test.strictSame(count, 1);
-        test.end();
-      });
-    });
-
-    const includeObj = {
-      Name: 'Metarhia',
-      Address: {
-        Country: 'Ukraine',
-        City: 'Kiev',
-      },
-    };
-
-    test.test('gs.create with Include categories', test => {
-      provider.create('Company', includeObj, (err, id) => {
-        test.error(err);
-        test.assert(id);
-        includeObj.Id = id;
-        test.end();
-      });
-    });
-
-    test.test('gs.set with Include categories', test => {
-      includeObj.Name = 'iBusiness';
-      includeObj.Address = {
-        Id: includeObj.Id,
-        Country: 'USA',
-        City: 'San Francisco',
+      const record = {
+        category: 'Person',
+        value: {
+          DOB: new Date('2000-01-01'),
+          Name: 'Jason',
+        },
       };
-      provider.set(includeObj, err => {
-        test.error(err);
-        test.end();
-      });
-    });
 
-    test.test('gs.get with Include categories', test => {
-      provider.get(includeObj.Id, (err, obj) => {
-        test.error(err);
-        test.strictSame(obj, includeObj);
-        test.end();
+      test.test('create on local category', test => {
+        provider.create(
+          'LocalCategory',
+          {
+            SomeData: 'test data',
+            RequiredData: 'required test data',
+          },
+          (err, id) => {
+            test.error(err);
+            test.assert(id);
+            test.end();
+          }
+        );
       });
-    });
 
-    test.test('gs.delete with Include categories', test => {
-      provider.delete('Company', {
-        'Address.Country': includeObj.Address.Country,
-      }, (err, count) => {
-        test.error(err);
-        test.strictSame(count, 1);
-        provider.get(includeObj.Id, err => {
-          test.isError(err, new GSError());
-          test.strictSame(err.code, errorCodes.NOT_FOUND);
+      test.test('invalid create on local category', test => {
+        provider.create(
+          'LocalCategory',
+          {
+            SomeData: 'test data',
+          },
+          err => {
+            test.isError(err, new GSError());
+            test.strictSame(err.code, errorCodes.INVALID_SCHEMA);
+            test.end();
+          }
+        );
+      });
+
+      test.test('create on global category', test => {
+        const { category, value } = record;
+        provider.create(category, value, (err, id) => {
+          test.error(err);
+          test.assert(id);
+          record.value.Id = id;
           test.end();
         });
       });
-    });
 
-    test.test('invalid gs.delete with Include categories', test => {
-      provider.delete('Address', {
-        'Country': includeObj.Address.Country,
-      }, err => {
-        test.isError(err, new GSError());
-        test.strictSame(err.code, errorCodes.INVALID_DELETION_OPERATION);
-        test.end();
+      test.test('invalid create on global category', test => {
+        provider.create(
+          'Person',
+          {
+            DOB: new Date('1999-01-01'),
+          },
+          err => {
+            test.isError(err, new GSError());
+            test.strictSame(err.code, errorCodes.INVALID_SCHEMA);
+            test.end();
+          }
+        );
       });
-    });
 
-    test.test('invalid gs.create with Include categories', test => {
-      provider.create('Address', {
-        Country: 'France',
-        City: 'Paris',
-      }, err => {
-        test.isError(err, new GSError());
-        test.strictSame(err.code, errorCodes.INVALID_CREATION_OPERATION);
-        test.end();
+      test.test('create on ignored category', test => {
+        provider.create(
+          'TestMemory',
+          {
+            Service: 'gs',
+          },
+          err => {
+            test.isError(err, new GSError());
+            test.strictSame(err.code, errorCodes.INVALID_CATEGORY_TYPE);
+            test.end();
+          }
+        );
       });
-    });
 
-  }, { dependentSubtests: true });
+      test.test('gs.set', test => {
+        record.value.Name = 'John';
+        provider.set(record.value, err => {
+          test.error(err);
+          test.end();
+        });
+      });
+
+      test.test('gs.get', test => {
+        provider.get(record.value.Id, (err, res) => {
+          test.error(err);
+          test.strictSame(res, record.value);
+          test.end();
+        });
+      });
+
+      test.test('gs.update', test => {
+        const newName = 'Peter';
+        provider.update(
+          record.category,
+          {
+            Name: record.value.Name,
+          },
+          {
+            Name: newName,
+          },
+          (err, count) => {
+            test.error(err);
+            test.strictSame(count, 1);
+            record.value.Name = newName;
+            test.end();
+          }
+        );
+      });
+
+      test.test('gs.delete', test => {
+        provider.delete(
+          record.category,
+          {
+            Name: record.value.Name,
+          },
+          (err, count) => {
+            test.error(err);
+            test.strictSame(count, 1);
+            test.end();
+          }
+        );
+      });
+
+      const includeObj = {
+        Name: 'Metarhia',
+        Address: {
+          Country: 'Ukraine',
+          City: 'Kiev',
+        },
+      };
+
+      test.test('gs.create with Include categories', test => {
+        provider.create('Company', includeObj, (err, id) => {
+          test.error(err);
+          test.assert(id);
+          includeObj.Id = id;
+          test.end();
+        });
+      });
+
+      test.test('gs.set with Include categories', test => {
+        includeObj.Name = 'iBusiness';
+        includeObj.Address = {
+          Id: includeObj.Id,
+          Country: 'USA',
+          City: 'San Francisco',
+        };
+        provider.set(includeObj, err => {
+          test.error(err);
+          test.end();
+        });
+      });
+
+      test.test('gs.get with Include categories', test => {
+        provider.get(includeObj.Id, (err, obj) => {
+          test.error(err);
+          test.strictSame(obj, includeObj);
+          test.end();
+        });
+      });
+
+      test.test('gs.delete with Include categories', test => {
+        provider.delete(
+          'Company',
+          {
+            'Address.Country': includeObj.Address.Country,
+          },
+          (err, count) => {
+            test.error(err);
+            test.strictSame(count, 1);
+            provider.get(includeObj.Id, err => {
+              test.isError(err, new GSError());
+              test.strictSame(err.code, errorCodes.NOT_FOUND);
+              test.end();
+            });
+          }
+        );
+      });
+
+      test.test('invalid gs.delete with Include categories', test => {
+        provider.delete(
+          'Address',
+          {
+            Country: includeObj.Address.Country,
+          },
+          err => {
+            test.isError(err, new GSError());
+            test.strictSame(err.code, errorCodes.INVALID_DELETION_OPERATION);
+            test.end();
+          }
+        );
+      });
+
+      test.test('invalid gs.create with Include categories', test => {
+        provider.create(
+          'Address',
+          {
+            Country: 'France',
+            City: 'Paris',
+          },
+          err => {
+            test.isError(err, new GSError());
+            test.strictSame(err.code, errorCodes.INVALID_CREATION_OPERATION);
+            test.end();
+          }
+        );
+      });
+    },
+    { dependentSubtests: true }
+  );
 
   metatests.test('PostgresProvider test', test => {
     test.endAfterSubtests();
@@ -276,15 +320,15 @@ prepareDB(err => {
         company.Id = id;
         company.Address.Id = id;
 
-        provider.select('Company', { Name: company.Name }).fetch(
-          (error, result) => {
+        provider
+          .select('Company', { Name: company.Name })
+          .fetch((error, result) => {
             test.error(error);
             test.strictEqual(result.length, 1);
             const [selectedCompany] = result;
             test.strictSame(selectedCompany, company);
             test.end();
-          }
-        );
+          });
       });
     });
   });
@@ -294,7 +338,7 @@ prepareDB(err => {
       FullName: 'Douglas Adams',
       Works: [
         {
-          Name: 'The Hitchhiker\'s Guide to the Galaxy',
+          Name: "The Hitchhiker's Guide to the Galaxy",
           PublicationYear: 1979,
         },
         {
@@ -309,21 +353,29 @@ prepareDB(err => {
     };
 
     function prepareTest(callback) {
-      provider.create('Writer', {
-        FullName: writer.FullName,
-      }, (err, id) => {
-        writer.Id = id;
-        if (err) {
-          callback(err);
-          return;
-        }
-        metasync.each(writer.Works, (work, callback) => {
-          provider.create('Work', work, (err, id) => {
-            work.Id = id;
+      provider.create(
+        'Writer',
+        {
+          FullName: writer.FullName,
+        },
+        (err, id) => {
+          writer.Id = id;
+          if (err) {
             callback(err);
-          });
-        }, callback);
-      });
+            return;
+          }
+          metasync.each(
+            writer.Works,
+            (work, callback) => {
+              provider.create('Work', work, (err, id) => {
+                work.Id = id;
+                callback(err);
+              });
+            },
+            callback
+          );
+        }
+      );
     }
 
     function runTests() {

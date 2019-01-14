@@ -23,31 +23,34 @@ module.exports = (data, done) => {
 
     queue.process(processItem);
 
-    gs.open({
-      gs,
-      provider: 'fs',
-      path: './data',
-    }, err => {
-      if (err) {
-        test.error(err, 'error opening gs');
-        return;
+    gs.open(
+      {
+        gs,
+        provider: 'fs',
+        path: './data',
+      },
+      err => {
+        if (err) {
+          test.error(err, 'error opening gs');
+          return;
+        }
+        console.time('insert');
+        for (let i = 0; i < 10; i++) {
+          queue.add({ Num: i });
+        }
+        gs.select({ category: 'Person', Name: 'Marcus' })
+          .limit(10)
+          .fetch((err, data) => {
+            console.log(err);
+            if (err) {
+              test.throws(err, 'error fetching Marcus');
+              return;
+            }
+            test.strictSame([err, data], [null, []]);
+            test.end('select test end');
+          });
       }
-      console.time('insert');
-      for (let i = 0; i < 10; i++) {
-        queue.add({ Num: i });
-      }
-      gs.select({ category: 'Person', Name: 'Marcus' })
-        .limit(10)
-        .fetch((err, data) => {
-          console.log(err);
-          if (err) {
-            test.throws(err, 'error fetching Marcus');
-            return;
-          }
-          test.strictSame([err, data], [null, []]);
-          test.end('select test end');
-        });
-    });
+    );
 
     queue.timeout(1000, () => {
       test.notOk('Insert test error, file writing timeout');

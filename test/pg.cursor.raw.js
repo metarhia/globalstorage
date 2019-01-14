@@ -22,28 +22,33 @@ const rowData = [
 ];
 
 function prepareDB(callback) {
-  sequential([
-    (data, cb) => pool.query(`DROP TABLE IF EXISTS "${tableName}"`, cb),
-    (data, cb) => pool.query(
-      `CREATE TABLE "${tableName}" (
+  sequential(
+    [
+      (data, cb) => pool.query(`DROP TABLE IF EXISTS "${tableName}"`, cb),
+      (data, cb) =>
+        pool.query(
+          `CREATE TABLE "${tableName}" (
          id int,
          text varchar(255),
          date timestamp with time zone)`,
-      cb
-    ),
-    (data, cb) => {
-      const insert =
-        `INSERT INTO "${tableName}" (id, text, date) VALUES ` +
-        rowData
-          .map(row => `(${row.id}, '${row.text}', '${row.date.toISOString()}')`)
-          .join(', ');
-      pool.query(insert, cb);
-    },
-  ], callback);
+          cb
+        ),
+      (data, cb) => {
+        const insert =
+          `INSERT INTO "${tableName}" (id, text, date) VALUES ` +
+          rowData
+            .map(
+              row => `(${row.id}, '${row.text}', '${row.date.toISOString()}')`
+            )
+            .join(', ');
+        pool.query(insert, cb);
+      },
+    ],
+    callback
+  );
 }
 
 test('PostgresCursor test', test => {
-
   prepareDB(err => {
     if (err) {
       console.error('Cannot setup PostgresDB, skipping PostgresCursor tests.');
@@ -58,13 +63,10 @@ test('PostgresCursor test', test => {
       pool.connect((err, client, done) => {
         test.error(err);
         const provider = {
-          schema: { categories: new Map([[tableName, {} ]]) },
+          schema: { categories: new Map([[tableName, {}]]) },
           pool: client,
         };
-        const cursor = new PostgresCursor(
-          provider,
-          { category: tableName }
-        );
+        const cursor = new PostgresCursor(provider, { category: tableName });
         callback({ cursor, done });
       });
     });
@@ -83,28 +85,27 @@ test('PostgresCursor test', test => {
 
     test.test('Select few', (test, { cursor }) => {
       const expected = rowData.filter(row => row.text === 'aaa');
-      cursor.select({ text: 'aaa' })
-        .fetch((err, rows) => {
-          test.error(err);
-          test.strictSame(rows, expected);
-          test.end();
-        });
+      cursor.select({ text: 'aaa' }).fetch((err, rows) => {
+        test.error(err);
+        test.strictSame(rows, expected);
+        test.end();
+      });
     });
 
     test.test('Select few !=', (test, { cursor }) => {
       const expected = rowData.filter(row => row.text !== 'aaa');
-      cursor.select({ text: '!aaa' })
-        .fetch((err, rows) => {
-          test.error(err);
-          test.strictSame(rows, expected);
-          test.end();
-        });
+      cursor.select({ text: '!aaa' }).fetch((err, rows) => {
+        test.error(err);
+        test.strictSame(rows, expected);
+        test.end();
+      });
     });
 
     test.test('Select few row', (test, { cursor }) => {
       const data = rowData.find(row => row.text === 'aaa');
       const expected = Object.keys(data).map(k => data[k]);
-      cursor.select({ text: 'aaa' })
+      cursor
+        .select({ text: 'aaa' })
         .row()
         .fetch((err, rows) => {
           test.error(err);
@@ -115,14 +116,14 @@ test('PostgresCursor test', test => {
 
     test.test('Select few date', (test, { cursor }) => {
       const date = rowData[0].date;
-      const expected = rowData
-        .filter(row => row.date.getTime() === date.getTime());
-      cursor.select({ date })
-        .fetch((err, rows) => {
-          test.error(err);
-          test.strictSame(rows, expected);
-          test.end();
-        });
+      const expected = rowData.filter(
+        row => row.date.getTime() === date.getTime()
+      );
+      cursor.select({ date }).fetch((err, rows) => {
+        test.error(err);
+        test.strictSame(rows, expected);
+        test.end();
+      });
     });
 
     test.on('done', () => {
