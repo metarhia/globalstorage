@@ -19,6 +19,7 @@ metatests.case('Test pgUtils', { pgUtils }, {
     ['identifierWith2Numbers_9', true],
     ['identifier$Containing$Dollar$', true],
     ['💓💕EmojiIdentifier💗💝', true],
+    ['ꬰꬱꬲꬳꬴꬵꬶꬷꬸꬹꬺꬻꬼꬽꬾꬿꭀꭁꭂꭃꭄꭅꭆꭇꭈꭉ', false],
   ],
   'pgUtils.generateDeleteQuery': [
     ['A', [], {},
