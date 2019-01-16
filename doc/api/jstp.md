@@ -44,7 +44,7 @@ Get record's many-to-many details by id.
 
 ###### Callback arguments
 
-* `details` [`<Object>[]`][]
+* `details` [`<Object>[]`][object]
 
 ---
 
