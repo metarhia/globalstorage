@@ -252,6 +252,13 @@ testSync(
       test.strictSame(params, [1, 2, 3]);
     });
 
+    test.testSync('Select where any numbers', (test, { builder }) => {
+      builder.from('table').whereAny('f1', [1, 2, 3]);
+      const [query, params] = builder.build();
+      test.strictSame(query, 'SELECT * FROM "table" WHERE "f1" = ANY ($1)');
+      test.strictSame(params, [[1, 2, 3]]);
+    });
+
     test.testSync('Select multiple operations', (test, { builder }) => {
       builder
         .from('table')
