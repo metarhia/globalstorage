@@ -1,48 +1,62 @@
 'use strict';
 
-const { join } = require('path');
-const common = require('@metarhia/common');
 const metatests = require('metatests');
 const metaschema = require('metaschema');
+const { options, config } = require('../../../lib/metaschema-config/config');
 const ddl = require('../../../lib/pg.ddl');
 
-const schemasDir = join(__dirname, '../..', 'fixtures/ddl-unit');
-const test = metatests.test('pg.ddl.createHistorySchema unit test');
+metatests.test('pg.ddl.createHistorySchema unit test', async test => {
+  let errors;
+  let schema;
 
-metaschema.fs.loadAndCreate(schemasDir, { common }, (err, ms) => {
-  if (err) test.bailout(err);
+  try {
+    [errors, schema] = await metaschema.fs.load(
+      'schemas/system',
+      options,
+      config
+    );
+  } catch (err) {
+    test.fail(err);
+    test.end();
+    return;
+  }
 
-  const dateTime = ms.domains.get('DateTime');
-  test.strictSame(ddl.createHistorySchema({}, ms.domains, ms.categories), {
-    _Creation: {
-      domain: 'DateTime',
-      required: true,
-      index: true,
-      definition: dateTime,
-    },
-    _Effective: {
-      domain: 'DateTime',
-      required: true,
-      index: true,
-      definition: dateTime,
-    },
-    _Cancel: {
-      domain: 'DateTime',
-      index: true,
-      definition: dateTime,
-    },
-    _HistoryStatus: {
-      domain: 'HistoryStatus',
-      required: true,
-      definition: dateTime,
-    },
-    _Identifier: {
-      category: 'Identifier',
-      required: true,
-      index: true,
-      definition: ms.categories.get('Identifier').definition,
-    },
-  });
+  if (errors.length !== 0) test.bailout(errors);
+
+  const dateTime = schema.domains.get('DateTime');
+  test.strictSame(
+    ddl.createHistorySchema({}, schema.domains, schema.categories),
+    {
+      _Creation: {
+        domain: 'DateTime',
+        required: true,
+        index: true,
+        definition: dateTime,
+      },
+      _Effective: {
+        domain: 'DateTime',
+        required: true,
+        index: true,
+        definition: dateTime,
+      },
+      _Cancel: {
+        domain: 'DateTime',
+        index: true,
+        definition: dateTime,
+      },
+      _HistoryStatus: {
+        domain: 'HistoryStatus',
+        required: true,
+        definition: dateTime,
+      },
+      _Identifier: {
+        category: 'Identifier',
+        required: true,
+        index: true,
+        definition: schema.categories.get('Identifier').definition,
+      },
+    }
+  );
 
   test.end();
 });

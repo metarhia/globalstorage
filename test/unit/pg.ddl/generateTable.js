@@ -1,26 +1,36 @@
 'use strict';
 
 const { join } = require('path');
-const common = require('@metarhia/common');
 const metatests = require('metatests');
 const metaschema = require('metaschema');
+const { options, config } = require('../../../lib/metaschema-config/config');
 const ddl = require('../../../lib/pg.ddl');
 
 const schemasDir = join(__dirname, '../..', 'fixtures/ddl-unit');
-const test = metatests.test('pg.ddl.generateTable unit test');
 
-metaschema.fs.loadAndCreate(schemasDir, { common }, (err, ms) => {
-  if (err) test.bailout(err);
+metatests.test('pg.ddl.generateTable unit test', async test => {
+  let errors;
+  let schema;
+
+  try {
+    [errors, schema] = await metaschema.fs.load(schemasDir, options, config);
+  } catch (err) {
+    test.fail(err);
+    test.end();
+    return;
+  }
+
+  if (errors.length !== 0) test.bailout(errors);
 
   test.strictSame(
     ddl.generateTable(
       'LocalCategory2',
-      ms.categories.get('LocalCategory2').definition,
+      schema.categories.get('LocalCategory2').definition,
       'Local',
       new Map([['Nomen', 'text']]),
       new Map(),
       [],
-      ms.categories
+      schema.categories
     ),
     {
       sql:
@@ -58,12 +68,12 @@ metaschema.fs.loadAndCreate(schemasDir, { common }, (err, ms) => {
     () =>
       ddl.generateTable(
         'Schema!',
-        ms.categories.get('Schema!').definition,
+        schema.categories.get('Schema!').definition,
         'Local',
         new Map([['Nomen', 'text']]),
         new Map(),
         [],
-        ms.categories
+        schema.categories
       ),
     new Error(
       'Cannot create table Schema! because it is not a valid identifier'

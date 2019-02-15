@@ -1,16 +1,42 @@
 'use strict';
 
-module.exports = ({ History: history }) => ({
+module.exports = ({ History: history, Enum: createEnum }) => ({
   name: 'generateDDL with History',
-  schemas: {
-    Identifier: {
-      field: { domain: 'Nomen' },
+  schemas: [
+    {
+      type: 'domains',
+      name: 'custom',
+      module: 'test',
+      definition: {
+        HistoryStatus: createEnum('Future', 'Actual', 'Historical'),
+      },
     },
-    Schema: history({
-      field: { domain: 'Nomen' },
-    }),
-  },
+    {
+      type: 'category',
+      name: 'Identifier',
+      module: 'test',
+      definition: {
+        field: { domain: 'Nomen' },
+      },
+    },
+    {
+      type: 'category',
+      name: 'Schema',
+      module: 'test',
+      definition: history({
+        field: { domain: 'Nomen' },
+      }),
+    },
+  ],
   expectedSql: `
+-- Enum: "HistoryStatus" -------------------------------------------------------
+
+CREATE TYPE "HistoryStatus" AS ENUM (
+  'Future',
+  'Actual',
+  'Historical'
+);
+
 -- Category: Identifier --------------------------------------------------------
 
 CREATE TABLE "Identifier" (
@@ -37,7 +63,7 @@ CREATE TABLE "SchemaHistory" (
   "_Creation"      timestamp with time zone NOT NULL,
   "_Effective"     timestamp with time zone NOT NULL,
   "_Cancel"        timestamp with time zone,
-  "_HistoryStatus" undefined NOT NULL,
+  "_HistoryStatus" "HistoryStatus" NOT NULL,
   "_Identifier"    bigint NOT NULL
 );
 

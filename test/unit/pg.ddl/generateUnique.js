@@ -1,14 +1,11 @@
 'use strict';
 
 const metatests = require('metatests');
-const metaschema = require('metaschema');
+const { options } = require('../../../lib/metaschema-config/config');
 const ddl = require('../../../lib/pg.ddl');
 
 const test = metatests.test('pg.ddl.generateUnique unit test');
-
-const {
-  decorators: { Unique: createUnique },
-} = metaschema;
+const { Unique: createUnique } = options.localDecorators.category;
 
 test.strictSame(
   ddl.generateUnique(

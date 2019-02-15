@@ -2,18 +2,33 @@
 
 module.exports = ({ Registry: registry }) => ({
   name: 'link to global category from local',
-  schemas: {
-    GlobalEntity: registry({
-      field: { domain: 'Nomen' },
-    }),
-    LocalEntity: {
-      field: { domain: 'Nomen' },
-      globalEntity: { category: 'GlobalEntity' },
+  schemas: [
+    {
+      type: 'category',
+      name: 'GlobalEntity',
+      module: 'test',
+      definition: registry({
+        field: { domain: 'Nomen' },
+      }),
     },
-    Identifier: {
-      field: { domain: 'Nomen' },
+    {
+      type: 'category',
+      name: 'LocalEntity',
+      module: 'test',
+      definition: {
+        field: { domain: 'Nomen' },
+        globalEntity: { category: 'GlobalEntity' },
+      },
     },
-  },
+    {
+      type: 'category',
+      name: 'Identifier',
+      module: 'test',
+      definition: {
+        field: { domain: 'Nomen' },
+      },
+    },
+  ],
   expectedSql: `
 -- Category: GlobalEntity ------------------------------------------------------
 

@@ -1,16 +1,26 @@
 'use strict';
 
 const { join } = require('path');
-const common = require('@metarhia/common');
 const metatests = require('metatests');
 const metaschema = require('metaschema');
+const { options, config } = require('../../../lib/metaschema-config/config');
 const ddl = require('../../../lib/pg.ddl');
 
 const schemasDir = join(__dirname, '../..', 'fixtures/ddl-unit');
-const test = metatests.test('pg.ddl.generateLinks unit test');
 
-metaschema.fs.loadAndCreate(schemasDir, { common }, (err, ms) => {
-  if (err) test.bailout(err);
+metatests.test('pg.ddl.generateLinks unit test', async test => {
+  let errors;
+  let schema;
+
+  try {
+    [errors, schema] = await metaschema.fs.load(schemasDir, options, config);
+  } catch (err) {
+    test.fail(err);
+    test.end();
+    return;
+  }
+
+  if (errors.length !== 0) test.bailout(errors);
 
   test.strictSame(
     ddl.generateLinks(
@@ -19,32 +29,32 @@ metaschema.fs.loadAndCreate(schemasDir, { common }, (err, ms) => {
           from: 'LocalCategory2',
           to: 'LocalCategory1',
           name: 'field',
-          link: ms.categories.get('LocalCategory2').definition.field,
+          link: schema.categories.get('LocalCategory2').definition.field,
           destination: 'LocalCategory1',
         },
         {
           from: 'CategoryWithMany',
           to: 'LocalCategory1',
           name: 'field',
-          link: ms.categories.get('CategoryWithMany').definition.field,
+          link: schema.categories.get('CategoryWithMany').definition.field,
           destination: 'LocalCategory1',
         },
         {
           from: 'LocalCategory2',
           to: 'LocalCategory1',
           name: 'field',
-          link: ms.categories.get('LocalCategory2').definition.field,
+          link: schema.categories.get('LocalCategory2').definition.field,
           destination: 'LocalCategory1',
         },
         {
           from: 'GlobalCategory3',
           to: 'GlobalCategory1',
           name: 'field',
-          link: ms.categories.get('GlobalCategory3').definition.field,
+          link: schema.categories.get('GlobalCategory3').definition.field,
           destination: 'Identifier',
         },
       ],
-      ms.categories
+      schema.categories
     ),
     'ALTER TABLE "LocalCategory2" ADD CONSTRAINT "fkLocalCategory2field" ' +
       'FOREIGN KEY ("field") REFERENCES "LocalCategory1" ("Id") ' +

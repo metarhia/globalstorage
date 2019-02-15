@@ -2,18 +2,28 @@
 
 module.exports = ({ Flags: createFlags }) => ({
   name: 'generateDDL with Flags',
-  schemas: {
-    domains: {
-      Flags16: createFlags(...Array.from({ length: 16 }, (v, i) => i)),
-      Flags32: createFlags(...Array.from({ length: 32 }, (v, i) => i)),
-      Flags64: createFlags(...Array.from({ length: 64 }, (v, i) => i)),
+  schemas: [
+    {
+      type: 'domains',
+      name: 'custom',
+      module: 'test',
+      definition: {
+        Flags16: createFlags(...Array.from({ length: 16 }, (v, i) => i)),
+        Flags32: createFlags(...Array.from({ length: 32 }, (v, i) => i)),
+        Flags64: createFlags(...Array.from({ length: 64 }, (v, i) => i)),
+      },
     },
-    Schema: {
-      flags16: { domain: 'Flags16' },
-      flags32: { domain: 'Flags32' },
-      flags64: { domain: 'Flags64' },
+    {
+      type: 'category',
+      name: 'Schema',
+      module: 'test',
+      definition: {
+        flags16: { domain: 'Flags16' },
+        flags32: { domain: 'Flags32' },
+        flags64: { domain: 'Flags64' },
+      },
     },
-  },
+  ],
   expectedSql: `
 -- Category: Schema ------------------------------------------------------------
 

@@ -4,6 +4,7 @@ const { MemoryCursor } = require('../lib/memory.cursor');
 const transformations = require('../lib/transformations');
 const metaschema = require('metaschema');
 const metatests = require('metatests');
+const { options, config } = require('../lib/metaschema-config/config');
 
 const ds1 = [{ Id: 1, Name: 'qwerty' }, { Id: 2 }];
 const ds2 = [{ Id: 2 }, { Id: 3 }];
@@ -129,30 +130,45 @@ metatests.test('cursor select', test => {
     });
 });
 
-metatests.test('cursor schema', test => {
+metatests.test('cursor schema', async test => {
   const languages = [
     { Id: 1, Name: 'English', Locale: 'en' },
     { Id: 2, Name: 'Ukrainian', Locale: 'uk' },
     { Id: 3, Name: 'Russian', Locale: 'ru' },
   ];
-  metaschema.fs.loadAndCreate('schemas/system', null, (err, schema) => {
-    test.error(err);
-    const schemaName = 'Language';
-    const category = schema.categories.get(schemaName).definition;
-    const mcLanguages = new MemoryCursor(languages).definition(
-      category,
-      schemaName
+
+  let errors;
+  let schema;
+
+  try {
+    [errors, schema] = await metaschema.fs.load(
+      'schemas/system',
+      options,
+      config
     );
-    mcLanguages
-      .select({ Locale: '> en' })
-      .order('Name')
-      .fetch((err, data, cursor) => {
-        test.error(err);
-        test.strictSame(data.length, 2);
-        test.strictSame(Object.keys(cursor.schema).length, 2);
-        test.end();
-      });
-  });
+  } catch (err) {
+    test.fail(err);
+    test.end();
+    return;
+  }
+
+  if (errors.length !== 0) test.bailout(errors);
+
+  const schemaName = 'Language';
+  const category = schema.categories.get(schemaName).definition;
+  const mcLanguages = new MemoryCursor(languages).definition(
+    category,
+    schemaName
+  );
+  mcLanguages
+    .select({ Locale: '> en' })
+    .order('Name')
+    .fetch((err, data, cursor) => {
+      test.error(err);
+      test.strictSame(data.length, 2);
+      test.strictSame(Object.keys(cursor.schema).length, 2);
+      test.end();
+    });
 });
 
 metatests.test('cursor union', test => {

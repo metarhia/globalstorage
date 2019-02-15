@@ -2,13 +2,18 @@
 
 module.exports = () => ({
   name: 'generateDDL with required fields',
-  schemas: {
-    Schema: {
-      required1: { domain: 'Nomen', required: true },
-      required2: { domain: 'Nomen', required: true },
-      field: { domain: 'Nomen' },
+  schemas: [
+    {
+      type: 'category',
+      name: 'Schema',
+      module: 'test',
+      definition: {
+        required1: { domain: 'Nomen', required: true },
+        required2: { domain: 'Nomen', required: true },
+        field: { domain: 'Nomen' },
+      },
     },
-  },
+  ],
   expectedSql: `
 -- Category: Schema ------------------------------------------------------------
 

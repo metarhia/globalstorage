@@ -2,14 +2,24 @@
 
 module.exports = ({ Enum: createEnum }) => ({
   name: 'generateDDL with Enum',
-  schemas: {
-    domains: {
-      EnumDomain: createEnum('value1', 'value2', 'value3'),
+  schemas: [
+    {
+      type: 'domains',
+      name: 'custom',
+      module: 'test',
+      definition: {
+        EnumDomain: createEnum('value1', 'value2', 'value3'),
+      },
     },
-    Schema: {
-      enumField: { domain: 'EnumDomain' },
+    {
+      type: 'category',
+      name: 'Schema',
+      module: 'test',
+      definition: {
+        enumField: { domain: 'EnumDomain' },
+      },
     },
-  },
+  ],
   expectedSql: `
 -- Enum: "EnumDomain" ----------------------------------------------------------
 

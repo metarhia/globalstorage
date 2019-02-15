@@ -2,15 +2,25 @@
 
 module.exports = ({ Many: many }) => ({
   name: 'generateDDL with Many',
-  schemas: {
-    Schema1: {
-      field: { domain: 'Nomen' },
+  schemas: [
+    {
+      type: 'category',
+      name: 'Schema1',
+      module: 'test',
+      definition: {
+        field: { domain: 'Nomen' },
+      },
     },
-    Schema2: {
-      field: { domain: 'Nomen' },
-      link: many('Schema1'),
+    {
+      type: 'category',
+      name: 'Schema2',
+      module: 'test',
+      definition: {
+        field: { domain: 'Nomen' },
+        link: many('Schema1'),
+      },
     },
-  },
+  ],
   expectedSql: `
 -- Category: Schema1 -----------------------------------------------------------
 

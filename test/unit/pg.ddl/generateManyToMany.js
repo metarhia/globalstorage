@@ -1,23 +1,33 @@
 'use strict';
 
 const { join } = require('path');
-const common = require('@metarhia/common');
 const metatests = require('metatests');
 const metaschema = require('metaschema');
+const { options, config } = require('../../../lib/metaschema-config/config');
 const ddl = require('../../../lib/pg.ddl');
 
 const schemasDir = join(__dirname, '../..', 'fixtures/ddl-unit');
-const test = metatests.test('pg.ddl.generateManyToMany unit test');
 
-metaschema.fs.loadAndCreate(schemasDir, { common }, (err, ms) => {
-  if (err) test.bailout(err);
+metatests.test('pg.ddl.generateManyToMany unit test', async test => {
+  let errors;
+  let schema;
+
+  try {
+    [errors, schema] = await metaschema.fs.load(schemasDir, options, config);
+  } catch (err) {
+    test.fail(err);
+    test.end();
+    return;
+  }
+
+  if (errors.length !== 0) test.bailout(errors);
 
   test.strictSame(
     ddl.generateManyToMany(
       'CategoryWithMany',
       'LocalCategory1',
       'field',
-      ms.categories,
+      schema.categories,
       'LocalCategory1'
     ),
     '\n' +
@@ -43,7 +53,7 @@ metaschema.fs.loadAndCreate(schemasDir, { common }, (err, ms) => {
       'GlobalCategory3',
       'GlobalCategory1',
       'field',
-      ms.categories,
+      schema.categories,
       'GlobalCategory1'
     ),
     '\n' +
@@ -62,7 +72,7 @@ metaschema.fs.loadAndCreate(schemasDir, { common }, (err, ms) => {
         'LocalCategory3',
         'Schema!',
         'field',
-        ms.categories,
+        schema.categories,
         'Schema!'
       ),
     new Error(

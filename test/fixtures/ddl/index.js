@@ -2,16 +2,21 @@
 
 module.exports = ({ Index: index }) => ({
   name: 'generateDDL with index fields',
-  schemas: {
-    Schema: {
-      field1: { domain: 'Nomen' },
-      field2: { domain: 'Nomen' },
-      field3: { domain: 'Nomen' },
-      index1: { domain: 'Nomen', index: true },
-      index2: index('field1'),
-      index3: index('field2', 'field3'),
+  schemas: [
+    {
+      type: 'category',
+      name: 'Schema',
+      module: 'test',
+      definition: {
+        field1: { domain: 'Nomen' },
+        field2: { domain: 'Nomen' },
+        field3: { domain: 'Nomen' },
+        index1: { domain: 'Nomen', index: true },
+        index2: index('field1'),
+        index3: index('field2', 'field3'),
+      },
     },
-  },
+  ],
   expectedSql: `
 -- Category: Schema ------------------------------------------------------------
 

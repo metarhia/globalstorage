@@ -2,14 +2,24 @@
 
 module.exports = ({ Master: master }) => ({
   name: 'generateDDL with Master',
-  schemas: {
-    Schema1: {
-      field: { domain: 'Nomen' },
+  schemas: [
+    {
+      type: 'category',
+      name: 'Schema1',
+      module: 'test',
+      definition: {
+        field: { domain: 'Nomen' },
+      },
     },
-    Schema2: {
-      master: master('Schema1'),
+    {
+      type: 'category',
+      name: 'Schema2',
+      module: 'test',
+      definition: {
+        master: master('Schema1'),
+      },
     },
-  },
+  ],
   expectedSql: `
 -- Category: Schema1 -----------------------------------------------------------
 

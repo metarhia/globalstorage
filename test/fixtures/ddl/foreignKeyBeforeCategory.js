@@ -2,15 +2,25 @@
 
 module.exports = () => ({
   name: 'link definition to a destination before its creation',
-  schemas: {
-    Schema1: {
-      field: { domain: 'Nomen' },
-      schema2: { category: 'Schema2' },
+  schemas: [
+    {
+      type: 'category',
+      name: 'Schema1',
+      module: 'test',
+      definition: {
+        field: { domain: 'Nomen' },
+        schema2: { category: 'Schema2' },
+      },
     },
-    Schema2: {
-      field: { domain: 'Nomen' },
+    {
+      type: 'category',
+      name: 'Schema2',
+      module: 'test',
+      definition: {
+        field: { domain: 'Nomen' },
+      },
     },
-  },
+  ],
   expectedSql: `
 -- Category: Schema1 -----------------------------------------------------------
 

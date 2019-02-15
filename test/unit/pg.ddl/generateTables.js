@@ -1,23 +1,33 @@
 'use strict';
 
 const { join } = require('path');
-const common = require('@metarhia/common');
 const metatests = require('metatests');
 const metaschema = require('metaschema');
+const { options, config } = require('../../../lib/metaschema-config/config');
 const ddl = require('../../../lib/pg.ddl');
 
 const schemasDir = join(__dirname, '../..', 'fixtures/ddl-unit');
-const test = metatests.test('pg.ddl.generateTables unit test');
 
-metaschema.fs.loadAndCreate(schemasDir, { common }, (err, ms) => {
-  if (err) test.bailout(err);
+metatests.test('pg.ddl.generateTables unit test', async test => {
+  let errors;
+  let schema;
+
+  try {
+    [errors, schema] = await metaschema.fs.load(schemasDir, options, config);
+  } catch (err) {
+    test.fail(err);
+    test.end();
+    return;
+  }
+
+  if (errors.length !== 0) test.bailout(errors);
 
   test.strictSame(
     ddl.generateTables(
       new Map([
-        ['LocalCategory2', ms.categories.get('LocalCategory2')],
-        ['LocalCategory1', ms.categories.get('LocalCategory1')],
-        ['MemoryTable', ms.categories.get('MemoryTable')],
+        ['LocalCategory2', schema.categories.get('LocalCategory2')],
+        ['LocalCategory1', schema.categories.get('LocalCategory1')],
+        ['MemoryTable', schema.categories.get('MemoryTable')],
       ]),
       new Map([['Nomen', 'text']])
     ),

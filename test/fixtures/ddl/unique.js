@@ -2,16 +2,21 @@
 
 module.exports = ({ Unique: unique }) => ({
   name: 'generateDDL with unique fields',
-  schemas: {
-    Schema: {
-      field1: { domain: 'Nomen' },
-      field2: { domain: 'Nomen' },
-      field3: { domain: 'Nomen' },
-      unique1: { domain: 'Nomen', unique: true },
-      unique2: unique('field1'),
-      unique3: unique('field2', 'field3'),
+  schemas: [
+    {
+      type: 'category',
+      name: 'Schema',
+      module: 'test',
+      definition: {
+        field1: { domain: 'Nomen' },
+        field2: { domain: 'Nomen' },
+        field3: { domain: 'Nomen' },
+        unique1: { domain: 'Nomen', unique: true },
+        unique2: unique('field1'),
+        unique3: unique('field2', 'field3'),
+      },
     },
-  },
+  ],
   expectedSql: `
 -- Category: Schema ------------------------------------------------------------
 

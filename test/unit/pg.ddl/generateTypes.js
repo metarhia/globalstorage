@@ -1,24 +1,33 @@
 'use strict';
 
 const { join } = require('path');
-const common = require('@metarhia/common');
 const metatests = require('metatests');
 const metaschema = require('metaschema');
+const { options, config } = require('../../../lib/metaschema-config/config');
 const ddl = require('../../../lib/pg.ddl');
 
 const schemasDir = join(__dirname, '../..', 'fixtures/ddl-unit');
-const test = metatests.test('pg.ddl.generateTypes unit test');
 
-metaschema.fs.loadAndCreate(schemasDir, { common }, (err, ms) => {
-  if (err) test.bailout(err);
+metatests.test('pg.ddl.generateTypes unit test', async test => {
+  let errors;
+  let schema;
+
+  try {
+    [errors, schema] = await metaschema.fs.load(schemasDir, options, config);
+  } catch (err) {
+    test.fail(err);
+    test.end();
+    return;
+  }
+
+  if (errors.length !== 0) test.bailout(errors);
 
   const actual = ddl.generateTypes(
     new Map([
-      ['EnumType', ms.domains.get('EnumType')],
-      ['Day', ms.domains.get('Day')],
-      ['FlagsSmallInt', ms.domains.get('FlagsSmallInt')],
-      ['FlagsInt', ms.domains.get('FlagsInt')],
-      ['FlagsBigInt', ms.domains.get('FlagsBigInt')],
+      ['EnumType', schema.domains.get('EnumType')],
+      ['FlagsSmallInt', schema.domains.get('FlagsSmallInt')],
+      ['FlagsInt', schema.domains.get('FlagsInt')],
+      ['FlagsBigInt', schema.domains.get('FlagsBigInt')],
     ])
   );
 
@@ -30,7 +39,6 @@ metaschema.fs.loadAndCreate(schemasDir, { common }, (err, ms) => {
     {
       types: [
         ['EnumType', '"EnumType"'],
-        ['Day', '"Day"'],
         ['FlagsSmallInt', 'smallint'],
         ['FlagsInt', 'integer'],
         ['FlagsBigInt', 'bigint'],
@@ -42,18 +50,6 @@ CREATE TYPE "EnumType" AS ENUM (
   'value1',
   'value2',
   'value3'
-);
-
--- Enum: "Day" -----------------------------------------------------------------
-
-CREATE TYPE "Day" AS ENUM (
-  'Monday',
-  'Tuesday',
-  'Wednesday',
-  'Thursday',
-  'Friday',
-  'Saturday',
-  'Sunday'
 );`,
     }
   );

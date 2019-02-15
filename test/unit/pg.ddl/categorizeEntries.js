@@ -1,24 +1,32 @@
 'use strict';
 
 const { join } = require('path');
-const common = require('@metarhia/common');
 const metatests = require('metatests');
 const metaschema = require('metaschema');
+const { options, config } = require('../../../lib/metaschema-config/config');
 const ddl = require('../../../lib/pg.ddl');
 
 const schemasDir = join(__dirname, '../..', 'fixtures/ddl-unit');
-const test = metatests.test('pg.ddl.categorizeEntries unit test');
 
-metaschema.fs.loadAndCreate(schemasDir, { common }, (err, ms) => {
-  if (err) test.bailout(err);
+metatests.test('pg.ddl.categorizeEntries unit test', async test => {
+  let errors;
+  let schema;
+
+  try {
+    [errors, schema] = await metaschema.fs.load(schemasDir, options, config);
+  } catch (err) {
+    test.fail(err);
+    test.end();
+    return;
+  }
+
+  if (errors.length !== 0) test.bailout(errors);
 
   const {
-    decorators: {
-      Index: createIndex,
-      Unique: createUnique,
-      Include: createInclude,
-    },
-  } = metaschema;
+    Index: createIndex,
+    Unique: createUnique,
+    Include: createInclude,
+  } = options.localDecorators.category;
 
   const func = () => {};
   func.domain = 'SomeDomain';
@@ -87,9 +95,9 @@ metaschema.fs.loadAndCreate(schemasDir, { common }, (err, ms) => {
 
   test.strictSame(
     ddl.categorizeEntries(
-      ms.categories.get('LocalCategory2').definition,
+      schema.categories.get('LocalCategory2').definition,
       'LocalCategory2',
-      ms.categories
+      schema.categories
     ),
     {
       indexes: [],
@@ -97,7 +105,7 @@ metaschema.fs.loadAndCreate(schemasDir, { common }, (err, ms) => {
       links: [
         {
           name: 'field',
-          property: ms.categories.get('LocalCategory2').definition.field,
+          property: schema.categories.get('LocalCategory2').definition.field,
           foreignKey: true,
           destination: 'LocalCategory1',
         },
@@ -105,7 +113,7 @@ metaschema.fs.loadAndCreate(schemasDir, { common }, (err, ms) => {
       properties: [
         {
           name: 'field',
-          property: ms.categories.get('LocalCategory2').definition.field,
+          property: schema.categories.get('LocalCategory2').definition.field,
           foreignKey: true,
           destination: 'LocalCategory1',
         },
@@ -115,9 +123,9 @@ metaschema.fs.loadAndCreate(schemasDir, { common }, (err, ms) => {
 
   test.strictSame(
     ddl.categorizeEntries(
-      ms.categories.get('GlobalCategory2').definition,
+      schema.categories.get('GlobalCategory2').definition,
       'GlobalCategory2',
-      ms.categories
+      schema.categories
     ),
     {
       indexes: [],
@@ -126,7 +134,7 @@ metaschema.fs.loadAndCreate(schemasDir, { common }, (err, ms) => {
       properties: [
         {
           name: 'field',
-          property: ms.categories.get('GlobalCategory2').definition.field,
+          property: schema.categories.get('GlobalCategory2').definition.field,
           foreignKey: false,
           destination: 'Identifier',
         },
@@ -136,9 +144,9 @@ metaschema.fs.loadAndCreate(schemasDir, { common }, (err, ms) => {
 
   test.strictSame(
     ddl.categorizeEntries(
-      ms.categories.get('CategoryWithMany').definition,
+      schema.categories.get('CategoryWithMany').definition,
       'CategoryWithMany',
-      ms.categories
+      schema.categories
     ),
     {
       indexes: [],
@@ -146,7 +154,7 @@ metaschema.fs.loadAndCreate(schemasDir, { common }, (err, ms) => {
       links: [
         {
           name: 'field',
-          property: ms.categories.get('CategoryWithMany').definition.field,
+          property: schema.categories.get('CategoryWithMany').definition.field,
           foreignKey: true,
           destination: 'LocalCategory1',
         },
@@ -157,9 +165,9 @@ metaschema.fs.loadAndCreate(schemasDir, { common }, (err, ms) => {
 
   test.strictSame(
     ddl.categorizeEntries(
-      ms.categories.get('CategoryWithMaster').definition,
+      schema.categories.get('CategoryWithMaster').definition,
       'CategoryWithMaster',
-      ms.categories
+      schema.categories
     ),
     {
       indexes: [],
@@ -203,14 +211,14 @@ metaschema.fs.loadAndCreate(schemasDir, { common }, (err, ms) => {
 
   const CustomRelationDecorator = function(name) {
     this.category = name;
-    this.definition = ms.categories.get(name).definition;
+    this.definition = schema.categories.get(name).definition;
   };
 
   const instance = {
     field: new CustomRelationDecorator('LocalCategory1'),
   };
 
-  test.strictSame(ddl.categorizeEntries(instance, 'Table', ms.categories), {
+  test.strictSame(ddl.categorizeEntries(instance, 'Table', schema.categories), {
     indexes: [],
     unique: [],
     links: [
@@ -251,9 +259,9 @@ metaschema.fs.loadAndCreate(schemasDir, { common }, (err, ms) => {
 
   test.strictSame(
     ddl.categorizeEntries(
-      ms.categories.get('GlobalCategoryWithMany').definition,
+      schema.categories.get('GlobalCategoryWithMany').definition,
       'GlobalCategoryWithMany',
-      ms.categories
+      schema.categories
     ),
     {
       indexes: [],
@@ -284,7 +292,7 @@ metaschema.fs.loadAndCreate(schemasDir, { common }, (err, ms) => {
         field: {},
       },
       'Schema',
-      ms.categories
+      schema.categories
     ),
     { indexes: [], unique: [], links: [], properties: [] }
   );

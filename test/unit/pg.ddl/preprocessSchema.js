@@ -1,29 +1,39 @@
 'use strict';
 
 const { join } = require('path');
-const common = require('@metarhia/common');
 const metatests = require('metatests');
 const metaschema = require('metaschema');
+const { options, config } = require('../../../lib/metaschema-config/config');
 const ddl = require('../../../lib/pg.ddl');
 
 const schemasDir = join(__dirname, '../..', 'fixtures/ddl-unit');
-const test = metatests.test('pg.ddl.preprocessSchema unit test');
 
-metaschema.fs.loadAndCreate(schemasDir, { common }, (err, ms) => {
-  if (err) test.bailout(err);
+metatests.test('pg.ddl.preprocessSchema unit test', async test => {
+  let errors;
+  let schema;
 
-  const nomen = ms.domains.get('Nomen');
-  const dateTime = ms.domains.get('DateTime');
+  try {
+    [errors, schema] = await metaschema.fs.load(schemasDir, options, config);
+  } catch (err) {
+    test.fail(err);
+    test.end();
+    return;
+  }
+
+  if (errors.length !== 0) test.bailout(errors);
+
+  const nomen = schema.domains.get('Nomen');
+  const dateTime = schema.domains.get('DateTime');
   const processed = ddl.preprocessSchema(
     new Map([
-      ['History', ms.categories.get('History')],
-      ['Identifier', ms.categories.get('Identifier')],
+      ['History', schema.categories.get('History')],
+      ['Identifier', schema.categories.get('Identifier')],
     ]),
-    ms.domains
+    schema.domains
   );
   const actualProcessed = Array.from(processed);
   const expectedProcessed = [
-    ['History', ms.categories.get('History')],
+    ['History', schema.categories.get('History')],
     [
       'HistoryHistory',
       {
@@ -59,12 +69,12 @@ metaschema.fs.loadAndCreate(schemasDir, { common }, (err, ms) => {
             category: 'Identifier',
             required: true,
             index: true,
-            definition: ms.categories.get('Identifier').definition,
+            definition: schema.categories.get('Identifier').definition,
           },
         },
       },
     ],
-    ['Identifier', ms.categories.get('Identifier')],
+    ['Identifier', schema.categories.get('Identifier')],
   ];
 
   test.strictSame(actualProcessed, expectedProcessed);

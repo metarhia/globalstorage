@@ -2,15 +2,25 @@
 
 module.exports = ({ Registry: registry }) => ({
   name: 'generateDDL with Global',
-  schemas: {
-    GlobalEntity1: registry({
-      field: { domain: 'Nomen' },
-    }),
-    GlobalEntity2: registry({
-      field: { domain: 'Nomen' },
-      globalEntity: { category: 'GlobalEntity1' },
-    }),
-  },
+  schemas: [
+    {
+      type: 'category',
+      name: 'GlobalEntity1',
+      module: 'test',
+      definition: registry({
+        field: { domain: 'Nomen' },
+      }),
+    },
+    {
+      type: 'category',
+      name: 'GlobalEntity2',
+      module: 'test',
+      definition: registry({
+        field: { domain: 'Nomen' },
+        globalEntity: { category: 'GlobalEntity1' },
+      }),
+    },
+  ],
   expectedSql: `
 -- Category: GlobalEntity1 -----------------------------------------------------
 

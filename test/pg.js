@@ -8,6 +8,7 @@ const metasync = require('metasync');
 const metatests = require('metatests');
 const { Pool } = require('pg');
 const { Uint64 } = require('@metarhia/common');
+const { options, config } = require('../lib/metaschema-config/config');
 
 const getPathFromCurrentDir = path.join.bind(path, __dirname);
 
@@ -44,20 +45,22 @@ function prepareDB(callback) {
         });
       },
       (ctx, cb) => {
-        metaschema.fs.loadAndCreate(
-          [
-            getPathFromCurrentDir('..', 'schemas', 'system'),
-            getPathFromCurrentDir('fixtures', 'pg-test-schemas'),
-          ],
-          null,
-          (err, schema) => {
-            if (err) {
-              cb(err);
+        metaschema.fs
+          .load(
+            [
+              getPathFromCurrentDir('..', 'schemas', 'system'),
+              getPathFromCurrentDir('fixtures', 'pg-test-schemas'),
+            ],
+            options,
+            config
+          )
+          .then(([errors, schema]) => {
+            if (errors.length !== 0) {
+              cb(errors);
               return;
             }
             provider.open(Object.assign({ schema }, pgOptions), cb);
-          }
-        );
+          }, cb);
       },
       (ctx, cb) => {
         pool.query(generateDDL(provider.schema), err => {

@@ -1,14 +1,11 @@
 'use strict';
 
 const metatests = require('metatests');
-const metaschema = require('metaschema');
+const { options } = require('../../../lib/metaschema-config/config');
 const ddl = require('../../../lib/pg.ddl');
 
 const test = metatests.test('pg.ddl.generateIndexes unit test');
-
-const {
-  decorators: { Index: createIndex },
-} = metaschema;
+const { Index: createIndex } = options.localDecorators.category;
 
 test.strictSame(
   ddl.generateIndexes(

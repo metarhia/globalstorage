@@ -2,15 +2,25 @@
 
 module.exports = ({ Include: include }) => ({
   name: 'generateDDL with Include',
-  schemas: {
-    Schema1: {
-      field: { domain: 'Nomen' },
-      schema2: include('Schema2'),
+  schemas: [
+    {
+      type: 'category',
+      name: 'Schema1',
+      module: 'test',
+      definition: {
+        field: { domain: 'Nomen' },
+        schema2: include('Schema2'),
+      },
     },
-    Schema2: {
-      field: { domain: 'Nomen' },
+    {
+      type: 'category',
+      name: 'Schema2',
+      module: 'test',
+      definition: {
+        field: { domain: 'Nomen' },
+      },
     },
-  },
+  ],
   expectedSql: `
 -- Category: Schema1 -----------------------------------------------------------
 
