@@ -158,6 +158,24 @@ Select a record or multiple records in the category using provided jsql.
 
 - `data` [`<Object[]>`][object], fetched data
 
+---
+
+##### `getSchemaSources()`
+
+Get all of the `metaschema` sources.
+
+###### Call arguments
+
+None.
+
+###### Callback arguments
+
+- `sources` [`<Object[]>`][object]
+  - `type` [`<string>`][]
+  - `module` [`<string>`][]
+  - `name` [`<string>`][]
+  - `source` [`<string>`][]
+
 [errors]: https://github.com/metarhia/globalstorage/blob/master/lib/errors.js
 [object]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object
 [`<string>`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type

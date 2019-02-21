@@ -17,4 +17,7 @@ const providers = {
   remote: api.RemoteProvider,
 };
 
-module.exports = (provider, options) => new providers[provider](options);
+const gs = (provider, options) => new providers[provider](options);
+gs.schemaConfig = require('./lib/metaschema-config/config.js');
+
+module.exports = gs;
