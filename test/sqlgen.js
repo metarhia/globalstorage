@@ -1,7 +1,7 @@
 'use strict';
 
 const { testSync } = require('metatests');
-const { SelectBuilder } = require('../lib/sqlgen');
+const { RawSqlBuilder, SelectBuilder } = require('../lib/sqlgen');
 
 testSync(
   'Select tests',
@@ -369,6 +369,41 @@ testSync(
           'WHERE "table1"."f" = $1'
       );
       test.strictSame(params, ['abc']);
+    });
+
+    test.testSync('Select where exists', (test, { builder }) => {
+      const nested = new SelectBuilder().from('table2').where('f1', '=', 42);
+      builder
+        .from('table1')
+        .whereExists(nested)
+        .where('f1', '=', 13);
+      const [query, params] = builder.build();
+      test.strictSame(
+        query,
+        'SELECT * FROM "table1" WHERE' +
+          ' EXISTS (SELECT * FROM "table2" WHERE "f1" = $1)' +
+          ' AND "f1" = $2'
+      );
+      test.strictSame(params, [42, 13]);
+    });
+
+    test.testSync('Select where exists raw', (test, { builder }) => {
+      const nested = new RawSqlBuilder(
+        i => `SELECT A FROM "table2" WHERE f1 = $${i++}`,
+        [42]
+      );
+      builder
+        .from('table1')
+        .whereExists(nested)
+        .where('f1', '=', 13);
+      const [query, params] = builder.build();
+      test.strictSame(
+        query,
+        'SELECT * FROM "table1" WHERE' +
+          ' EXISTS (SELECT A FROM "table2" WHERE f1 = $1)' +
+          ' AND "f1" = $2'
+      );
+      test.strictSame(params, [42, 13]);
     });
   },
   { parallelSubtests: true }
