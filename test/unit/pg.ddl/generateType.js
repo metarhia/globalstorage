@@ -9,18 +9,15 @@ const ddl = require('../../../lib/pg.ddl');
 const schemasDir = join(__dirname, '../..', 'fixtures/ddl-unit');
 
 metatests.test('pg.ddl.generateType unit test', async test => {
-  let errors;
   let schema;
 
   try {
-    [errors, schema] = await metaschema.fs.load(schemasDir, options, config);
+    schema = await metaschema.fs.load(schemasDir, options, config);
   } catch (err) {
     test.fail(err);
     test.end();
     return;
   }
-
-  if (errors.length !== 0) test.bailout(errors);
 
   test.strictSame(ddl.generateType('Integer', schema.domains.get('Integer')), {
     type: 'integer',
@@ -83,22 +80,15 @@ CREATE TYPE "EnumType" AS ENUM (
 });
 
 metatests.test('pg.ddl.generateType unit test(system domains)', async test => {
-  let errors;
   let schema;
 
   try {
-    [errors, schema] = await metaschema.fs.load(
-      'schemas/system',
-      options,
-      config
-    );
+    schema = await metaschema.fs.load('schemas/system', options, config);
   } catch (err) {
     test.fail(err);
     test.end();
     return;
   }
-
-  if (errors.length !== 0) test.bailout(errors);
 
   test.strictSame(ddl.generateType('Id', schema.domains.get('Id')), {
     type: 'bigint',

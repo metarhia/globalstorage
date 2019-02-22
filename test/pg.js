@@ -54,11 +54,7 @@ function prepareDB(callback) {
             options,
             config
           )
-          .then(([errors, schema]) => {
-            if (errors.length !== 0) {
-              cb(errors);
-              return;
-            }
+          .then(schema => {
             provider.open(Object.assign({ schema }, pgOptions), cb);
           }, cb);
       },
