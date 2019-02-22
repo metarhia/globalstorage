@@ -24,8 +24,8 @@ metatests.test('Fully supports schemas/system', async test => {
   }
 
   test.strictSame(
-    errors.length,
-    0,
+    errors,
+    [],
     'System schemas must be compliant with metaschema config'
   );
   test.doesNotThrow(
@@ -56,8 +56,8 @@ metatests.test('Unsupported domain class', async test => {
   }
 
   test.strictSame(
-    errors.length,
-    0,
+    errors,
+    [],
     'System schemas must be compliant with metaschema config'
   );
 
@@ -86,8 +86,8 @@ metatests.test('Too many flags', async test => {
   }
 
   test.strictSame(
-    errors.length,
-    0,
+    errors,
+    [],
     'System schemas must be compliant with metaschema config'
   );
 
@@ -115,8 +115,8 @@ metatests.test('Incorrect domain definition', async test => {
   }
 
   test.strictSame(
-    errors.length,
-    0,
+    errors,
+    [],
     'System schemas must be compliant with metaschema config'
   );
 
@@ -151,8 +151,8 @@ metatests.test('Not supported decorator', async test => {
   }
 
   test.strictSame(
-    errors.length,
-    0,
+    errors,
+    [],
     'System schemas must be compliant with metaschema config'
   );
 
