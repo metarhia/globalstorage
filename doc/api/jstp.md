@@ -160,6 +160,23 @@ Select a record or multiple records in the category using provided jsql.
 
 ---
 
+##### `execute(category, action, args)`
+
+Execute an action.
+
+###### Call arguments
+
+- `category` [`<string>`][] | [`<null>`][], if null is provided, execute a
+  public action
+- `action` [`<string>`][], action name
+- `args` [`<Object>`][object]
+
+###### Callback arguments
+
+- `result` `<any>`
+
+---
+
 ##### `getSchemaSources()`
 
 Get all of the `metaschema` sources.
@@ -181,3 +198,4 @@ None.
 [`<string>`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type
 [string]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type
 [`<number>`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type
+[`<null>`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Null_type
