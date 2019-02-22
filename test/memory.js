@@ -137,22 +137,15 @@ metatests.test('cursor schema', async test => {
     { Id: 3, Name: 'Russian', Locale: 'ru' },
   ];
 
-  let errors;
   let schema;
 
   try {
-    [errors, schema] = await metaschema.fs.load(
-      'schemas/system',
-      options,
-      config
-    );
+    schema = await metaschema.fs.load('schemas/system', options, config);
   } catch (err) {
     test.fail(err);
     test.end();
     return;
   }
-
-  if (errors.length !== 0) test.bailout(errors);
 
   const schemaName = 'Language';
   const category = schema.categories.get(schemaName).definition;

@@ -7,15 +7,10 @@ const { generateDDL } = require('../lib/pg.ddl');
 const { options, config } = require('../lib/metaschema-config/config');
 
 metatests.test('Fully supports schemas/system', async test => {
-  let errors;
   let schema;
 
   try {
-    [errors, schema] = await metaschema.fs.load(
-      'schemas/system',
-      options,
-      config
-    );
+    schema = await metaschema.fs.load('schemas/system', options, config);
   } catch (error) {
     console.error(error);
     test.fail(error);
@@ -23,11 +18,6 @@ metatests.test('Fully supports schemas/system', async test => {
     return;
   }
 
-  test.strictSame(
-    errors.length,
-    0,
-    'System schemas must be compliant with metaschema config'
-  );
   test.doesNotThrow(
     () => generateDDL(schema),
     'DDL generator must fully support current system schema'
@@ -39,11 +29,10 @@ metatests.test('Unsupported domain class', async test => {
   const expectedErrorMessage =
     "Unsupported domain class '__UNSUPPORTED_CLASS__' in domain 'Test'";
 
-  let errors;
   let schema;
 
   try {
-    [errors, schema] = await metaschema.fs.load(
+    schema = await metaschema.fs.load(
       'test/fixtures/unsupported-domain-class',
       options,
       config
@@ -55,12 +44,6 @@ metatests.test('Unsupported domain class', async test => {
     return;
   }
 
-  test.strictSame(
-    errors.length,
-    0,
-    'System schemas must be compliant with metaschema config'
-  );
-
   test.throws(() => generateDDL(schema), new Error(expectedErrorMessage));
   test.end();
 });
@@ -69,11 +52,10 @@ metatests.test('Too many flags', async test => {
   const expectedErrorMessage =
     'Too many flags in ErrorFlags, must not be bigger than 64';
 
-  let errors;
   let schema;
 
   try {
-    [errors, schema] = await metaschema.fs.load(
+    schema = await metaschema.fs.load(
       'test/fixtures/too-many-flags',
       options,
       config
@@ -85,12 +67,6 @@ metatests.test('Too many flags', async test => {
     return;
   }
 
-  test.strictSame(
-    errors.length,
-    0,
-    'System schemas must be compliant with metaschema config'
-  );
-
   test.throws(() => generateDDL(schema), new Error(expectedErrorMessage));
   test.end();
 });
@@ -98,11 +74,10 @@ metatests.test('Too many flags', async test => {
 metatests.test('Incorrect domain definition', async test => {
   const expectedErrorMessage = 'Unsupported domain: IncorrectDomainDefinition';
 
-  let errors;
   let schema;
 
   try {
-    [errors, schema] = await metaschema.fs.load(
+    schema = await metaschema.fs.load(
       'test/fixtures/incorrect-domain-definition/',
       options,
       config
@@ -113,12 +88,6 @@ metatests.test('Incorrect domain definition', async test => {
     test.end();
     return;
   }
-
-  test.strictSame(
-    errors.length,
-    0,
-    'System schemas must be compliant with metaschema config'
-  );
 
   test.throws(() => generateDDL(schema), new Error(expectedErrorMessage));
   test.end();
@@ -134,11 +103,10 @@ class InvalidLink {
 metatests.test('Not supported decorator', async test => {
   const expectedErrorMessage = 'InvalidLink decorator is not supported';
 
-  let errors;
   let schema;
 
   try {
-    [errors, schema] = await metaschema.fs.load(
+    schema = await metaschema.fs.load(
       'test/fixtures/not-supported-decorator',
       options,
       config
@@ -149,12 +117,6 @@ metatests.test('Not supported decorator', async test => {
     test.end();
     return;
   }
-
-  test.strictSame(
-    errors.length,
-    0,
-    'System schemas must be compliant with metaschema config'
-  );
 
   schema.categories.get('Test').definition.InvalidLink = new InvalidLink({
     category: 'Config',

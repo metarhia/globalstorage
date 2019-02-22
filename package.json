@@ -48,7 +48,7 @@
     "@metarhia/common": "^1.2.1",
     "@metarhia/jstp": "^2.1.0",
     "mdsf": "^1.0.2",
-    "metaschema": "^0.2.0",
+    "metaschema": "^0.3.0",
     "metasync": "^0.3.31",
     "pg": "^7.7.1"
   },

@@ -6,14 +6,13 @@ const { Uint64 } = require('@metarhia/common');
 
 const { options, config } = require('../lib/metaschema-config/config');
 
-const { ValidationError } = metaschema.errors;
+const { ValidationError, MetaschemaError } = metaschema.errors;
 
 metatests.test('Fully supports schemas/system', async test => {
-  let errors;
   let schema;
 
   try {
-    [errors, schema] = await metaschema.fs.load(
+    schema = await metaschema.fs.load(
       'test/fixtures/validate',
       options,
       config
@@ -26,12 +25,6 @@ metatests.test('Fully supports schemas/system', async test => {
   }
 
   test.strictSame(
-    errors.length,
-    0,
-    'System schemas must be compliant with metaschema config'
-  );
-
-  test.strictSame(
     schema.validate('category', 'Person', {
       Id: '12',
       FullName: {
@@ -41,7 +34,7 @@ metatests.test('Fully supports schemas/system', async test => {
       Citizenship: '123',
       Parents: [new Uint64(42), new Uint64(24)],
     }),
-    []
+    null
   );
 
   test.strictSame(
@@ -51,7 +44,7 @@ metatests.test('Fully supports schemas/system', async test => {
       Parents: 12,
       __Unresolved__: 'property',
     }),
-    [
+    new MetaschemaError([
       new ValidationError('invalidType', 'FullName', {
         expected: 'object',
         actual: 'string',
@@ -65,7 +58,7 @@ metatests.test('Fully supports schemas/system', async test => {
         actual: 'number',
       }),
       new ValidationError('unresolvedProperty', '__Unresolved__'),
-    ]
+    ])
   );
   test.end();
 });

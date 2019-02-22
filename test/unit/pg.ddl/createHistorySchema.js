@@ -6,22 +6,15 @@ const { options, config } = require('../../../lib/metaschema-config/config');
 const ddl = require('../../../lib/pg.ddl');
 
 metatests.test('pg.ddl.createHistorySchema unit test', async test => {
-  let errors;
   let schema;
 
   try {
-    [errors, schema] = await metaschema.fs.load(
-      'schemas/system',
-      options,
-      config
-    );
+    schema = await metaschema.fs.load('schemas/system', options, config);
   } catch (err) {
     test.fail(err);
     test.end();
     return;
   }
-
-  if (errors.length !== 0) test.bailout(errors);
 
   const dateTime = schema.domains.get('DateTime');
   test.strictSame(

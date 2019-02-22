@@ -118,11 +118,10 @@ CREATE TYPE "Day" AS ENUM (
   .map(config => config(decorators))
   .forEach(config =>
     metatests.test(config.name, test => {
-      const [msErr, ms] = Metaschema.create(
+      const ms = Metaschema.create(
         [...defaultDomains, ...config.schemas],
         msConfig
       );
-      test.strictSame(msErr.length, 0);
 
       const actualDDL = generateDDL(ms);
       const expectedDDL = defaultDomainsSql + config.expectedSql;
