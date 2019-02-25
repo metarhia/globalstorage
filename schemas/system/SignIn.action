@@ -1,0 +1,54 @@
+Action({
+  Args: {
+    Login: { domain: 'Login', required: true },
+    Password: { domain: 'Password', required: true },
+  },
+  Execute: (session, { Login, Password }, callback) => {
+    api.provider.select('SystemUser', { Login }).fetch((err, rows) => {
+      if (err) {
+        api.console.error('error on provider.select user:', err);
+        callback(api.jstp.ERR_INTERNAL_API_ERROR);
+        return;
+      }
+      if (rows.length === 0) {
+        callback('Invalid username or password');
+        return;
+      }
+
+      const user = rows[0];
+
+      api.argon2.verify(user.Password, Password).then(
+        ok => {
+          if (!ok) {
+            callback('Invalid username or password');
+            return;
+          }
+          api.provider.create(
+            'Session',
+            {
+              Token: api.common.generateKey(64, api.common.ALPHA_DIGIT),
+              SystemUser: user.Id,
+              Start: new Date(),
+              LastActivity: new Date(),
+            },
+            (err, id) => {
+              if (err) {
+                api.console.error('error on provider.create session:', err);
+                callback(api.jstp.ERR_INTERNAL_API_ERROR);
+              } else {
+                session.set('userId', user.Id);
+                callback(null, id);
+              }
+            }
+          );
+        },
+        err => {
+          api.console.error('error on argon2.verify:', err);
+          callback(api.jstp.ERR_INTERNAL_API_ERROR);
+        }
+      );
+    });
+  },
+  Public: true,
+  Form: 'SystemUser.SignIn',
+})
