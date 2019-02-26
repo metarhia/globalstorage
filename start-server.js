@@ -53,11 +53,13 @@ function prepareDB(callback) {
           {
             ...options,
             context: {
-              argon2,
-              common,
-              console,
-              jstp,
-              provider,
+              api: {
+                argon2,
+                common,
+                console,
+                jstp,
+                provider,
+              },
             },
           },
           config
