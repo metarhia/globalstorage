@@ -1,0 +1,5 @@
+{
+  Master: Master('Master'),
+  Name: { domains: 'Nomen' },
+  Subdivision: Subdivision(),
+}
