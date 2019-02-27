@@ -1,5 +1,6 @@
 System({
   Token: { domain: 'SessionToken', required: true, unique: true },
+  Application: { category: 'Application' },
   SystemUser: { category: 'SystemUser', required: true, index: true },
   Start: { domain: 'DateTime', required: true },
   LastActivity: { domain: 'DateTime', required: true },
