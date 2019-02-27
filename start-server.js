@@ -168,6 +168,51 @@ function prepareDB(callback) {
     },
 
     (ctx, cb) => {
+      provider.create(
+        'Permission',
+        {
+          Role: ctx.roleId,
+          Category: ctx.categoryIds.Role,
+          Access: new Uint64('0b11111'),
+        },
+        (err, permissionId) => {
+          ctx.permissionId = permissionId;
+          cb(err);
+        }
+      );
+    },
+
+    (ctx, cb) => {
+      provider.create(
+        'Permission',
+        {
+          Role: ctx.roleId,
+          Category: ctx.categoryIds.Permission,
+          Access: new Uint64('0b11111'),
+        },
+        (err, permissionId) => {
+          ctx.permissionId = permissionId;
+          cb(err);
+        }
+      );
+    },
+
+    (ctx, cb) => {
+      provider.create(
+        'Permission',
+        {
+          Role: ctx.roleId,
+          Category: ctx.categoryIds.Permission,
+          Access: new Uint64('0b11111'),
+        },
+        (err, permissionId) => {
+          ctx.permissionId = permissionId;
+          cb(err);
+        }
+      );
+    },
+
+    (ctx, cb) => {
       provider
         .select('Action', {
           Name: 'SignIn',
