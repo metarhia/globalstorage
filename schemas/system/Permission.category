@@ -1,7 +1,6 @@
 System({
   Role: { category: 'Role', required: true, index: true },
   Category: { category: 'Category', required: true },
-  Target: { category: 'Identifier' },
   Catalog: { category: 'Catalog' },
   Subdivision: { category: 'Subdivision' },
   Access: { domain: 'AccessFlags', required: true },
