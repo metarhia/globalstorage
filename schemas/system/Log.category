@@ -1,7 +1,7 @@
 Log({
-  SystemUser: { category: 'SystemUser', required: true },
+  SystemUser: { category: 'SystemUser' },
   Identifier: { category: 'Identifier' },
-  Category: { category: 'Nomen' },
+  Category: { domain: 'Nomen' },
   DateTime: { domain: 'DateTime', required: true },
   IP: { domain: 'IP' },
   Operation: { domain: 'UserAccess' },
