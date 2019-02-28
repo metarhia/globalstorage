@@ -1,8 +1,11 @@
 Log({
   SystemUser: { category: 'SystemUser', required: true },
-  Identifier: { category: 'Identifier', required: true },
+  Identifier: { category: 'Identifier' },
+  Category: { category: 'Nomen' },
   DateTime: { domain: 'DateTime', required: true },
-  IP: { domain: 'IP', required: true },
-  Operation: { domain: 'UserAccess', required: true },
-  Query: { domain: 'JSON', required: true }
+  IP: { domain: 'IP' },
+  Operation: { domain: 'UserAccess' },
+  Query: { domain: 'JSON' },
+  Patch: { domain: 'JSON' },
+  Action: { domain: 'Nomen' },
 })
