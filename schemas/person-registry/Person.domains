@@ -1,0 +1,4 @@
+{
+  DocumentType: { type: 'string' },
+  Serial: { type: 'string' },
+}

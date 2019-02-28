@@ -47,7 +47,7 @@ function prepareDB(callback) {
       metaschema.fs
         .load(
           [
-            getPathFromCurrentDir('.', 'schemas', 'system'),
+            getPathFromCurrentDir('.', 'schemas'),
             // TODO add other schemas here
           ],
           {
@@ -176,7 +176,7 @@ function prepareDB(callback) {
           Access: new Uint64('0b11111'),
         },
         (err, permissionId) => {
-          ctx.permissionId = permissionId;
+          //ctx.permissionId = permissionId;
           cb(err);
         }
       );
@@ -191,7 +191,7 @@ function prepareDB(callback) {
           Access: new Uint64('0b11111'),
         },
         (err, permissionId) => {
-          ctx.permissionId = permissionId;
+          //ctx.permissionId = permissionId;
           cb(err);
         }
       );
@@ -202,35 +202,165 @@ function prepareDB(callback) {
         'Permission',
         {
           Role: ctx.roleId,
-          Category: ctx.categoryIds.Permission,
+          Category: ctx.categoryIds.Category,
           Access: new Uint64('0b11111'),
         },
         (err, permissionId) => {
-          ctx.permissionId = permissionId;
+          //ctx.permissionId = permissionId;
           cb(err);
         }
+      );
+    },
+
+    (ctx, cb) => {
+      provider.create(
+        'Permission',
+        {
+          Role: ctx.roleId,
+          Category: ctx.categoryIds.Person,
+          Access: new Uint64('0b11111'),
+        },
+        cb
+      );
+    },
+
+    (ctx, cb) => {
+      provider.create(
+        'Permission',
+        {
+          Role: ctx.roleId,
+          Category: ctx.categoryIds.Document,
+          Access: new Uint64('0b11111'),
+        },
+        cb
+      );
+    },
+
+    (ctx, cb) => {
+      provider.create(
+        'Permission',
+        {
+          Role: ctx.roleId,
+          Category: ctx.categoryIds.Action,
+          Access: new Uint64('0b11111'),
+        },
+        cb
+      );
+    },
+
+    (ctx, cb) => {
+      provider.create(
+        'Permission',
+        {
+          Role: ctx.roleId,
+          Category: ctx.categoryIds.Log,
+          Access: new Uint64('0b11111'),
+        },
+        cb
+      );
+    },
+
+    (ctx, cb) => {
+      provider.create(
+        'Person',
+        {
+          FirstName: 'Vasia',
+          LastName: 'Popov',
+          //Born: new Date(),
+          Documents: [],
+        },
+        (err, personId) => {
+          ctx.personId = personId;
+          cb(err);
+        }
+      );
+    },
+
+    (ctx, cb) => {
+      provider.create(
+        'Person',
+        {
+          FirstName: 'Alexandr',
+          LastName: 'Popov',
+          //Born: new Date(),
+          Documents: [],
+        },
+        (err, personId) => {
+          ctx.alexandrId = personId;
+          cb(err);
+        }
+      );
+    },
+
+    (ctx, cb) => {
+      provider.create(
+        'Document',
+        {
+          Owner: ctx.alexandrId,
+          Type: 'Passport',
+          Serial: '123412412',
+        },
+        (err, passportId) => {
+          ctx.passportId = passportId;
+          cb(err);
+        }
+      );
+    },
+
+    (ctx, cb) => {
+      provider.create(
+        'Document',
+        {
+          Owner: ctx.alexandrId,
+          Type: 'DriversLicense',
+          Serial: '1234124121234324',
+        },
+        (err, dlId) => {
+          ctx.dlId = dlId;
+          cb(err);
+        }
+      );
+    },
+
+    (ctx, cb) => {
+      provider.linkDetails(
+        'Person',
+        'FamilyMembers',
+        ctx.personId,
+        ctx.alexandrId,
+        cb
+      );
+    },
+
+    (ctx, cb) => {
+      provider.linkDetails(
+        'Person',
+        'Documents',
+        ctx.personId,
+        ctx.passportId,
+        cb
+      );
+    },
+
+    (ctx, cb) => {
+      provider.linkDetails(
+        'Person',
+        'Documents',
+        ctx.alexandrId,
+        ctx.dlId,
+        cb
       );
     },
 
     (ctx, cb) => {
       provider
         .select('Action', {
-          Name: 'SignIn',
+          Name: 'Create',
         })
         .fetch((err, res) => {
-          ctx.signInId = res && res[0] && res[0].Id;
+          ctx.createId = res && res[0] && res[0].Id;
           cb(err);
         });
-    },
-
-    (ctx, cb) => {
-      provider.linkDetails(
-        'Permission',
-        'Actions',
-        ctx.permissionId,
-        ctx.signInId,
-        cb
-      );
     },
 
     (ctx, cb) => {
