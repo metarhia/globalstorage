@@ -1,0 +1,8 @@
+Registry({
+  FirstName: { domain: 'Nomen', required: true },
+  LastName: { domain: 'Nomen', required: true },
+  // Born: { domain: 'DateTime', required: true },
+
+  FamilyMembers: Many('Person'),
+  Documents: Many('Document'),
+})

@@ -1,0 +1,5 @@
+Registry({
+  Owner: Master('Person'),
+  Serial: { domain: 'Serial', required: true },
+  Type: { domain: 'DocumentType', required: true },
+})
