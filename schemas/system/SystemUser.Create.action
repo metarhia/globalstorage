@@ -1,0 +1,30 @@
+Action({
+  Args: {
+    Login: { domain: 'Login', required: true },
+    Password: { domain: 'Password', required: true },
+  },
+  Execute: (session, { Login, Password }, callback) => {
+    api.argon2
+      .hash(Password, {
+        type: api.argon2.argon2id,
+      })
+      .then(
+        hash => {
+          api.provider.create(
+            'SystemUser',
+            { Login, Password: hash },
+            (err, id) => {
+              if (err) {
+                callback(err);
+                return;
+              }
+              callback(null, id);
+            }
+          );
+        },
+        err => {
+          callback(api.jstp.ERR_INTERNAL_API_ERROR);
+        }
+      );
+  },
+});
