@@ -27,7 +27,7 @@
   Enum: { type: 'object', class: 'Enum' },
   HashMap: { type: 'object', class: 'HashMap' },
   HashSet: { type: 'object', class: 'HashSet' },
-  JSON: { type: 'string', control: 'Multiline' },
+  JSON: { type: 'string', class: 'JSON', control: 'Multiline' },
   HTML: { type: 'string', control: 'Multiline' },
   Source: { type: 'string' },
   CountryAlpha2: { type: 'string', length: 2, comment: 'ISO 3166-1 alpha-2' },

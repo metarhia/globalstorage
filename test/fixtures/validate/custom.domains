@@ -1,3 +1,5 @@
 {
   Nomen: { type: 'string' },
+  JSON: { class: 'JSON' },
+  Date: { class: 'Date' },
 }

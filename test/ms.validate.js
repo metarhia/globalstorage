@@ -60,5 +60,36 @@ metatests.test('Fully supports schemas/system', async test => {
       new ValidationError('unresolvedProperty', '__Unresolved__'),
     ])
   );
+
+  try {
+    test.strictSame(schema.validate('domains', 'JSON', {}), null);
+    test.strictSame(schema.validate('domains', 'JSON', { a: 2 }), null);
+    test.strictSame(schema.validate('domains', 'JSON', '3'), null);
+
+    const a = { b: 42 };
+    a.a = a;
+
+    test.strictSame(
+      schema.validate('domains', 'JSON', a, { path: 'a' }),
+      new MetaschemaError([
+        new ValidationError('invalidInstance', 'a', { type: 'JSON' }),
+      ])
+    );
+
+    test.strictSame(schema.validate('domains', 'Date', 0), null);
+    test.strictSame(schema.validate('domains', 'Date', new Date()), null);
+    test.strictSame(schema.validate('domains', 'Date', '1970-01-01'), null);
+
+    test.strictSame(
+      schema.validate('domains', 'Date', '__INVALID_DATE__', { path: 'date' }),
+      new MetaschemaError([
+        new ValidationError('invalidInstance', 'date', { type: 'Date' }),
+      ])
+    );
+  } catch (error) {
+    console.error(error);
+    test.fail(error);
+  }
+
   test.end();
 });
