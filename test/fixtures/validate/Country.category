@@ -1,3 +1,5 @@
 {
   Name: { domain: 'Nomen' },
+  CreationDate: { domain: 'Date' },
+  AdditionalInfo: { domain: 'JSON' },
 }
