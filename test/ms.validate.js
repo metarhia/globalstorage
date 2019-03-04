@@ -60,5 +60,21 @@ metatests.test('Fully supports schemas/system', async test => {
       new ValidationError('unresolvedProperty', '__Unresolved__'),
     ])
   );
+
+  let error, value;
+  [error, value] = schema.createAndValidate('category', 'Country', {
+    CreationDate: new Date().toISOString(),
+    AdditionalInfo: '{ "population": "4 million" }',
+  });
+  test.error(error);
+  test.assert(value);
+
+  [error, value] = schema.createAndValidate('category', 'Country', {
+    CreationDate: new Date(),
+    AdditionalInfo: { population: '4 million' },
+  });
+  test.error(error);
+  test.assert(value);
+
   test.end();
 });

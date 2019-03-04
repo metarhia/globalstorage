@@ -1,5 +1,10 @@
 {
-  Id: { type: 'bigint', parse: x => new common.Uint64(x) },
+  Id: {
+    type: 'bigint',
+    parse: x => new api.common.Uint64(x),
+    check: id =>
+      typeof id === 'string' && new api.common.Uint64(id).toString() === id,
+  },
   Lambda: { type: 'function' },
   Logical: { type: 'boolean', control: 'CheckBox' },
   PostalCode: { type: 'string', length: 10 },
@@ -27,7 +32,19 @@
   Enum: { type: 'object', class: 'Enum' },
   HashMap: { type: 'object', class: 'HashMap' },
   HashSet: { type: 'object', class: 'HashSet' },
-  JSON: { type: 'string', control: 'Multiline' },
+  JSON: {
+    type: 'string',
+    control: 'Multiline',
+    parse: x => (typeof x === 'string' ? x : JSON.stringify(x)),
+    check: x => {
+      try {
+        JSON.parse(x);
+      } catch (e) {
+        return false;
+      }
+      return true;
+    },
+  },
   HTML: { type: 'string', control: 'Multiline' },
   Source: { type: 'string' },
   CountryAlpha2: { type: 'string', length: 2, comment: 'ISO 3166-1 alpha-2' },
@@ -47,9 +64,27 @@
   Hours: { type: 'number', unit: 'Hour', base: 'Second', mul: 3600 },
   Days: { type: 'number', unit: 'Days', base: 'Second', mul: 86400 },
   Duration: { type: 'string' },
-  Time: { type: 'object', class: 'Date', format: 'hh:mm:ss' },
-  DateDay: { type: 'object', class: 'Date', format: 'yyyy-mm-dd' },
-  DateTime: { type: 'object', class: 'Date', format: 'yyyy-mm-dd hh:mm:ss' },
+  Time: {
+    type: 'object',
+    class: 'Date',
+    format: 'hh:mm:ss',
+    parse: x => new Date(x),
+    check: x => !Number.isNaN(+x),
+  },
+  DateDay: {
+    type: 'object',
+    class: 'Date',
+    format: 'yyyy-mm-dd',
+    parse: x => new Date(x),
+    check: x => !Number.isNaN(+x),
+  },
+  DateTime: {
+    type: 'object',
+    class: 'Date',
+    format: 'yyyy-mm-dd hh:mm:ss',
+    parse: x => new Date(x),
+    check: x => !Number.isNaN(+x),
+  },
   Count: { type: 'number' },
   Version: { type: 'number' },
   CountsPerSecond: { type: 'number', unit: 'Count per second', symbol: 'cps' },

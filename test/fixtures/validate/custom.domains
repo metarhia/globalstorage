@@ -1,3 +1,21 @@
 {
   Nomen: { type: 'string' },
+  Date: {
+    type: 'object',
+    class: 'Date',
+    parse: x => new Date(x),
+    check: x => !Number.isNaN(+x),
+  },
+  JSON: {
+    type: 'string',
+    parse: x => (typeof x === 'string' ? x : JSON.stringify(x)),
+    check: x => {
+      try {
+        JSON.parse(x);
+      } catch (e) {
+        return false;
+      }
+      return true;
+    },
+  },
 }
