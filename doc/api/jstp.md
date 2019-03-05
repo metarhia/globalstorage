@@ -193,6 +193,84 @@ None.
   - `name` [`<string>`][]
   - `source` [`<string>`][]
 
+### Interface `l10n`
+
+#### Methods
+
+##### `getCategory(langTag, category)`
+
+Get localization data for a category.
+
+###### Call arguments
+
+- `langTag` [`<string>`][], IETF BCP 47 language tag
+- `category` [`<string>`][], category name
+
+###### Callback arguments
+
+- `localization` [`<string>`][], JSON-serialized localization data
+
+---
+
+##### `getDomains(langTag)`
+
+Get localization data for domains.
+
+###### Call arguments
+
+- `langTag` [`<string>`][], IETF BCP 47 language tag
+
+###### Callback arguments
+
+- `localization` [`<string>`][], JSON-serialized localization data
+
+---
+
+##### `getCommon(langTag)`
+
+Get localization data for common names.
+
+###### Call arguments
+
+- `langTag` [`<string>`][], IETF BCP 47 language tag
+
+###### Callback arguments
+
+- `localization` [`<string>`][], JSON-serialized localization data
+
+---
+
+##### `getForm(langTag, category, form)`
+
+Get localization data for a form.
+
+###### Call arguments
+
+- `langTag` [`<string>`][], IETF BCP 47 language tag
+- `category` [`<string>`][], category name
+- `form` [`<string>`][], form name
+
+###### Callback arguments
+
+- `localization` [`<string>`][], JSON-serialized localization data
+
+---
+
+##### `getAction(langTag, category, action)`
+
+Get localization data for an action.
+
+###### Call arguments
+
+- `langTag` [`<string>`][], IETF BCP 47 language tag
+- `category` [`<string>`][] | [`<null>`][], action's category name, must be
+  null if action is public
+- `action` [`<string>`][], action name
+
+###### Callback arguments
+
+- `localization` [`<string>`][], JSON-serialized localization data
+
 [errors]: https://github.com/metarhia/globalstorage/blob/master/lib/errors.js
 [object]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object
 [`<string>`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type
