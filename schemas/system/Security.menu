@@ -1,0 +1,36 @@
+([
+  Group('Users and Permissions', [
+    'SystemUser',
+    'Role',
+    'Permission',
+    'Session',
+  ]),
+  Group('Database', [
+    'Schema',
+    'Identifier',
+    'Category',
+    'Action',
+    '-',
+    'Cursor',
+    'File',
+    'Locking',
+    '-',
+    'Catalog',
+    'Subdivision',
+  ]),
+  '-',
+  Group('Server Infrastructure', [
+    'System',
+    'Server',
+    'ServerNode',
+    'Replication',
+  ]),
+  Group('Configuration', [
+    'Config',
+    'Language',
+    'Localization',
+  ]),
+  Group('Logging', [
+    'Log',
+  ]),
+])
