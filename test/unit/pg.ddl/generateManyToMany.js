@@ -59,6 +59,14 @@ metatests.test('pg.ddl.generateManyToMany unit test', async test => {
       '  "field"           bigint NOT NULL\n' +
       ');\n' +
       'ALTER TABLE "GlobalCategory3field" ADD CONSTRAINT ' +
+      '"fkGlobalCategory3fieldGlobalCategory3" FOREIGN KEY ' +
+      '("GlobalCategory3") REFERENCES "GlobalCategory3" ("Id") ' +
+      'ON UPDATE RESTRICT ON DELETE CASCADE;\n' +
+      'ALTER TABLE "GlobalCategory3field" ADD CONSTRAINT ' +
+      '"fkGlobalCategory3fieldfield" FOREIGN KEY ("field") ' +
+      'REFERENCES "GlobalCategory1" ("Id") ON UPDATE RESTRICT ' +
+      'ON DELETE CASCADE;\n' +
+      'ALTER TABLE "GlobalCategory3field" ADD CONSTRAINT ' +
       '"pkfieldGlobalCategory3GlobalCategory1" ' +
       'PRIMARY KEY ("GlobalCategory3", "field");'
   );

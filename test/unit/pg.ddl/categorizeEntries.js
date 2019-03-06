@@ -127,12 +127,19 @@ metatests.test('pg.ddl.categorizeEntries unit test', async test => {
     {
       indexes: [],
       unique: [],
-      links: [],
+      links: [
+        {
+          name: 'field',
+          property: schema.categories.get('GlobalCategory2').definition.field,
+          foreignKey: true,
+          destination: 'Identifier',
+        },
+      ],
       properties: [
         {
           name: 'field',
           property: schema.categories.get('GlobalCategory2').definition.field,
-          foreignKey: false,
+          foreignKey: true,
           destination: 'Identifier',
         },
       ],
@@ -275,7 +282,7 @@ metatests.test('pg.ddl.categorizeEntries unit test', async test => {
               },
             },
           },
-          foreignKey: false,
+          foreignKey: true,
           destination: 'Identifier',
         },
       ],
