@@ -1,0 +1,11 @@
+Action({
+ Args: {
+   Role: { category: 'Role', required: true },
+   Category: { domain: 'Nomen', required: true },
+   Catalog: { category: 'Catalog' },
+   Subdivision: { category: 'Subdivision' },
+   Access: { domain: 'AccessFlags', required: true },
+   Actions: Many('Action'),
+ },
+ Execute: async () => {},
+})
