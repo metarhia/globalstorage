@@ -207,6 +207,24 @@ None.
 
 - `categories` [`<string[]>`][string]
 
+---
+
+##### `listActions()`
+
+Get all of the available actions.
+
+###### Call arguments
+
+None.
+
+###### Callback arguments
+
+- `actions` [`<Object>`][object]
+  - `public` [`<string[]>`][string], list of public actions
+  - `private` [`<Object>`][object], private actions available by category name
+    - `[categoryName]` [`<string[]>`][string], list of actions available in the
+      specified category
+
 ### Interface `l10n`
 
 #### Methods
