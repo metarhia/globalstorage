@@ -193,6 +193,20 @@ None.
   - `name` [`<string>`][]
   - `source` [`<string>`][]
 
+---
+
+##### `listCategories()`
+
+Get all of the available categories.
+
+###### Call arguments
+
+None.
+
+###### Callback arguments
+
+- `categories` [`<string[]>`][string]
+
 ### Interface `l10n`
 
 #### Methods
