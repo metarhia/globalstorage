@@ -1,8 +1,14 @@
 Log({
-  SystemUser: { category: 'SystemUser', required: true },
-  Identifier: { category: 'Identifier', required: true },
   DateTime: { domain: 'DateTime', required: true },
-  IP: { domain: 'IP', required: true },
-  Operation: { domain: 'UserAccess', required: true },
-  Query: { domain: 'JSON', required: true }
+  SystemUser: { category: 'SystemUser' },
+  Identifier: { category: 'Identifier' },
+  Category: { domain: 'Nomen' },
+  Action: { domain: 'Nomen' },
+  // TODO: add category: Process
+  ProcessToken: { domain: 'UUID', required: true },
+  IP: { domain: 'IP' },
+  Operation: { domain: 'UserAccess' },
+  Query: { domain: 'JSON' },
+  Patch: { domain: 'JSON' },
+  Response: { domain: 'JSON' },
 })
