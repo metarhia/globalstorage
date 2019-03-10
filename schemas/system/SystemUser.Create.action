@@ -3,14 +3,14 @@ Action({
     Login: { domain: 'Login', required: true },
     Password: { domain: 'Password', required: true },
   },
-  Execute: (session, { Login, Password }, callback) => {
+  Execute: (gs, session, { Login, Password }, callback) => {
     api.argon2
       .hash(Password, {
         type: api.argon2.argon2id,
       })
       .then(
         hash => {
-          api.provider.create(
+          gs.create(
             'SystemUser',
             { Login, Password: hash },
             (err, id) => {

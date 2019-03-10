@@ -3,8 +3,8 @@ Action({
     Login: { domain: 'Login', required: true },
     Password: { domain: 'Password', required: true },
   },
-  Execute: (session, { Login, Password }, callback) => {
-    api.provider.select('SystemUser', { Login }).fetch((err, rows) => {
+  Execute: (gs, session, { Login, Password }, callback) => {
+    gs.select('SystemUser', { Login }).fetch((err, rows) => {
       if (err) {
         api.console.error('error on provider.select user:', err);
         callback(api.jstp.ERR_INTERNAL_API_ERROR);
@@ -23,7 +23,7 @@ Action({
             callback('Invalid username or password');
             return;
           }
-          api.provider.create(
+          gs.create(
             'Session',
             {
               Token: api.common.generateKey(64, api.common.ALPHA_DIGIT),

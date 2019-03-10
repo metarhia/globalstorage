@@ -2,6 +2,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const net = require('net');
 
 const common = require('@metarhia/common');
 const { Uint64 } = common;
@@ -58,7 +59,7 @@ function prepareDB(callback) {
                 common,
                 console,
                 jstp,
-                provider,
+                net,
               },
             },
           },
@@ -343,13 +344,7 @@ function prepareDB(callback) {
     },
 
     (ctx, cb) => {
-      provider.linkDetails(
-        'Person',
-        'Documents',
-        ctx.alexandrId,
-        ctx.dlId,
-        cb
-      );
+      provider.linkDetails('Person', 'Documents', ctx.alexandrId, ctx.dlId, cb);
     },
 
     (ctx, cb) => {
@@ -408,11 +403,7 @@ prepareDB(err => {
     process.exit(1);
   }
 
-  const api = createRemoteProviderJstpApi(
-    provider,
-    (provider, category, jsql) =>
-      new PostgresCursor(provider, { category, jsql })
-  );
+  const api = provider.createJstpApi();
   const app = new jstp.Application('console', api);
 
   const server = jstp.ws.createServer({
