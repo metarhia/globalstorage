@@ -1,0 +1,7 @@
+Action({
+  Args: {
+    a: { domain: 'Number', required: true },
+    b: { domain: 'Number', required: true },
+  },
+  Execute: (provider, session, { a, b }, cb) => cb(null, a + b),
+})
