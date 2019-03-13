@@ -9,7 +9,7 @@
   Logical: { type: 'boolean', control: 'CheckBox' },
   PostalCode: { type: 'string', length: 10 },
   Money: { type: 'object', class: 'Money' },
-  Nomen: { type: 'string', length: 60 },
+  Nomen: { type: 'string', length: 128 },
   Literal: { type: 'string' },
   Host: { type: 'string', length: 255 },
   URL: { type: 'string', length: 2000 },
