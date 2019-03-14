@@ -1,4 +1,4 @@
 System({
   Name: { domain: 'Nomen', lookup: true, required: true, unique: true },
-  Blocked: { domain: 'Logical', default: false }
+  Blocked: { domain: 'Logical', required: true, default: false }
 })
