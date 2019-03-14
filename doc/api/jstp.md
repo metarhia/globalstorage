@@ -33,12 +33,13 @@ Get a record by id.
 
 ---
 
-##### `getDetails(id, fieldName)`
+##### `getDetails(category, id, fieldName)`
 
-Get record's many-to-many details by id.
+Get record's many-to-many details by id in the specified category.
 
 ###### Call arguments
 
+- `category` [`<string>`][]
 - `id` [`<string>`][], id of the record
 - `fieldName` [`<string>`][], field with the Many decorator
 

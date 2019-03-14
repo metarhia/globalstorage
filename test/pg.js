@@ -385,7 +385,7 @@ prepareDB(err => {
       test.test('gs.linkDetails with one item', test => {
         provider.linkDetails('Writer', 'Works', writer.Id, workId, err => {
           test.error(err);
-          provider.getDetails(writer.Id, 'Works', (err, works) => {
+          provider.getDetails('Writer', writer.Id, 'Works', (err, works) => {
             test.error(err);
             test.strictSame(works.length, 1);
             test.strictSame(works[0], writer.Works[0]);
@@ -397,7 +397,7 @@ prepareDB(err => {
       test.test('gs.unlinkDetails with one item', test => {
         provider.unlinkDetails('Writer', 'Works', writer.Id, workId, err => {
           test.error(err);
-          provider.getDetails(writer.Id, 'Works', (err, works) => {
+          provider.getDetails('Writer', writer.Id, 'Works', (err, works) => {
             test.error(err);
             test.strictSame(works.length, 0);
             test.end();
@@ -410,7 +410,7 @@ prepareDB(err => {
       test.test('gs.linkDetails with multiple items', test => {
         provider.linkDetails('Writer', 'Works', writer.Id, worksIds, err => {
           test.error(err);
-          provider.getDetails(writer.Id, 'Works', (err, works) => {
+          provider.getDetails('Writer', writer.Id, 'Works', (err, works) => {
             test.error(err);
             const sortFn = (a, b) => {
               if (a.Id > b.Id) {
@@ -430,7 +430,7 @@ prepareDB(err => {
       test.test('gs.unlinkDetails with multiple items', test => {
         provider.unlinkDetails('Writer', 'Works', writer.Id, worksIds, err => {
           test.error(err);
-          provider.getDetails(writer.Id, 'Works', (err, works) => {
+          provider.getDetails('Writer', writer.Id, 'Works', (err, works) => {
             test.error(err);
             test.strictSame(works.length, 0);
             test.end();
