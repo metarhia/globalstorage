@@ -5,6 +5,7 @@ Log({
   Category: { domain: 'Nomen' },
   Action: { domain: 'Nomen' },
   // TODO: add category: Process
+  ConnectionId: { domain: 'UUID' },
   ProcessToken: { domain: 'UUID', required: true },
   IP: { domain: 'IP' },
   Operation: { domain: 'UserAccess' },
