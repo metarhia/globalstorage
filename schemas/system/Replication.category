@@ -1,6 +1,6 @@
 System({
-  Source: { category: 'System', required: true },
-  Destination: { category: 'System', required: true },
+  Source: { category: 'Subsystem', required: true },
+  Destination: { category: 'Subsystem', required: true },
   Category: { category: 'Category', required: true },
 
   NaturalKey: Unique('Source', 'Destination', 'Category')

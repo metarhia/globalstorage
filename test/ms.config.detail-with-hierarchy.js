@@ -19,7 +19,7 @@ metatests.test('Fully supports schemas/system', async test => {
       error,
       new MetaschemaError([
         new SchemaValidationError('detailHierarchy', 'Detail', {
-          type: 'Subdivision',
+          type: 'Subsystem',
           master: 'Master',
         }),
         new SchemaValidationError('detailHierarchy', 'Included', {
