@@ -21,7 +21,7 @@ System({
       return true; // Auth.passwordStrength(password);
     },
   },
-  Subdivision: { category: 'Subdivision' },
+  Subsystem: { category: 'Subsystem' },
   Roles: Many('Role'),
   Blocked: { domain: 'Logical', default: false },
 

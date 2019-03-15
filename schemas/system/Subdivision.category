@@ -1,4 +1,0 @@
-System({
-  Name: { domain: 'Nomen', lookup: true, required: true, unique: true },
-  Parent: { category: 'Subdivision' }
-})
