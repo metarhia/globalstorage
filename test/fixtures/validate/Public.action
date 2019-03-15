@@ -1,0 +1,7 @@
+Action({
+  Args: {
+    Nomen: { domain: 'Nomen' },
+  },
+  Public: true,
+  Execute: async () => {},
+})

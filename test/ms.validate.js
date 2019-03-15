@@ -61,6 +61,18 @@ metatests.test('Fully supports schemas/system', async test => {
     ])
   );
 
+  test.strictSame(schema.validate('action', 'Public', { Nomen: '12' }), null);
+
+  test.strictSame(
+    schema.validate('action', 'Public', { Nomen: 12 }),
+    new MetaschemaError([
+      new ValidationError('invalidType', 'Nomen', {
+        expected: 'string',
+        actual: 'number',
+      }),
+    ])
+  );
+
   let error, value;
   [error, value] = schema.createAndValidate('category', 'Country', {
     CreationDate: new Date().toISOString(),
