@@ -226,6 +226,20 @@ None.
     - `[categoryName]` [`<string[]>`][string], list of actions available in the
       specified category
 
+---
+
+##### `listApplications()`
+
+Get all of the available applications.
+
+###### Call arguments
+
+None.
+
+###### Callback arguments
+
+- `applications` [`<string[]>`][string]
+
 ### Interface `l10n`
 
 #### Methods
