@@ -17,7 +17,7 @@ const { codes: errorCodes, GSError } = require('../lib/errors');
 const { generateDDL } = require('../lib/pg.ddl');
 const { pgOptions } = require('./utils');
 const {
-  symbols: { recreateIdTrigger, uploadCategoriesAndActions },
+  symbols: { recreateIdTrigger, uploadMetadata },
 } = require('../lib/pg.utils');
 
 const pool = new Pool(pgOptions);
@@ -67,7 +67,7 @@ function prepareDB(callback) {
         provider[recreateIdTrigger](1000, 30, cb);
       },
       cb => {
-        provider[uploadCategoriesAndActions](cb);
+        provider[uploadMetadata](cb);
       },
     ],
     callback
