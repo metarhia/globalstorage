@@ -210,6 +210,21 @@ None.
 
 ---
 
+##### `listCategoriesPermissions()`
+
+Get all of the available categories permission flags.
+
+###### Call arguments
+
+None.
+
+###### Callback arguments
+
+- `categories` [`<Object>`][object]
+  - `[categoryName]` [`<string>`][string] permission flags
+
+---
+
 ##### `listActions()`
 
 Get all of the available actions.
