@@ -1,6 +1,7 @@
 {
   Id: {
-    type: 'bigint',
+    type: 'object',
+    class: 'Uint64',
     parse: x => new api.common.Uint64(x),
     check: id =>
       typeof id === 'string' && new api.common.Uint64(id).toString() === id,
