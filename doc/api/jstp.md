@@ -8,12 +8,14 @@ Errors taken from [`lib/errors.js`][errors]:
 
 | Code | Name                       |
 | ---- | -------------------------- |
+| 999  | INTERNAL_PROVIDER_ERROR    |
 | 1000 | NOT_IMPLEMENTED            |
 | 1001 | NOT_FOUND                  |
 | 1002 | INVALID_SCHEMA             |
 | 1003 | INVALID_CATEGORY_TYPE      |
 | 1004 | INVALID_DELETION_OPERATION |
 | 1005 | INVALID_CREATION_OPERATION |
+| 1006 | INSUFFICIENT_PERMISSIONS   |
 
 ### Interface `provider`
 
