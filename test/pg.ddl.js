@@ -113,6 +113,7 @@ CREATE TYPE "Day" AS ENUM (
   'history',
   'localToGlobal',
   'globalCategories',
+  'catalog',
 ]
   .map(cfgName => require(path.join(__dirname, '/fixtures/ddl/', cfgName)))
   .map(config => config(decorators))
