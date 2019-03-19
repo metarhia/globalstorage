@@ -71,39 +71,12 @@ function prepareDB(callback) {
     },
   ];
   const setup = [
-    (ctx, cb) => {
-      fs.readFile(
-        getPathFromCurrentDir('.', 'sql', 'id.sql'),
-        'utf8',
-        (err, initSql) => {
-          ctx.initSql = initSql;
-          cb(err);
-        }
-      );
-    },
-
-    (ctx, cb) => {
-      pool.query(ctx.initSql, err => {
-        cb(err);
-      });
-    },
-
     cb => {
       if (!isSetup) {
         cb();
-        return;
+      } else {
+        provider.setup(null, cb);
       }
-      pool.query(generateDDL(provider.schema), err => {
-        cb(err);
-      });
-    },
-
-    cb => {
-      provider[recreateIdTrigger](1000, 30, cb);
-    },
-
-    cb => {
-      provider[uploadCategoriesAndActions](cb);
     },
 
     (ctx, cb) => {
@@ -360,34 +333,24 @@ function prepareDB(callback) {
 
     (ctx, cb) => {
       ctx.appIds = {};
-      metasync.each(
-        ['Administration', 'Users'],
-        (Name, cb) => {
-          provider.create('Application', { Name }, (err, id) => {
-            ctx.appIds[Name] = id;
-            cb(err);
-          });
-        },
-        cb
-      );
+      provider.select('Application', {}).fetch((err, values) => {
+        if (err) {
+          cb(err);
+          return;
+        }
+        values.forEach(({ Id, Name }) => {
+          ctx.appIds[Name] = Id;
+        });
+        cb();
+      });
     },
 
     (ctx, cb) => {
       provider.linkDetails(
-        'Application',
-        'Categories',
-        ctx.appIds.Administration,
-        Object.values(ctx.categoryIds),
-        cb
-      );
-    },
-
-    (ctx, cb) => {
-      provider.linkDetails(
-        'Application',
-        'Categories',
-        ctx.appIds.Users,
-        ctx.categoryIds.SystemUser,
+        'Role',
+        'Applications',
+        ctx.roleId,
+        Object.values(ctx.appIds),
         cb
       );
     },
