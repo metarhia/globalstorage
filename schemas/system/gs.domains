@@ -2,9 +2,14 @@
   Id: {
     type: 'object',
     class: 'Uint64',
-    parse: x => new api.common.Uint64(x),
-    check: id =>
-      typeof id === 'string' && new api.common.Uint64(id).toString() === id,
+    parse: x => {
+      if (typeof x === 'string' && Number.isNaN(Number(x))) {
+        throw new TypeError(
+          'Cannot construct Uint64 from invalid number string'
+        );
+      }
+      return new api.common.Uint64(x);
+    }
   },
   Lambda: { type: 'function' },
   Logical: { type: 'boolean', control: 'CheckBox' },
