@@ -2,7 +2,7 @@ System({
   Role: { category: 'Role', required: true, index: true },
   Category: { category: 'Category', required: true },
   Catalog: { category: 'Catalog' },
-  Subsystem: { category: 'Subsystem' },
+  Subsystem: Subsystem(),
   Access: { domain: 'AccessFlags', required: true },
   Actions: Many('Action'),
 
