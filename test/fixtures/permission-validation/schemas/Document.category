@@ -1,0 +1,4 @@
+Registry({
+  Name: { domain: 'Nomen', required: true },
+  Catalog: Catalog()
+})
