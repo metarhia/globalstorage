@@ -1,0 +1,11 @@
+Action({
+  Args: {
+    a: { domain: 'SimpleDomain', required: true },
+    b: Validate(value => value === 'abc'),
+  },
+  Execute: async (provider, session, { a, b }) => a + b,
+  Public: true,
+  Returns: {
+    a: { domain: 'SimpleDomain', required: true },
+  }
+})

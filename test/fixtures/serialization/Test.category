@@ -1,0 +1,31 @@
+System({
+  SimpleField: { domain: 'SimpleDomain' },
+  EnumField: { domain: 'EnumDomain' },
+  CategoryField: { category: 'Catalog' },
+
+  RegistryField: Registry({ a: 1, b: 2 }),
+  DictionaryField : Dictionary({ a: 1, b: 2 }),
+  SystemField : System({ a: 1, b: 2 }),
+  LogField : Log({ a: 1, b: 2 }),
+  LocalField : Local({ a: 1, b: 2 }),
+  TableField : Table({ a: 1, b: 2 }, { c: 3 }),
+  HistoryField : History({ a: 1, b: 2 }),
+  ViewField : View({ a: 1, b: 2 }),
+  MemoryField : Memory({ a: 1, b: 2 }),
+  ManyField : Many({ a: 1, b: 2 }),
+  MasterField : Master({ a: 1, b: 2 }),
+  IncludeField : Include({ a: 1, b: 2 }),
+  HierarchyField : Hierarchy({ a: 1, b: 2 }),
+  CatalogField : Catalog(),
+  SubsystemField : Subsystem(),
+
+  IndexField: Index('a', 'b', 'c'),
+  UniqueField: Unique('a', 'b', 'c'),
+
+  Date: {
+    type: 'object',
+    class: 'Date',
+    parse: x => new Date(x),
+    check: x => !Number.isNaN(+x),
+  },
+})

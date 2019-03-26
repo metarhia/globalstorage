@@ -1,0 +1,5 @@
+{
+  SimpleDomain: { type: 'object' },
+  EnumDomain: Enum('a', 'b', 'c'),
+  FlagsDomain: Flags({ enumDomain: 'EnumDomain' }),
+}

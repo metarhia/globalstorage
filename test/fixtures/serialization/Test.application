@@ -1,0 +1,4 @@
+Application({
+  Categories: ['Test', 'Catalog', 'Subsystem'],
+  Menu: [Group('Catalog', ['Test', Group('Subsystem', ['AppTest1', 'AppTest2'])])],
+})
