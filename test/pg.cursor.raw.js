@@ -126,6 +126,34 @@ test('PostgresCursor test', test => {
       });
     });
 
+    test.test('Select few projection', (test, { cursor }) => {
+      const expected = rowData
+        .filter(row => row.text === 'aaa')
+        .map(row => ({ id: row.id, text: row.text }));
+      cursor
+        .select({ text: 'aaa' })
+        .projection(['id', 'text'])
+        .fetch((err, rows) => {
+          test.error(err);
+          test.strictSame(rows, expected);
+          test.end();
+        });
+    });
+
+    test.test('Select few projection complex', (test, { cursor }) => {
+      const expected = rowData
+        .filter(row => row.text === 'aaa')
+        .map(row => ({ t: row.text + '42' }));
+      cursor
+        .select({ text: 'aaa' })
+        .projection({ t: ['text', t => t + '42'] })
+        .fetch((err, rows) => {
+          test.error(err);
+          test.strictSame(rows, expected);
+          test.end();
+        });
+    });
+
     test.on('done', () => {
       pool.query(`DROP TABLE "${tableName}"`, () => {
         pool.end();
