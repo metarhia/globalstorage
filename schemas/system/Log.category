@@ -1,5 +1,6 @@
 Log({
   DateTime: { domain: 'DateTime', required: true },
+  Status: { domain: 'LogStatus', required: true },
   SystemUser: { category: 'SystemUser' },
   Identifier: { category: 'Identifier' },
   Category: { domain: 'Nomen' },

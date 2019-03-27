@@ -11,6 +11,7 @@
   AccessFlags: Flags.of('UserAccess'),
   Compression: Enum('None', 'GZIP', 'ZIP'),
   SessionToken: { type: 'string', length: 64 },
+  LogStatus: Enum('info', 'warning', 'critical'),
   MediaType: Enum(
     'text/plain',
     'text/csv',
