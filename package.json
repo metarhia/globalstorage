@@ -63,7 +63,7 @@
     "eslint-config-prettier": "^3.6.0",
     "eslint-plugin-import": "^2.16.0",
     "eslint-plugin-prettier": "^3.0.1",
-    "metatests": "^0.5.0",
+    "metatests": "^0.6.3",
     "prettier": "1.16.x"
   }
 }
