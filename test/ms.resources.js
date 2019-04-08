@@ -68,7 +68,7 @@ metatests.test('StorageProvider supports localization methods', async test => {
 
   const provider = new StorageProvider({});
   provider.open({ schema }, () => {
-    test.plan(23);
+    test.plan(24);
     provider.getCommonL10n('en', (err, l10n) => {
       test.error(err);
       test.strictSame(l10n, '{"Id":"Identifier"}');
@@ -139,6 +139,15 @@ metatests.test('StorageProvider supports localization methods', async test => {
         new GSError(
           errorCodes.NOT_FOUND,
           `No category NON_EXISTENT_CATEGORY found`
+        )
+      );
+    });
+    provider.getActionL10n('uk', 'Category', 'AnotherAction', err => {
+      test.isError(
+        err,
+        new GSError(
+          errorCodes.NOT_FOUND,
+          `No uk localization data for Category.AnotherAction action`
         )
       );
     });
