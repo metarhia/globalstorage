@@ -35,79 +35,67 @@ metatests.test('datasets tests', test => {
   test.end('datasets tests done');
 });
 
-metatests.test('limit test', test => {
+metatests.test('limit test', async test => {
   const ds = [{ Id: 2 }, { Id: 3 }];
-  new MemoryCursor(ds).limit(1).fetch((err, data) => {
-    test.error(err);
-    test.strictSame(data, ds.slice(0, 1));
-    test.end();
-  });
+  const data = await new MemoryCursor(ds).limit(1).fetch();
+  test.strictSame(data, ds.slice(0, 1));
+  test.end();
 });
 
-metatests.test('offset test', test => {
+metatests.test('offset test', async test => {
   const ds = [{ Id: 2 }, { Id: 3 }];
-  new MemoryCursor(ds).offset(1).fetch((err, data) => {
-    test.error(err);
-    test.strictSame(data, ds.slice(1));
-    test.end();
-  });
+  const data = await new MemoryCursor(ds).offset(1).fetch();
+  test.strictSame(data, ds.slice(1));
+  test.end();
 });
 
-metatests.test('limit offset test', test => {
+metatests.test('limit offset test', async test => {
   const ds = [{ Id: 2 }, { Id: 3 }, { Id: 4 }, { Id: 5 }];
-  new MemoryCursor(ds)
+  const data = await new MemoryCursor(ds)
     .offset(2)
     .limit(1)
-    .fetch((err, data) => {
-      test.error(err);
-      test.strictSame(data, ds.slice(2, 3));
-      test.end();
-    });
+    .fetch();
+  test.strictSame(data, ds.slice(2, 3));
+  test.end();
 });
 
-metatests.test('count all test', test => {
+metatests.test('count all test', async test => {
   const ds = [{ Id: 2, a: 1 }, { Id: 3, a: 2 }, { Id: 4 }];
-  new MemoryCursor(ds).count().fetch((err, data) => {
-    test.error(err);
-    test.strictSame(data, [ds.length]);
-    test.end();
-  });
+  const data = await new MemoryCursor(ds).count().fetch();
+  test.strictSame(data, [ds.length]);
+  test.end();
 });
 
-metatests.test('count field test', test => {
+metatests.test('count field test', async test => {
   const ds = [{ Id: 2, a: 1 }, { Id: 3, a: 2 }, { Id: 4 }];
-  new MemoryCursor(ds).count('a').fetch((err, data) => {
-    test.error(err);
-    test.strictSame(data, [ds.filter(d => d.hasOwnProperty('a')).length]);
-    test.end();
-  });
+  const data = await new MemoryCursor(ds).count('a').fetch();
+  test.strictSame(data, [ds.filter(d => d.hasOwnProperty('a')).length]);
+  test.end();
 });
 
-metatests.test('sort order', test => {
+metatests.test('sort order', async test => {
   const mc = new MemoryCursor(ds1);
-  mc.clone()
+  const expected = [{ Id: 1, Name: 'qwerty' }, { Id: 2 }];
+  const data = await mc
+    .clone()
     .order('Id')
-    .fetch((err, data) => {
-      test.error(err, 'test order 1');
-      const expected = [{ Id: 1, Name: 'qwerty' }, { Id: 2 }];
-      test.strictSame(data, expected, 'Wrong data');
-      test.end('test order 1 done');
-    });
+    .fetch();
+  test.strictSame(data, expected, 'Wrong data');
+  test.end('test order 1 done');
 });
 
-metatests.test('sort order desc', test => {
+metatests.test('sort order desc', async test => {
   const mc = new MemoryCursor(ds1);
-  mc.clone()
+  const expected = [{ Id: 2 }, { Id: 1, Name: 'qwerty' }];
+  const data = await mc
+    .clone()
     .desc(['Id', 'Name'])
-    .fetch((err, data) => {
-      test.error(err);
-      const expected = [{ Id: 2 }, { Id: 1, Name: 'qwerty' }];
-      test.strictSame(data, expected, 'Wrong data');
-      test.end('test order 2 done');
-    });
+    .fetch();
+  test.strictSame(data, expected, 'Wrong data');
+  test.end('test order 2 done');
 });
 
-metatests.test('cursor select', test => {
+metatests.test('cursor select', async test => {
   const persons = [
     { Id: 1, Name: 'Marcus Aurelius', City: 'Rome', Born: 121 },
     { Id: 2, Name: 'Victor Glushkov', City: 'Rostov on Don', Born: 1923 },
@@ -116,18 +104,16 @@ metatests.test('cursor select', test => {
     { Id: 5, Name: 'Rene Descartes', City: 'La Haye en Touraine', Born: 1596 },
   ];
   const mcPersons = new MemoryCursor(persons);
-  mcPersons
+  const expected = [
+    { Id: 3, Name: 'Ibn Arabi', City: 'Murcia', Born: 1165 },
+    { Id: 1, Name: 'Marcus Aurelius', City: 'Rome', Born: 121 },
+  ];
+  const data = await mcPersons
     .select({ Born: '< 1500' })
     .order('Born')
-    .fetch((err, data) => {
-      test.error(err);
-      const expected = [
-        { Id: 3, Name: 'Ibn Arabi', City: 'Murcia', Born: 1165 },
-        { Id: 1, Name: 'Marcus Aurelius', City: 'Rome', Born: 121 },
-      ];
-      test.strictSame(data, expected, 'Wrong data');
-      test.end('select test done');
-    });
+    .fetch();
+  test.strictSame(data, expected);
+  test.end();
 });
 
 metatests.test('cursor schema', async test => {
@@ -153,18 +139,17 @@ metatests.test('cursor schema', async test => {
     category,
     schemaName
   );
-  mcLanguages
+
+  const data = await mcLanguages
     .select({ Locale: '> en' })
     .order('Name')
-    .fetch((err, data, cursor) => {
-      test.error(err);
-      test.strictSame(data.length, 2);
-      test.strictSame(Object.keys(cursor.schema).length, 2);
-      test.end();
-    });
+    .fetch();
+  test.strictSame(data.length, 2);
+  test.strictSame(Object.keys(mcLanguages.schema).length, 2);
+  test.end();
 });
 
-metatests.test('cursor union', test => {
+metatests.test('cursor union', async test => {
   const languages1 = [{ Id: 1, Name: 'English', Locale: 'en' }];
   const languages2 = [
     { Id: 2, Name: 'Ukrainian', Locale: 'uk' },
@@ -174,18 +159,17 @@ metatests.test('cursor union', test => {
   const mcLanguages1 = new MemoryCursor(languages1);
   const mcLanguages2 = new MemoryCursor(languages2);
 
-  mcLanguages1
+  const data = await mcLanguages1
     .selectToMemory()
     .union(mcLanguages2)
     .order('Name')
-    .fetch((err, data) => {
-      test.error(err);
-      test.strictSame(data.length, 3);
-      test.end();
-    });
+    .fetch();
+
+  test.strictSame(data.length, 3);
+  test.end();
 });
 
-metatests.test('cursor intersection', test => {
+metatests.test('cursor intersection', async test => {
   const languages1 = [
     { Id: 1, Name: 'English', Locale: 'en' },
     { Id: 2, Name: 'Russian', Locale: 'ru' },
@@ -198,13 +182,12 @@ metatests.test('cursor intersection', test => {
   const mcLanguages1 = new MemoryCursor(languages1);
   const mcLanguages2 = new MemoryCursor(languages2);
 
-  mcLanguages1
+  const data = await mcLanguages1
     .selectToMemory()
     .intersection(mcLanguages2)
     .order('Name')
-    .fetch((err, data) => {
-      test.error(err);
-      test.strictSame(data.length, 1);
-      test.end();
-    });
+    .fetch();
+
+  test.strictSame(data.length, 1);
+  test.end();
 });

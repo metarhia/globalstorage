@@ -18,6 +18,23 @@ const ACTION = 'Action';
 const PUBLIC_ACTION = 'PublicAction';
 const ACTION_ARGS = { a: 2, b: 1 };
 
+const isError = async (
+  test,
+  fn,
+  expectedErr = new GSError(),
+  expectedErrCode = errorCodes.NOT_FOUND
+) => {
+  try {
+    await fn();
+    test.fail('must have thrown an error');
+  } catch (err) {
+    test.isError(err, expectedErr);
+    test.strictSame(err.code, expectedErrCode);
+  } finally {
+    test.end();
+  }
+};
+
 metatests.test('provider.execute test', test => {
   test.beforeEach(async (test, callback) => {
     let schema;
@@ -32,50 +49,49 @@ metatests.test('provider.execute test', test => {
 
     const provider = new StorageProvider({});
 
-    provider.open({ schema }, test.cbFail(() => callback({ provider })));
+    await provider.open({ schema });
+    callback({ provider });
   });
 
   test.endAfterSubtests();
 
-  test.test('Permission denied', (test, { provider }) => {
+  test.test('Permission denied', async (test, { provider }) => {
     const expectedError = new Error('Permission denied');
-    const permissionChecker = (category, action, callback) =>
-      callback(expectedError);
+    const permissionChecker = () => {
+      throw expectedError;
+    };
 
-    provider.execute(
-      CATEGORY,
-      ACTION,
-      [null, ACTION_ARGS],
-      err => {
-        test.isError(err, expectedError);
-        test.end();
-      },
-      permissionChecker
-    );
+    try {
+      await provider.execute(
+        CATEGORY,
+        ACTION,
+        [null, ACTION_ARGS],
+        permissionChecker
+      );
+      test.fail('must have thrown an error');
+    } catch (err) {
+      test.isError(err, expectedError);
+    } finally {
+      test.end();
+    }
   });
 
   test.test('No such category', (test, { provider }) =>
-    provider.execute('InvalidCategory', ACTION, [null, ACTION_ARGS], err => {
-      test.isError(err, new GSError());
-      test.strictSame(err.code, errorCodes.NOT_FOUND);
-      test.end();
-    })
+    isError(test, () =>
+      provider.execute('InvalidCategory', ACTION, [null, ACTION_ARGS])
+    )
   );
 
   test.test('No such category action', (test, { provider }) =>
-    provider.execute(CATEGORY, 'InvalidAction', [null, ACTION_ARGS], err => {
-      test.isError(err, new GSError());
-      test.strictSame(err.code, errorCodes.NOT_FOUND);
-      test.end();
-    })
+    isError(test, () =>
+      provider.execute(CATEGORY, 'InvalidAction', [null, ACTION_ARGS])
+    )
   );
 
   test.test('No such public action', (test, { provider }) =>
-    provider.execute(null, 'InvalidPublicAction', [null, ACTION_ARGS], err => {
-      test.isError(err, new GSError());
-      test.strictSame(err.code, errorCodes.NOT_FOUND);
-      test.end();
-    })
+    isError(test, () =>
+      provider.execute(null, 'InvalidPublicAction', [null, ACTION_ARGS])
+    )
   );
 
   test.test('Invalid arguments: unresolved property', (test, { provider }) => {
@@ -84,52 +100,53 @@ metatests.test('provider.execute test', test => {
       'unresolvedProp'
     );
     const expectedErrorMessage = `Invalid arguments provided: ${validationError}`;
+    const expectedError = new GSError(
+      errorCodes.INVALID_SCHEMA,
+      expectedErrorMessage
+    );
 
-    provider.execute(
-      CATEGORY,
-      ACTION,
-      [null, { ...ACTION_ARGS, unresolvedProp: 3 }],
-      err => {
-        test.isError(
-          err,
-          new GSError(errorCodes.INVALID_SCHEMA, expectedErrorMessage)
-        );
-        test.strictSame(err.code, errorCodes.INVALID_SCHEMA);
-        test.end();
-      }
+    isError(
+      test,
+      () =>
+        provider.execute(CATEGORY, ACTION, [
+          null,
+          { ...ACTION_ARGS, unresolvedProp: 3 },
+        ]),
+      expectedError,
+      errorCodes.INVALID_SCHEMA
     );
   });
 
   test.test('Invalid arguments: missing property', (test, { provider }) => {
     const validationError = new ValidationError('missingProperty', 'b');
     const expectedErrorMessage = `Invalid arguments provided: ${validationError}`;
+    const expectedError = new GSError(
+      errorCodes.INVALID_SCHEMA,
+      expectedErrorMessage
+    );
 
-    provider.execute(CATEGORY, ACTION, [null, { a: 1 }], err => {
-      test.isError(
-        err,
-        new GSError(errorCodes.INVALID_SCHEMA, expectedErrorMessage)
-      );
-      test.strictSame(err.code, errorCodes.INVALID_SCHEMA);
-      test.end();
-    });
+    isError(
+      test,
+      () => provider.execute(CATEGORY, ACTION, [null, { a: 1 }]),
+      expectedError,
+      errorCodes.INVALID_SCHEMA
+    );
   });
 
   test.test('Invalid arguments: empty value', (test, { provider }) => {
     const validationError = new ValidationError('emptyValue', 'b');
     const expectedErrorMessage = `Invalid arguments provided: ${validationError}`;
+    const expectedError = new GSError(
+      errorCodes.INVALID_SCHEMA,
+      expectedErrorMessage
+    );
 
-    provider.execute(
-      CATEGORY,
-      ACTION,
-      [null, { ...ACTION_ARGS, b: null }],
-      err => {
-        test.isError(
-          err,
-          new GSError(errorCodes.INVALID_SCHEMA, expectedErrorMessage)
-        );
-        test.strictSame(err.code, errorCodes.INVALID_SCHEMA);
-        test.end();
-      }
+    isError(
+      test,
+      () =>
+        provider.execute(CATEGORY, ACTION, [null, { ...ACTION_ARGS, b: null }]),
+      expectedError,
+      errorCodes.INVALID_SCHEMA
     );
   });
 
@@ -139,35 +156,32 @@ metatests.test('provider.execute test', test => {
       actual: 'string',
     });
     const expectedErrorMessage = `Invalid arguments provided: ${validationError}`;
+    const expectedError = new GSError(
+      errorCodes.INVALID_SCHEMA,
+      expectedErrorMessage
+    );
 
-    provider.execute(
-      CATEGORY,
-      ACTION,
-      [null, { ...ACTION_ARGS, b: '2' }],
-      err => {
-        test.isError(
-          err,
-          new GSError(errorCodes.INVALID_SCHEMA, expectedErrorMessage)
-        );
-        test.strictSame(err.code, errorCodes.INVALID_SCHEMA);
-        test.end();
-      }
+    isError(
+      test,
+      () =>
+        provider.execute(CATEGORY, ACTION, [null, { ...ACTION_ARGS, b: '2' }]),
+      expectedError,
+      errorCodes.INVALID_SCHEMA
     );
   });
 
-  test.test('Successful category action', (test, { provider }) =>
-    provider.execute(CATEGORY, ACTION, [null, ACTION_ARGS], (err, res) => {
-      test.error(err);
-      test.strictSame(res, 3);
-      test.end();
-    })
-  );
+  test.test('Successful category action', async (test, { provider }) => {
+    const res = await provider.execute(CATEGORY, ACTION, [null, ACTION_ARGS]);
+    test.strictSame(res, 3);
+    test.end();
+  });
 
-  test.test('Successful public action', (test, { provider }) =>
-    provider.execute(null, PUBLIC_ACTION, [null, ACTION_ARGS], (err, res) => {
-      test.error(err);
-      test.strictSame(res, 1);
-      test.end();
-    })
-  );
+  test.test('Successful public action', async (test, { provider }) => {
+    const res = await provider.execute(null, PUBLIC_ACTION, [
+      null,
+      ACTION_ARGS,
+    ]);
+    test.strictSame(res, 1);
+    test.end();
+  });
 });

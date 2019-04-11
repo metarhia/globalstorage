@@ -2,9 +2,9 @@
 
 const fs = require('fs');
 const path = require('path');
+const util = require('util');
 
 const metaschema = require('metaschema');
-const metasync = require('metasync');
 const metatests = require('metatests');
 const { Pool } = require('pg');
 const { Uint64 } = require('@metarhia/common');
@@ -26,424 +26,332 @@ const provider = gs('pg', {
   serverBitmask: new Uint64(0x7ffffff),
 });
 
-function prepareDB(callback) {
-  metasync.sequential(
-    [
-      (ctx, cb) => {
-        fs.readFile(
-          getPathFromCurrentDir('..', 'sql', 'id.sql'),
-          'utf8',
-          (err, initSql) => {
-            ctx.initSql = initSql;
-            cb(err);
-          }
+metatests.test(
+  'PostgresProvider',
+  async test => {
+    try {
+      const initSql = await util.promisify(fs.readFile)(
+        getPathFromCurrentDir('..', 'sql', 'id.sql'),
+        'utf8'
+      );
+      await pool.query(initSql);
+
+      const schema = await metaschema.fs.load(
+        [
+          getPathFromCurrentDir('..', 'schemas', 'system'),
+          getPathFromCurrentDir('fixtures', 'pg-test-schemas'),
+        ],
+        options,
+        config
+      );
+      await provider.open({ schema, ...pgOptions });
+
+      await pool.query(generateDDL(provider.schema));
+      await provider[recreateIdTrigger](1000, 30);
+      await provider[uploadMetadata]();
+    } catch (err) {
+      if (process.env.CI) {
+        test.fail('PostgreSQL setup failed');
+      } else {
+        console.error(
+          'Cannot setup PostgreSQL, skipping PostgresProvider tests'
         );
-      },
-      (ctx, cb) => {
-        pool.query(ctx.initSql, err => {
-          cb(err);
-        });
-      },
-      (ctx, cb) => {
-        metaschema.fs
-          .load(
-            [
-              getPathFromCurrentDir('..', 'schemas', 'system'),
-              getPathFromCurrentDir('fixtures', 'pg-test-schemas'),
-            ],
-            options,
-            config
-          )
-          .then(schema => {
-            provider.open({ schema, ...pgOptions }, cb);
-          }, cb);
-      },
-      (ctx, cb) => {
-        pool.query(generateDDL(provider.schema), err => {
-          cb(err);
-        });
-      },
-      cb => {
-        provider[recreateIdTrigger](1000, 30, cb);
-      },
-      cb => {
-        provider[uploadMetadata](cb);
-      },
-    ],
-    callback
-  );
-}
-
-const test = metatests.test('PostgresProvider test', null, {
-  dependentSubtests: true,
-});
-
-prepareDB(err => {
-  if (err) {
-    if (process.env.CI) {
-      test.fail('PostgreSQL setup failed');
-    } else {
-      console.error('Cannot setup PostgreSQL, skipping PostgresProvider tests');
+      }
+      console.error(err);
+      test.end();
+      return;
     }
-    console.error(err);
-    test.end();
-    return;
-  }
 
-  test.endAfterSubtests();
-
-  const record = {
-    category: 'Person',
-    value: {
-      DOB: new Date('2000-01-01'),
-      Name: 'Jason',
-    },
-  };
-
-  test.test('create on local category', test => {
-    provider.create(
-      'LocalCategory',
-      {
-        SomeData: 'test data',
-        RequiredData: 'required test data',
-      },
-      (err, id) => {
-        test.error(err);
-        test.assert(id);
-        test.end();
-      }
-    );
-  });
-
-  test.test('invalid create on local category', test => {
-    provider.create(
-      'LocalCategory',
-      {
-        SomeData: 'test data',
-      },
-      err => {
-        test.isError(err, new GSError());
-        test.strictSame(err.code, errorCodes.INVALID_SCHEMA);
-        test.end();
-      }
-    );
-  });
-
-  test.test('create on global category', test => {
-    const { category, value } = record;
-    provider.create(category, value, (err, id) => {
-      test.error(err);
-      test.assert(id);
-      record.value.Id = id;
-      test.end();
-    });
-  });
-
-  test.test('invalid create on global category', test => {
-    provider.create(
-      'Person',
-      {
-        DOB: new Date('1999-01-01'),
-      },
-      err => {
-        test.isError(err, new GSError());
-        test.strictSame(err.code, errorCodes.INVALID_SCHEMA);
-        test.end();
-      }
-    );
-  });
-
-  test.test('create on ignored category', test => {
-    provider.create(
-      'TestMemory',
-      {
-        Service: 'gs',
-      },
-      err => {
-        test.isError(err, new GSError());
-        test.strictSame(err.code, errorCodes.INVALID_CATEGORY_TYPE);
-        test.end();
-      }
-    );
-  });
-
-  test.test('gs.set', test => {
-    record.value.Name = 'John';
-    provider.set(record.value, err => {
-      test.error(err);
-      test.end();
-    });
-  });
-
-  test.test('gs.get', test => {
-    provider.get(record.value.Id, (err, res) => {
-      test.error(err);
-      test.strictSame(res, record.value);
-      test.end();
-    });
-  });
-
-  test.test('gs.update', test => {
-    const newName = 'Peter';
-    provider.update(
-      record.category,
-      {
-        Name: record.value.Name,
-      },
-      {
-        Name: newName,
-      },
-      (err, count) => {
-        test.error(err);
-        test.strictSame(count, 1);
-        record.value.Name = newName;
-        test.end();
-      }
-    );
-  });
-
-  test.test('gs.delete', test => {
-    provider.delete(
-      record.category,
-      {
-        Name: record.value.Name,
-      },
-      (err, count) => {
-        test.error(err);
-        test.strictSame(count, 1);
-        test.end();
-      }
-    );
-  });
-
-  const includeObj = {
-    Name: 'Metarhia',
-    Address: {
-      Country: 'Ukraine',
-      City: 'Kiev',
-    },
-  };
-
-  test.test('gs.create with Include categories', test => {
-    provider.create('Company', includeObj, (err, id) => {
-      test.error(err);
-      test.assert(id);
-      includeObj.Id = id;
-      test.end();
-    });
-  });
-
-  test.test('gs.set with Include categories', test => {
-    includeObj.Name = 'iBusiness';
-    includeObj.Address = {
-      Id: includeObj.Id,
-      Country: 'USA',
-      City: 'San Francisco',
-    };
-    provider.set(includeObj, err => {
-      test.error(err);
-      test.end();
-    });
-  });
-
-  test.test('gs.get with Include categories', test => {
-    provider.get(includeObj.Id, (err, obj) => {
-      test.error(err);
-      test.strictSame(obj, includeObj);
-      test.end();
-    });
-  });
-
-  test.test('gs.delete with Include categories', test => {
-    provider.delete(
-      'Company',
-      {
-        'Address.Country': includeObj.Address.Country,
-      },
-      (err, count) => {
-        test.error(err);
-        test.strictSame(count, 1);
-        provider.get(includeObj.Id, err => {
-          test.isError(err, new GSError());
-          test.strictSame(err.code, errorCodes.NOT_FOUND);
-          test.end();
-        });
-      }
-    );
-  });
-
-  test.test('invalid gs.delete with Include categories', test => {
-    provider.delete(
-      'Address',
-      {
-        Country: includeObj.Address.Country,
-      },
-      err => {
-        test.isError(err, new GSError());
-        test.strictSame(err.code, errorCodes.INVALID_DELETION_OPERATION);
-        test.end();
-      }
-    );
-  });
-
-  test.test('invalid gs.create with Include categories', test => {
-    provider.create(
-      'Address',
-      {
-        Country: 'France',
-        City: 'Paris',
-      },
-      err => {
-        test.isError(err, new GSError());
-        test.strictSame(err.code, errorCodes.INVALID_CREATION_OPERATION);
-        test.end();
-      }
-    );
-  });
-
-  metatests.test('PostgresProvider test', test => {
     test.endAfterSubtests();
 
-    test.test('gs.select from category with Include', test => {
-      const company = {
-        Name: 'CompanyName',
-        Address: {
-          Country: 'Country',
-          City: 'City',
-        },
-      };
+    test.test(
+      'PostgresProvider test',
+      test => {
+        test.endAfterSubtests();
 
-      provider.create('Company', company, (err, id) => {
-        test.error(err);
+        const record = {
+          category: 'Person',
+          value: {
+            DOB: new Date('2000-01-01'),
+            Name: 'Jason',
+          },
+        };
+
+        test.test('create on local category', async test => {
+          const id = await provider.create('LocalCategory', {
+            SomeData: 'test data',
+            RequiredData: 'required test data',
+          });
+          test.assert(id);
+          test.end();
+        });
+
+        test.test('invalid create on local category', async test => {
+          try {
+            await provider.create('LocalCategory', {
+              SomeData: 'test data',
+            });
+            test.fail('must have thrown an error');
+          } catch (err) {
+            test.isError(err, new GSError());
+            test.strictSame(err.code, errorCodes.INVALID_SCHEMA);
+          } finally {
+            test.end();
+          }
+        });
+
+        test.test('create on global category', async test => {
+          const { category, value } = record;
+          const id = await provider.create(category, value);
+          test.assert(id);
+          record.value.Id = id;
+          test.end();
+        });
+
+        test.test('invalid create on global category', async test => {
+          try {
+            await provider.create('Person', {
+              DOB: new Date('1999-01-01'),
+            });
+            test.fail('must have thrown an error');
+          } catch (err) {
+            test.isError(err, new GSError());
+            test.strictSame(err.code, errorCodes.INVALID_SCHEMA);
+          } finally {
+            test.end();
+          }
+        });
+
+        test.test('create on ignored category', async test => {
+          try {
+            await provider.create('TestMemory', {
+              Service: 'gs',
+            });
+            test.fail('must have thrown an error');
+          } catch (err) {
+            test.isError(err, new GSError());
+            test.strictSame(err.code, errorCodes.INVALID_CATEGORY_TYPE);
+          } finally {
+            test.end();
+          }
+        });
+
+        test.test('gs.set', async test => {
+          record.value.Name = 'John';
+          await provider.set(record.value);
+          test.end();
+        });
+
+        test.test('gs.get', async test => {
+          const res = await provider.get(record.value.Id);
+          test.strictSame(res, record.value);
+          test.end();
+        });
+
+        test.test('gs.update', async test => {
+          const newName = 'Peter';
+          const count = await provider.update(
+            record.category,
+            {
+              Name: record.value.Name,
+            },
+            {
+              Name: newName,
+            }
+          );
+          test.strictSame(count, 1);
+          record.value.Name = newName;
+          test.end();
+        });
+
+        test.test('gs.delete', async test => {
+          const count = await provider.delete(record.category, {
+            Name: record.value.Name,
+          });
+          test.strictSame(count, 1);
+          test.end();
+        });
+
+        const includeObj = {
+          Name: 'Metarhia',
+          Address: {
+            Country: 'Ukraine',
+            City: 'Kiev',
+          },
+        };
+
+        test.test('gs.create with Include categories', async test => {
+          const id = await provider.create('Company', includeObj);
+          test.assert(id);
+          includeObj.Id = id;
+          test.end();
+        });
+
+        test.test('gs.set with Include categories', async test => {
+          includeObj.Name = 'iBusiness';
+          includeObj.Address = {
+            Id: includeObj.Id,
+            Country: 'USA',
+            City: 'San Francisco',
+          };
+          await provider.set(includeObj);
+          test.end();
+        });
+
+        test.test('gs.get with Include categories', async test => {
+          const obj = await provider.get(includeObj.Id);
+          test.strictSame(obj, includeObj);
+          test.end();
+        });
+
+        test.test('gs.delete with Include categories', async test => {
+          const count = await provider.delete('Company', {
+            'Address.Country': includeObj.Address.Country,
+          });
+          test.strictSame(count, 1);
+          try {
+            await provider.get(includeObj.Id);
+            test.fail('must have thrown an error');
+          } catch (err) {
+            test.isError(err, new GSError());
+            test.strictSame(err.code, errorCodes.NOT_FOUND);
+          } finally {
+            test.end();
+          }
+        });
+
+        test.test('invalid gs.delete with Include categories', async test => {
+          try {
+            await provider.delete('Address', {
+              Country: includeObj.Address.Country,
+            });
+            test.fail('must have thrown an error');
+          } catch (err) {
+            test.isError(err, new GSError());
+            test.strictSame(err.code, errorCodes.INVALID_DELETION_OPERATION);
+          } finally {
+            test.end();
+          }
+        });
+
+        test.test('invalid gs.create with Include categories', async test => {
+          try {
+            await provider.create('Address', {
+              Country: 'France',
+              City: 'Paris',
+            });
+            test.fail('must have thrown an error');
+          } catch (err) {
+            test.isError(err, new GSError());
+            test.strictSame(err.code, errorCodes.INVALID_CREATION_OPERATION);
+          } finally {
+            test.end();
+          }
+        });
+      },
+      { dependentSubtests: true }
+    );
+
+    test.test('PostgresProvider test', test => {
+      test.endAfterSubtests();
+
+      test.test('gs.select from category with Include', async test => {
+        const company = {
+          Name: 'CompanyName',
+          Address: {
+            Country: 'Country',
+            City: 'City',
+          },
+        };
+
+        const id = await provider.create('Company', company);
         test.assert(id);
         company.Id = id;
         company.Address.Id = id;
 
-        provider
+        const result = await provider
           .select('Company', { Name: company.Name })
-          .fetch((error, result) => {
-            test.error(error);
-            test.strictEqual(result.length, 1);
-            const [selectedCompany] = result;
-            test.strictSame(selectedCompany, company);
-            test.end();
-          });
+          .fetch();
+        test.strictEqual(result.length, 1);
+        const [selectedCompany] = result;
+        test.strictSame(selectedCompany, company);
+        test.end();
       });
     });
-  });
 
-  metatests.test('PostgresProvider Many-to-many test', test => {
-    const writer = {
-      FullName: 'Douglas Adams',
-      Works: [
-        {
-          Name: "The Hitchhiker's Guide to the Galaxy",
-          PublicationYear: 1979,
-        },
-        {
-          Name: 'The Restaurant at the End of the Universe',
-          PublicationYear: 1980,
-        },
-        {
-          Name: 'Life, the Universe and Everything',
-          PublicationYear: 1982,
-        },
-      ],
-    };
+    test.test('PostgresProvider Many-to-many test', async test => {
+      const writer = {
+        FullName: 'Douglas Adams',
+        Works: [
+          {
+            Name: "The Hitchhiker's Guide to the Galaxy",
+            PublicationYear: 1979,
+          },
+          {
+            Name: 'The Restaurant at the End of the Universe',
+            PublicationYear: 1980,
+          },
+          {
+            Name: 'Life, the Universe and Everything',
+            PublicationYear: 1982,
+          },
+        ],
+      };
 
-    function prepareTest(callback) {
-      provider.create(
-        'Writer',
-        {
-          FullName: writer.FullName,
-        },
-        (err, id) => {
-          writer.Id = id;
-          if (err) {
-            callback(err);
-            return;
-          }
-          metasync.each(
-            writer.Works,
-            (work, callback) => {
-              provider.create('Work', work, (err, id) => {
-                work.Id = id;
-                callback(err);
-              });
-            },
-            callback
-          );
-        }
+      writer.Id = await provider.create('Writer', {
+        FullName: writer.FullName,
+      });
+
+      await Promise.all(
+        writer.Works.map(async work => {
+          work.Id = await provider.create('Work', work);
+        })
       );
-    }
 
-    function runTests() {
       test.endAfterSubtests();
 
       const workId = writer.Works[0].Id;
 
-      test.test('gs.linkDetails with one item', test => {
-        provider.linkDetails('Writer', 'Works', writer.Id, workId, err => {
-          test.error(err);
-          provider.getDetails('Writer', writer.Id, 'Works', (err, works) => {
-            test.error(err);
-            test.strictSame(works.length, 1);
-            test.strictSame(works[0], writer.Works[0]);
-            test.end();
-          });
-        });
+      test.test('gs.linkDetails with one item', async test => {
+        await provider.linkDetails('Writer', 'Works', writer.Id, workId);
+        const works = await provider.getDetails('Writer', writer.Id, 'Works');
+        test.strictSame(works.length, 1);
+        test.strictSame(works[0], writer.Works[0]);
+        test.end();
       });
 
-      test.test('gs.unlinkDetails with one item', test => {
-        provider.unlinkDetails('Writer', 'Works', writer.Id, workId, err => {
-          test.error(err);
-          provider.getDetails('Writer', writer.Id, 'Works', (err, works) => {
-            test.error(err);
-            test.strictSame(works.length, 0);
-            test.end();
-          });
-        });
+      test.test('gs.unlinkDetails with one item', async test => {
+        await provider.unlinkDetails('Writer', 'Works', writer.Id, workId);
+        const works = await provider.getDetails('Writer', writer.Id, 'Works');
+        test.strictSame(works.length, 0);
+        test.end();
       });
 
       const worksIds = writer.Works.map(work => work.Id);
 
-      test.test('gs.linkDetails with multiple items', test => {
-        provider.linkDetails('Writer', 'Works', writer.Id, worksIds, err => {
-          test.error(err);
-          provider.getDetails('Writer', writer.Id, 'Works', (err, works) => {
-            test.error(err);
-            const sortFn = (a, b) => {
-              if (a.Id > b.Id) {
-                return 1;
-              }
-              if (a.Id < b.Id) {
-                return -1;
-              }
-              return 0;
-            };
-            test.strictSame(works.sort(sortFn), writer.Works.sort(sortFn));
-            test.end();
-          });
-        });
+      test.test('gs.linkDetails with multiple items', async test => {
+        await provider.linkDetails('Writer', 'Works', writer.Id, worksIds);
+        const works = await provider.getDetails('Writer', writer.Id, 'Works');
+        const sortFn = (a, b) => {
+          if (a.Id > b.Id) {
+            return 1;
+          }
+          if (a.Id < b.Id) {
+            return -1;
+          }
+          return 0;
+        };
+        test.strictSame(works.sort(sortFn), writer.Works.sort(sortFn));
+        test.end();
       });
 
-      test.test('gs.unlinkDetails with multiple items', test => {
-        provider.unlinkDetails('Writer', 'Works', writer.Id, worksIds, err => {
-          test.error(err);
-          provider.getDetails('Writer', writer.Id, 'Works', (err, works) => {
-            test.error(err);
-            test.strictSame(works.length, 0);
-            test.end();
-          });
-        });
+      test.test('gs.unlinkDetails with multiple items', async test => {
+        await provider.unlinkDetails('Writer', 'Works', writer.Id, worksIds);
+        const works = await provider.getDetails('Writer', writer.Id, 'Works');
+        test.strictSame(works.length, 0);
+        test.end();
       });
-    }
-
-    prepareTest(() => {
-      if (err) {
-        test.bailout(err.stack);
-      }
-      runTests();
     });
-  });
-});
+  },
+  { parallelSubtests: true }
+);
