@@ -1,2 +1,7 @@
-data
-dist
+*
+!*/
+!*.js
+!*.action
+!*.category
+!*.domains
+!*.form

@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars, no-undef */
 System({
   Login: {
     domain: 'Login',
@@ -9,7 +10,7 @@ System({
     validate: login => {
       // TODO: implement OWASP recomendations
       return login.length > 5;
-    }
+    },
   },
   Password: {
     domain: 'PasswordHash',
@@ -19,7 +20,7 @@ System({
       // TODO: implement OWASP recomendations
       // See https://www.owasp.org/index.php/Authentication_Cheat_Sheet
       return Auth.passwordStrength(password);
-    }
+    },
   },
   Subsystem: Subsystem(),
   Roles: Many('Role'),
@@ -43,6 +44,5 @@ System({
 
   SignUp: Action((data, callback) => {
     // TODO: implement user registration
-  })
-
-})
+  }),
+});

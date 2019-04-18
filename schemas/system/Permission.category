@@ -8,5 +8,6 @@ System({
 
   NaturalKey: Index('Role', 'Category'),
 
-  CheckBound: Validate(record => true)
-})
+  /* eslint-disable no-unused-vars */
+  CheckBound: Validate(record => true),
+});

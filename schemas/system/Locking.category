@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars, no-undef, handle-callback-err */
 Local({
   Identifier: { category: 'Identifier', required: true, index: true },
   Session: { category: 'Session', required: true, index: true },
@@ -9,14 +10,17 @@ Local({
 
   Lock: Action(({ Identifier }, callback) => {
     const now = new Date();
-    gs.create({
-      Identifier,
-      Session: client.sessionId,
-      SystemUser: client.systemUserId,
-      Request: now
-    }, (err, data) => {
-      // to be implemented
-    });
+    gs.create(
+      {
+        Identifier,
+        Session: client.sessionId,
+        SystemUser: client.systemUserId,
+        Request: now,
+      },
+      (err, data) => {
+        // to be implemented
+      }
+    );
   }),
 
   Unlock: Action(({ Identifier }, callback) => {
@@ -25,7 +29,7 @@ Local({
       Session: client.sessionId,
       SystemUser: client.systemUserId,
       Start: gs.notNull,
-      Expire: gs.Null
+      Expire: gs.Null,
     }).fetch((err, data) => {
       // to be implemented
     });
@@ -34,5 +38,4 @@ Local({
   CheckLock: Action(({ Identifier }, callback) => {
     // to be implemented
   }),
-
-})
+});
