@@ -44,12 +44,12 @@
   },
   "dependencies": {
     "@metarhia/common": "^1.5.0",
-    "@metarhia/jstp": "^2.2.1",
+    "@metarhia/jstp": "^2.3.0",
     "@metarhia/sql": "^0.1.0",
     "mdsf": "^1.1.1",
     "metaschema": "^0.3.4",
     "metasync": "^0.3.31",
-    "pg": "^7.9.0"
+    "pg": "^7.10.0"
   },
   "optionalDependencies": {
     "mkdirp": "^0.5.1"
@@ -60,10 +60,10 @@
     "@babel/preset-env": "^7.4.3",
     "eslint": "^5.16.0",
     "eslint-config-metarhia": "^7.0.0",
-    "eslint-config-prettier": "^4.1.0",
-    "eslint-plugin-import": "^2.16.0",
+    "eslint-config-prettier": "^4.2.0",
+    "eslint-plugin-import": "^2.17.2",
     "eslint-plugin-prettier": "^3.0.1",
     "metatests": "^0.6.5",
-    "prettier": "1.16.x"
+    "prettier": "1.17.x"
   }
 }
