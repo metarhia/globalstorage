@@ -55,7 +55,7 @@ function prepareDB(callback) {
             config
           )
           .then(schema => {
-            provider.open(Object.assign({ schema }, pgOptions), cb);
+            provider.open({ schema, ...pgOptions }, cb);
           }, cb);
       },
       (ctx, cb) => {
