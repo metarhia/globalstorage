@@ -105,13 +105,11 @@ metatests.test('must load system list', test => {
     const treeIndex = trees[systemId].treeIndex;
     for (let i = 0; i < treeIndex.length; i++) {
       const server = treeIndex[i];
-      const expectedServer = Object.assign(
-        {
-          systemSuffix: new Uint64(systemId),
-          systemBitmask: new Uint64(0xffffff),
-        },
-        expectedSystem[i]
-      );
+      const expectedServer = {
+        systemSuffix: new Uint64(systemId),
+        systemBitmask: new Uint64(0xffffff),
+        ...expectedSystem[i],
+      };
 
       test.assert(server instanceof RemoteServer);
       test.assert(server instanceof StorageProvider);
@@ -187,13 +185,11 @@ metatests.test('must properly load complex systems', test => {
   ];
 
   for (let i = 0; i < system.treeIndex.length; i++) {
-    const expected = Object.assign(
-      {
-        systemSuffix: new Uint64(0),
-        systemBitmask: new Uint64(0xffffff),
-      },
-      treeIndex[i]
-    );
+    const expected = {
+      systemSuffix: new Uint64(0),
+      systemBitmask: new Uint64(0xffffff),
+      ...treeIndex[i],
+    };
     contains(test, system.treeIndex[i], expected);
   }
 
