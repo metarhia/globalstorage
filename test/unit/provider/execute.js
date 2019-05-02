@@ -65,7 +65,7 @@ metatests.test('provider.execute test', test => {
       await provider.execute(
         CATEGORY,
         ACTION,
-        [null, ACTION_ARGS],
+        { args: ACTION_ARGS },
         permissionChecker
       );
       test.fail('must have thrown an error');
@@ -78,19 +78,19 @@ metatests.test('provider.execute test', test => {
 
   test.test('No such category', (test, { provider }) =>
     isError(test, () =>
-      provider.execute('InvalidCategory', ACTION, [null, ACTION_ARGS])
+      provider.execute('InvalidCategory', ACTION, { args: ACTION_ARGS })
     )
   );
 
   test.test('No such category action', (test, { provider }) =>
     isError(test, () =>
-      provider.execute(CATEGORY, 'InvalidAction', [null, ACTION_ARGS])
+      provider.execute(CATEGORY, 'InvalidAction', { args: ACTION_ARGS })
     )
   );
 
   test.test('No such public action', (test, { provider }) =>
     isError(test, () =>
-      provider.execute(null, 'InvalidPublicAction', [null, ACTION_ARGS])
+      provider.execute(null, 'InvalidPublicAction', { args: ACTION_ARGS })
     )
   );
 
@@ -108,10 +108,9 @@ metatests.test('provider.execute test', test => {
     isError(
       test,
       () =>
-        provider.execute(CATEGORY, ACTION, [
-          null,
-          { ...ACTION_ARGS, unresolvedProp: 3 },
-        ]),
+        provider.execute(CATEGORY, ACTION, {
+          args: { ...ACTION_ARGS, unresolvedProp: 3 },
+        }),
       expectedError,
       errorCodes.INVALID_SCHEMA
     );
@@ -127,7 +126,7 @@ metatests.test('provider.execute test', test => {
 
     isError(
       test,
-      () => provider.execute(CATEGORY, ACTION, [null, { a: 1 }]),
+      () => provider.execute(CATEGORY, ACTION, { args: { a: 1 } }),
       expectedError,
       errorCodes.INVALID_SCHEMA
     );
@@ -144,7 +143,9 @@ metatests.test('provider.execute test', test => {
     isError(
       test,
       () =>
-        provider.execute(CATEGORY, ACTION, [null, { ...ACTION_ARGS, b: null }]),
+        provider.execute(CATEGORY, ACTION, {
+          args: { ...ACTION_ARGS, b: null },
+        }),
       expectedError,
       errorCodes.INVALID_SCHEMA
     );
@@ -164,23 +165,24 @@ metatests.test('provider.execute test', test => {
     isError(
       test,
       () =>
-        provider.execute(CATEGORY, ACTION, [null, { ...ACTION_ARGS, b: '2' }]),
+        provider.execute(CATEGORY, ACTION, {
+          args: { ...ACTION_ARGS, b: '2' },
+        }),
       expectedError,
       errorCodes.INVALID_SCHEMA
     );
   });
 
   test.test('Successful category action', async (test, { provider }) => {
-    const res = await provider.execute(CATEGORY, ACTION, [null, ACTION_ARGS]);
+    const res = await provider.execute(CATEGORY, ACTION, { args: ACTION_ARGS });
     test.strictSame(res, 3);
     test.end();
   });
 
   test.test('Successful public action', async (test, { provider }) => {
-    const res = await provider.execute(null, PUBLIC_ACTION, [
-      null,
-      ACTION_ARGS,
-    ]);
+    const res = await provider.execute(null, PUBLIC_ACTION, {
+      args: ACTION_ARGS,
+    });
     test.strictSame(res, 1);
     test.end();
   });
