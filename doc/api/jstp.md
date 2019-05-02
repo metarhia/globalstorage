@@ -163,7 +163,7 @@ Select a record or multiple records in the category using provided jsql.
 
 ---
 
-##### `execute(category, action, args)`
+##### `execute(category, action, actionArgs)`
 
 Execute an action.
 
@@ -172,7 +172,8 @@ Execute an action.
 - `category` [`<string>`][] | [`<null>`][], if null is provided, execute a
   public action
 - `action` [`<string>`][], action name
-- `args` [`<Object>`][object]
+- `actionArgs` [`<Object>`][object]
+  - `args` [`<Object>`][object]
 
 ###### Callback arguments
 
