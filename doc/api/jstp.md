@@ -174,6 +174,7 @@ Execute an action.
 - `action` [`<string>`][], action name
 - `actionArgs` [`<Object>`][object]
   - `args` [`<Object>`][object]
+  - `context` [`<Object>`][object]
 
 ###### Callback arguments
 

@@ -3,5 +3,5 @@ Action({
     a: { domain: 'Number', required: true },
     b: { domain: 'Number', required: true },
   },
-  Execute: async (provider, session, { a, b }) => a + b,
+  Execute: async (provider, ctx, { a, b }) => a + b,
 })
