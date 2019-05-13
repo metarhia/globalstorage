@@ -48,29 +48,6 @@ metatests.test('Unsupported domain class', async test => {
   test.end();
 });
 
-metatests.test('Too many flags', async test => {
-  const expectedErrorMessage =
-    'Too many flags in ErrorFlags, must not be bigger than 64';
-
-  let schema;
-
-  try {
-    schema = await metaschema.fs.load(
-      'test/fixtures/too-many-flags',
-      options,
-      config
-    );
-  } catch (error) {
-    console.error(error);
-    test.fail(error);
-    test.end();
-    return;
-  }
-
-  test.throws(() => generateDDL(schema), new Error(expectedErrorMessage));
-  test.end();
-});
-
 metatests.test('Incorrect domain definition', async test => {
   const expectedErrorMessage = 'Unsupported domain: IncorrectDomainDefinition';
 
