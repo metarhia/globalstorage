@@ -48,7 +48,7 @@
     "@metarhia/jstp": "^2.3.0",
     "@metarhia/sql": "^0.1.0",
     "mdsf": "^1.1.1",
-    "metaschema": "^0.3.4",
+    "metaschema": "^0.4.0",
     "pg": "^7.11.0"
   },
   "optionalDependencies": {

@@ -67,15 +67,6 @@ CREATE TYPE "EnumType" AS ENUM (
     type: 'bigint',
   });
 
-  test.throws(
-    () =>
-      ddl.generateType(
-        'FlagsUnsupported',
-        schema.domains.get('FlagsUnsupported')
-      ),
-    new Error('Too many flags in FlagsUnsupported, must not be bigger than 64')
-  );
-
   test.end();
 });
 
