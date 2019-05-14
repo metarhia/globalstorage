@@ -1,0 +1,3 @@
+{
+  func: { type: 'object', class: 'Date', parse: Date.parse }
+}
