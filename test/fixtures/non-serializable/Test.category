@@ -1,0 +1,6 @@
+{
+  Func1: { domain: 'func', check: Date.parse },
+  Func2: { domain: 'func', check: function() {} },
+  Func3: { domain: 'func', check: () => {} },
+  Func4: { domain: 'func', class() {} },
+}
