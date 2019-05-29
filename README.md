@@ -375,6 +375,14 @@ Setup StorageProvider
 
 #### StorageProvider.prototype.enableLogging(ctx)
 
+#### StorageProvider.prototype.error(name, ...ctx)
+
+- `name`: [`<string>`][string] error name that must be equal to one of the
+  values from the Action's Errors field
+- `ctx`: [`<Array>`][array]
+
+Utility method to generate `<ActionError>` from inside the Action
+
 #### async StorageProvider.prototype.takeId()
 
 _Returns:_ [`<Promise>`][promise]
