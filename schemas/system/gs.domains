@@ -42,7 +42,15 @@
   JSON: {
     type: 'string',
     control: 'Multiline',
-    parse: x => (typeof x === 'string' ? x : JSON.stringify(x)),
+    parse: x => {
+      if (typeof x !== 'string') return JSON.stringify(x);
+      try {
+        JSON.parse(x);
+        return x;
+      } catch (e) {
+        return JSON.stringify(x);
+      }
+    },
     check: x => {
       try {
         JSON.parse(x);
