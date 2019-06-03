@@ -44,6 +44,9 @@
     "node": ">=8.3.0"
   },
   "dependencies": {
+    "@babel/generator": "^7.4.4",
+    "@babel/parser": "^7.4.5",
+    "@babel/traverse": "^7.4.5",
     "@metarhia/common": "^2.0.0",
     "@metarhia/jstp": "^2.3.0",
     "@metarhia/sql": "^0.1.0",

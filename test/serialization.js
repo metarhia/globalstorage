@@ -30,13 +30,17 @@ metatests.test('Serialization', async test => {
 
   const category = schema.categories.get('Test');
   const { type, module, name, source } = serializeSchema(category, {
-    exclude: (name, ins) =>
-      ['Unique'].includes(metaschema.extractDecorator(ins)),
+    exclude: ({ node }) =>
+      node.value.type === 'CallExpression' &&
+      node.value.callee.name === 'Unique',
   });
+
   const stringifyCategory = { type, name, module, source };
 
   const action = schema.actions.get('Test');
-  const stringifyAction = serializeSchema(action);
+  const stringifyAction = serializeSchema(action, {
+    replace: ({ key }) => (key === 'Execute' ? 'async () => {}' : null),
+  });
 
   const application = schema.applications.get('Test');
   const stringifyApplication = serializeSchema(application);
@@ -129,7 +133,7 @@ metatests.test('Serialization', async test => {
   test.strictSame(hierarchy, newHierarchy);
 
   test.strictSame(actionDefinition, newActionDefinition);
-  test.strictSame(newExecute.toString(), 'async()=>{}');
+  test.strictSame(newExecute.toString(), 'async () => {}');
 
   test.end();
 });
