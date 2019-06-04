@@ -30,9 +30,8 @@ metatests.test('Serialization', async test => {
 
   const category = schema.categories.get('Test');
   const { type, module, name, source } = serializeSchema(category, {
-    exclude: ({ node }) =>
-      node.value.type === 'CallExpression' &&
-      node.value.callee.name === 'Unique',
+    exclude: ({ ins }) =>
+      ins && ['Unique'].includes(metaschema.extractDecorator(ins)),
   });
 
   const stringifyCategory = { type, name, module, source };
