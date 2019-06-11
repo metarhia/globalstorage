@@ -701,6 +701,22 @@ Generate globally unique id
 
 #### async PostgresProvider.prototype.getCategoryById(id)
 
+#### async PostgresProvider.prototype.beginTx(\[options\])
+
+- `options`: [`<Object>`][object] transaction options
+  - `isolationLevel`: [`<string>`][string] 'committed', 'repeatable', or
+    'serializable'
+  - `readOnly`: [`<boolean>`][boolean]
+  - `deferrable`: [`<boolean>`][boolean]
+
+_Returns:_ [`<Promise>`][promise]
+
+Begin transaction, returns a Promise that resolves in an object containing
+
+some of the methods of the current provider and also the methods `commit()`,
+`rollback()`, and `release()`. For more detailed description of the options see
+https://www.postgresql.org/docs/current/sql-set-transaction.html
+
 #### async PostgresProvider.prototype.get(id\[, permissionChecker\])
 
 - `id`: [`<string>`][string] globally unique object id
