@@ -30,7 +30,7 @@ module.exports = (test, { users, permissions }) => {
     async (test, { remoteProvider, login }) => {
       await login(users.S1.AdminUser);
       await test.resolves(
-        remoteProvider.listCategories(),
+        remoteProvider.listCategories().then(res => res.sort()),
         expectedResult('S1', 'Admin')
       );
     }
@@ -41,7 +41,7 @@ module.exports = (test, { users, permissions }) => {
     async (test, { remoteProvider, login }) => {
       await login(users.S2.AdminUser);
       await test.resolves(
-        remoteProvider.listCategories(),
+        remoteProvider.listCategories().then(res => res.sort()),
         expectedResult('S2', 'Admin')
       );
     }
@@ -52,7 +52,7 @@ module.exports = (test, { users, permissions }) => {
     async (test, { remoteProvider, login }) => {
       await login(users.S2.GuestUser);
       await test.resolves(
-        remoteProvider.listCategories(),
+        remoteProvider.listCategories().then(res => res.sort()),
         expectedResult('S2', 'Guest')
       );
     }
