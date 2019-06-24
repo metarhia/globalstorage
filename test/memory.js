@@ -69,7 +69,9 @@ metatests.test('count all test', async test => {
 metatests.test('count field test', async test => {
   const ds = [{ Id: 2, a: 1 }, { Id: 3, a: 2 }, { Id: 4 }];
   const data = await new MemoryCursor(ds).count('a').fetch();
-  test.strictSame(data, [ds.filter(d => d.hasOwnProperty('a')).length]);
+  test.strictSame(data, [
+    ds.filter(d => Object.prototype.hasOwnProperty.call(d, 'a')).length,
+  ]);
   test.end();
 });
 

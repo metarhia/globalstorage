@@ -1,3 +1,5 @@
 extends:
   - metarhia
   - plugin:prettier/recommended
+rules:
+  require-atomic-updates: 'off' # TODO: remove this when the rule is fixed

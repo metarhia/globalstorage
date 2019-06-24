@@ -79,7 +79,7 @@ const complexSystemsCompressed = {
 
 const contains = (test, object, expected) => {
   for (const key in expected) {
-    if (!expected.hasOwnProperty(key)) {
+    if (!Object.prototype.hasOwnProperty.call(expected, key)) {
       continue;
     }
     test.strictSame(object[key], expected[key]);
