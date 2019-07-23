@@ -1,4 +1,4 @@
-/* eslint-disable no-unused-vars, no-undef */
+/* eslint-disable no-undef */
 System({
   Login: {
     domain: 'Login',
@@ -26,7 +26,7 @@ System({
   Roles: Many('Role'),
   Blocked: { domain: 'Logical', default: false },
 
-  SignIn: Action(({ Login, Password }, callback) => {
+  SignIn: Action((/*{ Login, Password }, callback*/) => {
     // Hint: you can use destructing arguments for `data`
     // Hint: If we have `FormName.schema` with same name as `ActionName`
     // TODO: implement session creation
@@ -38,11 +38,11 @@ System({
     // Hint: Also common and other APIs can be injected here as `api.*`
   }),
 
-  SignOut: Action((data, callback) => {
+  SignOut: Action((/*data, callback*/) => {
     // TODO: implement remove session
   }),
 
-  SignUp: Action((data, callback) => {
+  SignUp: Action((/*data, callback*/) => {
     // TODO: implement user registration
   }),
 });
