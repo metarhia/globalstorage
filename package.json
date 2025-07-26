@@ -1,6 +1,6 @@
 {
   "name": "globalstorage",
-  "version": "0.9.1",
+  "version": "0.10.0",
   "author": "Timur Shemsedinov <timur.shemsedinov@gmail.com>",
   "description": "Global Storage is a Global Distributed Data Warehouse",
   "license": "MIT",
@@ -33,39 +33,23 @@
     "sql/"
   ],
   "scripts": {
-    "test": "npm run lint && metatests test/",
-    "lint": "eslint . --ignore-path .gitignore && prettier -c \"**/*.js\" \"**/*.json\" \"**/*.md\" \".*rc\" \"**/*.yml\"",
-    "fmt": "prettier --write \"**/*.js\" \"**/*.json\" \"**/*.md\" \".*rc\" \"**/*.yml\"",
-    "doc": "metadoc",
-    "build": "babel gs.js -d dist && babel lib -d dist/lib",
-    "prepublish": "npm run -s build"
+    "test": "npm run lint && npm run types && metatests test/",
+    "types": "tsc -p tsconfig.json",
+    "lint": "eslint . && prettier -c \"**/*.js\" \"**/*.json\" \"**/*.md\" \"**/*.ts\"",
+    "fix": "eslint . --fix && prettier --write \"**/*.js\" \"**/*.json\" \"**/*.md\" \"**/*.ts\""
   },
   "engines": {
-    "node": ">=8.3.0"
+    "node": "18 || 20 || 21 || 22"
   },
   "dependencies": {
-    "@metarhia/common": "^2.1.0",
-    "@metarhia/jstp": "^2.3.0",
-    "@metarhia/sql": "^0.1.0",
-    "mdsf": "^1.1.1",
-    "metaschema": "^0.4.0",
-    "pg": "^7.11.0"
-  },
-  "optionalDependencies": {
-    "mkdirp": "^0.5.1"
+    "metaschema": "^2.2.1"
   },
   "devDependencies": {
-    "@babel/cli": "^7.4.4",
-    "@babel/core": "^7.4.5",
-    "@babel/preset-env": "^7.4.5",
-    "@metarhia/doc": "^0.5.6",
-    "eslint": "^6.0.1",
-    "eslint-config-metarhia": "^7.0.0",
-    "eslint-config-prettier": "^6.0.0",
-    "eslint-plugin-import": "^2.18.0",
-    "eslint-plugin-prettier": "^3.1.0",
-    "metasync": "^0.3.31",
-    "metatests": "^0.7.0",
-    "prettier": "1.18.x"
+    "@types/node": "^22.5.1",
+    "eslint": "^9.9.1",
+    "eslint-config-metarhia": "^9.1.1",
+    "prettier": "^3.3.3",
+    "typescript": "^5.5.4",
+    "metatests": "^0.7.0"
   }
 }
