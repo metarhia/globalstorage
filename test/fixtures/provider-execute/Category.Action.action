@@ -1,7 +1,0 @@
-Action({
-  Args: {
-    a: { domain: 'Number', required: true },
-    b: { domain: 'Number', required: true },
-  },
-  Execute: async (provider, ctx, { a, b }) => a + b,
-})

@@ -1,7 +1,0 @@
-System({
-  Name: { domain: 'Nomen', lookup: true, required: true, unique: true },
-  Realm: { domain: 'CategoryRealm', required: true },
-  Family: { domain: 'CategoryFamily', required: true },
-  Version: { domain: 'Version', default: 0, required: true },
-  Master: { category: 'Category' }
-})

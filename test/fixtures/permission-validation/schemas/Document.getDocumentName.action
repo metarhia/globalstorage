@@ -1,3 +1,0 @@
-Action({
-  Execute: async () => 'getDocumentName called',
-})

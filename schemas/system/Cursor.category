@@ -1,7 +1,0 @@
-Local({
-  QueryHash: { domain: 'SHA2', required: true, unique: true },
-  Created: { domain: 'DateTime', required: true },
-  Query: { domain: 'JSON', required: true },
-  Version: { domain: 'Version', default: 0, required: true },
-  Subscribers: Many('Session')
-})

@@ -1,7 +1,0 @@
-System({
-  Category: { category: 'Category', lookup: true, required: true, index: true },
-  Version: { domain: 'Version', required: true, index: true },
-  Schema: { domain: 'Source', required: true },
-
-  NaturalKey: Unique('Category', 'Version')
-})

@@ -1,4 +1,0 @@
-Application({
-  Categories: [],
-  Menu: [Group('GroupName', ['Category', '-'])],
-})

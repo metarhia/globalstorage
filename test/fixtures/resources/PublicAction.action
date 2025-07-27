@@ -1,7 +1,0 @@
-Action({
-  Public: true,
-  Params: {
-    Login: { domain: 'Login' },
-  },
-  Execute: async () => {},
-})

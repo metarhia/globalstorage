@@ -1,4 +1,0 @@
-Action({
-  Params: {},
-  Execute: async () => {},
-})
