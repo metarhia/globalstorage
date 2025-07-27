@@ -1,5 +1,0 @@
-{
-  Master: Master('Master'),
-  Name: { domains: 'Nomen' },
-  Subsystem: Subsystem(),
-}

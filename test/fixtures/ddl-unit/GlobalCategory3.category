@@ -1,3 +1,0 @@
-Registry({
-  field: Many('GlobalCategory1')
-})

@@ -1,6 +1,0 @@
-System({
-  Name: { domain: 'Nomen', lookup: true, required: true, unique: true },
-  Blocked: { domain: 'Logical', required: true, default: false },
-  Subsystem: Subsystem(),
-  Applications: Many('Application'),
-})

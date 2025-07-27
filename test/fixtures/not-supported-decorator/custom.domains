@@ -1,3 +1,0 @@
-{
-  Days: { type: 'number', unit: 'Days', base: 'Second', mul: 86400 },
-}

@@ -1,4 +1,0 @@
-Local({
-  SomeData: { domain: 'Nomen' },
-  RequiredData: { domain: 'Nomen', required: true },
-})

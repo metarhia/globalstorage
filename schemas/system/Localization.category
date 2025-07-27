@@ -1,7 +1,0 @@
-System({
-  ResourceKey: { domain: 'Nomen', lookup: true, required: true },
-  Language: { category: 'Language', required: true, index: true },
-  Text: { domain: 'Text' },
-
-  NaturalKey: Unique('ResourceKey', 'Language')
-})

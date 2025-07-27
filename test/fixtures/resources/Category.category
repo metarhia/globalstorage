@@ -1,4 +1,0 @@
-{
-  Login: { domain: 'Login' },
-  Password: { domain: 'PasswordHash' },
-}

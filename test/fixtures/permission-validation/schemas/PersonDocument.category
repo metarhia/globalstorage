@@ -1,5 +1,0 @@
-Registry({
-  Name: { domain: 'Nomen', required: true },
-  Subsystem: Subsystem(),
-  Catalog: Catalog()
-})

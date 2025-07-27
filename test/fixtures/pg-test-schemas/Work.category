@@ -1,4 +1,0 @@
-Registry({
-  Name: { domain: 'Nomen', required: true },
-  PublicationYear: { domain: 'Year', required: true },
-})

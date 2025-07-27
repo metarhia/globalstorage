@@ -1,6 +1,0 @@
-System({
-  Name: { domain: 'Nomen', lookup: true, required: true, unique: true },
-  Code: { domain: 'Id', required: true, unique: true },
-  SystemType: { domain: 'SystemType', required: true, default: 'Autonomous' },
-  Parent: { category: 'Subsystem' },
-})

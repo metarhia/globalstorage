@@ -1,4 +1,0 @@
-Action({
-  Public: true,
-  Execute: () => {},
-});
