@@ -1,17 +1,22 @@
 {
   "name": "globalstorage",
-  "version": "0.10.0",
+  "version": "1.0.0",
   "author": "Timur Shemsedinov <timur.shemsedinov@gmail.com>",
   "description": "Global Storage is a Global Distributed Data Warehouse",
   "license": "MIT",
   "keywords": [
     "database",
+    "globalstorage",
+    "localstorage",
+    "crdt",
+    "sync",
     "storage",
     "global",
     "warehouse",
     "metarhia",
     "impress",
     "distributed",
+    "db",
     "dbms"
   ],
   "readmeFilename": "README.md",
@@ -21,35 +26,29 @@
   },
   "main": "gs.js",
   "browser": {
-    "./gs.js": "./dist/gs.js",
-    "./dist/lib/fs.cursor.js": false,
-    "./dist/lib/fs.provider.js": false,
-    "./dist/lib/pg.provider.js": false
+    "./gs.js": "./dist/gs.js"
   },
   "files": [
     "lib/",
-    "dist/",
-    "schemas/",
-    "sql/"
+    "dist/"
   ],
   "scripts": {
-    "test": "npm run lint && npm run types && metatests test/",
+    "test": "npm run lint && npm run types && node --test",
     "types": "tsc -p tsconfig.json",
     "lint": "eslint . && prettier -c \"**/*.js\" \"**/*.json\" \"**/*.md\" \"**/*.ts\"",
     "fix": "eslint . --fix && prettier --write \"**/*.js\" \"**/*.json\" \"**/*.md\" \"**/*.ts\""
   },
   "engines": {
-    "node": "18 || 20 || 21 || 22"
+    "node": "18 || 20 || 21 || 22 || 23 || 24"
   },
   "dependencies": {
-    "metaschema": "^2.2.1"
+    "metaschema": "^2.2.2"
   },
   "devDependencies": {
     "@types/node": "^22.5.1",
     "eslint": "^9.9.1",
-    "eslint-config-metarhia": "^9.1.1",
+    "eslint-config-metarhia": "^9.1.2",
     "prettier": "^3.3.3",
-    "typescript": "^5.5.4",
-    "metatests": "^0.7.0"
+    "typescript": "^5.5.4"
   }
 }
