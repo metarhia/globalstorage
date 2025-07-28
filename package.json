@@ -42,7 +42,8 @@
     "node": "18 || 20 || 21 || 22 || 23 || 24"
   },
   "dependencies": {
-    "metaschema": "^2.2.2"
+    "metaschema": "^2.2.2",
+    "metautil": "^5.3.0"
   },
   "devDependencies": {
     "@types/node": "^22.5.1",

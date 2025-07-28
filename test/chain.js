@@ -3,6 +3,7 @@
 const test = require('node:test');
 const assert = require('node:assert');
 const path = require('node:path');
+const { fileExists } = require('metautil');
 const gs = require('..');
 const { createTempDir, cleanupTempDir } = require('./test-utils.js');
 
@@ -27,7 +28,7 @@ test('Chain module', async (t) => {
       assert.strictEqual(blockchain.nextId, 1);
 
       const chainFile = path.join(tempDir, '.blockchain.json');
-      assert.strictEqual(await gs.exists(chainFile), true);
+      assert.strictEqual(await fileExists(chainFile), true);
     } finally {
       await cleanupTempDir(tempDir);
     }
@@ -85,7 +86,7 @@ test('Chain module', async (t) => {
       assert.strictEqual(typeof hash, 'string');
 
       const blockFile = path.join(tempDir, `${hash}.json`);
-      assert.strictEqual(await gs.exists(blockFile), true);
+      assert.strictEqual(await fileExists(blockFile), true);
     } finally {
       await cleanupTempDir(tempDir);
     }

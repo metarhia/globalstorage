@@ -1,9 +1,3 @@
-// Submodule: utils
-
-export const toBool: [() => boolean, () => boolean];
-export function exists(path: string): Promise<boolean>;
-export function ensureDirectory(path: string): Promise<boolean>;
-
 // Submodule: keys
 
 export interface KeyPair {
