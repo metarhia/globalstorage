@@ -4,6 +4,7 @@ const test = require('node:test');
 const assert = require('node:assert');
 const fs = require('node:fs/promises');
 const path = require('node:path');
+const { directoryExists } = require('metautil');
 const gs = require('..');
 const { createTempDir, cleanupTempDir } = require('./test-utils.js');
 
@@ -15,7 +16,7 @@ test('Storage module', async (t) => {
       const storage = await new gs.Storage(tempDir, blockchain);
 
       assert.ok(storage instanceof gs.Storage);
-      assert.strictEqual(await gs.exists(tempDir), true);
+      assert.strictEqual(await directoryExists(tempDir), true);
     } finally {
       await cleanupTempDir(tempDir);
     }
