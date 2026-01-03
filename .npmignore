@@ -1,7 +1,4 @@
 node_modules
 *.log
 .DS_Store
-data
-.gs
-*.gs
-dist
+gs
