@@ -12,8 +12,7 @@ test('Storage module', async (t) => {
   await t.test('Storage constructor and initialization', async () => {
     const tempDir = await createTempDir();
     try {
-      const blockchain = await new gs.Blockchain(tempDir);
-      const storage = await new gs.Storage(tempDir, blockchain);
+      const storage = await new gs.Storage({ path: tempDir });
 
       assert.ok(storage instanceof gs.Storage);
       assert.strictEqual(await directoryExists(tempDir), true);
@@ -25,8 +24,7 @@ test('Storage module', async (t) => {
   await t.test('Storage saveData and loadData without encryption', async () => {
     const tempDir = await createTempDir();
     try {
-      const blockchain = await new gs.Blockchain(tempDir);
-      const storage = await new gs.Storage(tempDir, blockchain);
+      const storage = await new gs.Storage({ path: tempDir });
 
       const testData = { message: 'Hello, Storage!', number: 123 };
       await storage.saveData('test-1', testData);
@@ -41,9 +39,7 @@ test('Storage module', async (t) => {
   await t.test('Storage saveData and loadData with encryption', async () => {
     const tempDir = await createTempDir();
     try {
-      const blockchain = await new gs.Blockchain(tempDir);
-      const keys = await gs.loadKeys(tempDir);
-      const storage = await new gs.Storage(tempDir, blockchain, keys);
+      const storage = await new gs.Storage({ path: tempDir });
 
       const testData = { secret: 'encrypted data', value: 456 };
       await storage.saveData('test-2', testData, { encrypted: true });
@@ -58,8 +54,7 @@ test('Storage module', async (t) => {
   await t.test('Storage loadData with non-existent data', async () => {
     const tempDir = await createTempDir();
     try {
-      const blockchain = await new gs.Blockchain(tempDir);
-      const storage = await new gs.Storage(tempDir, blockchain);
+      const storage = await new gs.Storage({ path: tempDir });
 
       const result = await storage.loadData('nonexistent');
       assert.strictEqual(result, null);
@@ -71,13 +66,12 @@ test('Storage module', async (t) => {
   await t.test('Storage validate method', async () => {
     const tempDir = await createTempDir();
     try {
-      const blockchain = await new gs.Blockchain(tempDir);
-      const storage = await new gs.Storage(tempDir, blockchain);
+      const storage = await new gs.Storage({ path: tempDir });
 
       const testData = { message: 'Test validation' };
       await storage.saveData('test-3', testData);
 
-      const filePath = path.join(tempDir, 'test-3.json');
+      const filePath = path.join(tempDir, 'data', 'test-3.json');
       const raw = await fs.readFile(filePath, { encoding: 'utf8' });
       const entry = JSON.parse(raw);
 

@@ -1,5 +1,6 @@
 'use strict';
 
+const path = require('node:path');
 const test = require('node:test');
 const assert = require('node:assert');
 const gs = require('..');
@@ -11,9 +12,9 @@ test('Integration tests', async (t) => {
     async () => {
       const tempDir = await createTempDir();
       try {
-        const keys = await gs.loadKeys(tempDir);
-        const blockchain = await new gs.Blockchain(tempDir);
-        const storage = await new gs.Storage(tempDir, blockchain, keys);
+        const storage = await new gs.Storage({ path: tempDir });
+        const chainPath = path.join(tempDir, 'blockchain');
+        const blockchain = await new gs.Blockchain(chainPath);
 
         const contractProc = async (reader, args) => {
           const data = await reader.get(args.id);
@@ -40,7 +41,7 @@ test('Integration tests', async (t) => {
         const loadedData = await storage.loadData('counter-1');
         assert.strictEqual(loadedData.count, 2);
 
-        const isValid = await blockchain.isValid();
+        const isValid = await blockchain.validate();
         assert.strictEqual(isValid, true);
       } finally {
         await cleanupTempDir(tempDir);

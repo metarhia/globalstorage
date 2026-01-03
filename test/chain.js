@@ -64,10 +64,10 @@ test('Chain module', async (t) => {
       await blockchain.addBlock({ data: 'block2' });
       await blockchain.addBlock({ data: 'block3' });
 
-      const isValid = await blockchain.isValid();
+      const isValid = await blockchain.validate();
       assert.strictEqual(isValid, true);
 
-      const isValidLast = await blockchain.isValid({ last: 2 });
+      const isValidLast = await blockchain.validate({ last: 2 });
       assert.strictEqual(isValidLast, true);
     } finally {
       await cleanupTempDir(tempDir);
