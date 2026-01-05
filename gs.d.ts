@@ -80,15 +80,25 @@ export interface StorageEntry {
   block: string;
 }
 
+export class Reference {
+  constructor(id: string, storage: Storage);
+  id: string;
+  record(): Promise<Record>;
+}
+
 export class Record {
-  constructor(storage: Storage, id: string);
-  _storage: Storage;
-  _id: string;
+  constructor(id: string, storage: Storage);
+  readonly id: string;
   on(event: 'update', listener: (data: unknown, delta: unknown) => void): void;
+  data(): Promise<unknown>;
+  delta(): { [key: string]: unknown };
+  save(): Promise<void>;
+  delete(): Promise<void>;
+  ensureLoaded(): Promise<Record>;
+  [key: string]: unknown;
 }
 
 export interface Node {
-  id: string;
   type: 'uplink' | 'downlink';
   url: string;
   token?: string;
@@ -131,7 +141,15 @@ export class Storage {
   delete(id: string): Promise<void>;
   update(id: string, delta: unknown): Promise<void>;
   swap(id: string, changes: unknown, prev: unknown): Promise<boolean>;
-  record(id: string): Record;
+  record(id: string): Promise<Record>;
+  getCachedData(id: string): unknown | null;
+  hasRecord(id: string): boolean;
+  addUpdate(update: {
+    type: string;
+    id: string;
+    timestamp: number;
+    data: unknown;
+  }): void;
   get sync(): SyncManager;
 }
 
