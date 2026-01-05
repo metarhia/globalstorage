@@ -38,26 +38,45 @@ const main = async () => {
 
   // Domain logic
 
-  const post = { title: 'Example', content: 'Text', author: 'Timur' };
+  const authorData = { name: 'Timur', email: 'timur@example.com' };
+  const authorId = await storage.insert(authorData);
+
+  const post = { title: 'Example', content: 'Text', author: authorId };
   const id = await storage.insert(post);
 
-  storage.record(id).on('update', (data, delta) => {
-    console.log({ id, data, delta });
+  // Implicit API - Record with dynamic getters/setters
+
+  const postRecord = await storage.record(id);
+
+  postRecord.on('update', (data, delta) => {
+    console.log('Record updated:', { id, data, delta });
   });
+
+  console.log('Title:', postRecord.title);
+  console.log('Content:', postRecord.content);
+  console.log('Author:', postRecord.author);
+
+  postRecord.content += 'example';
+  postRecord.title = 'Updated Example';
+
+  const delta = postRecord.delta();
+  console.log('Delta before save:', delta);
+
+  await postRecord.save();
+
+  const authorRecord = await postRecord.author.record();
+  console.log('Author name:', authorRecord.name);
+
+  // Delete record
+  // await postRecord.delete();
+
+  // Explicit API (still available)
 
   const exists = await storage.has(id);
   if (exists) {
     const data = await storage.get(id);
-    data.content += 'example';
+    data.content += ' more changes';
     await storage.set(id, data);
-    const record = await storage.get(id);
-    await storage.delete(id);
-    const v2 = await storage.insert(record);
-    const delta = { content: 'Changes' };
-    await storage.update(v2, delta);
-    const prev = delta;
-    const changes = { content: '' };
-    await storage.swap(v2, changes, prev);
   }
 
   await storage.sync.start();
