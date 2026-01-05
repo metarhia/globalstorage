@@ -12,11 +12,121 @@ const calculateDelta = (oldData, newData) => {
   return delta;
 };
 
+class Reference {
+  #id;
+  #storage = null;
+
+  constructor(id, storage) {
+    this.#id = id;
+    this.#storage = storage;
+  }
+
+  async record() {
+    return await this.#storage.record(this.#id);
+  }
+}
+
 class Record extends Emitter {
-  constructor(storage, id) {
+  #id;
+  #storage = null;
+  #data = null;
+  #changes = {};
+
+  constructor(id, storage) {
     super();
-    this._storage = storage;
-    this._id = id;
+    this.#id = id;
+    this.#storage = storage;
+    return this.#load();
+  }
+
+  async #load() {
+    if (this.#data !== null) return this;
+    this.#data = await this.#storage.get(this.#id);
+    if (this.#data) {
+      this.#convertToReferences(this.#data);
+      this.#defineProperties();
+    }
+    return this;
+  }
+
+  #convertToReferences(data) {
+    if (!data || typeof data !== 'object') return;
+    for (const key in data) {
+      const value = data[key];
+      if (typeof value === 'string') {
+        if (this.#storage.hasRecord(value)) {
+          data[key] = new Reference(value, this.#storage);
+        }
+      } else if (value && typeof value === 'object') {
+        const isReference = value instanceof Reference;
+        if (!isReference) {
+          this.#convertToReferences(value);
+        }
+      }
+    }
+  }
+
+  get id() {
+    return this.#id;
+  }
+
+  #defineProperties() {
+    for (const key in this.#data) {
+      if (key === 'id') continue;
+      if (Object.prototype.hasOwnProperty.call(this, key)) continue;
+      Object.defineProperty(this, key, {
+        get() {
+          const value = this.#data?.[key];
+          if (value instanceof Reference) {
+            return value;
+          }
+          return value;
+        },
+        set(newValue) {
+          const oldValue = this.#data?.[key];
+          if (oldValue === newValue) return;
+          this.#data[key] = newValue;
+          this.#changes[key] = newValue;
+          const delta = { [key]: newValue };
+          this.emit('update', this.#data, delta);
+        },
+        enumerable: true,
+        configurable: true,
+      });
+    }
+  }
+
+  async data() {
+    return this.#data;
+  }
+
+  delta() {
+    return { ...this.#changes };
+  }
+
+  async save() {
+    if (Object.keys(this.#changes).length === 0) return;
+    const delta = this.delta();
+    const data = this.#data;
+    await this.#storage.saveData(this.#id, data);
+    this.#changes = {};
+    this.#storage.addUpdate({
+      type: 'delta',
+      id: this.#id,
+      timestamp: Date.now(),
+      data: delta,
+    });
+  }
+
+  async delete() {
+    await this.#storage.delete(this.#id);
+    this.#data = null;
+    this.#changes = {};
+  }
+
+  async ensureLoaded() {
+    if (this.#data !== null) return this;
+    return await this.#load();
   }
 }
 
@@ -54,6 +164,8 @@ class Storage {
   #data = new Map();
   #records = new Map();
   #sync = null;
+  #cache = new Map();
+  #updates = [];
 
   // eslint-disable-next-line no-unused-vars
   constructor(options = {}) {
@@ -66,6 +178,7 @@ class Storage {
     const { data } = getInitialDataWithIds();
     for (const [id, item] of Object.entries(data)) {
       this.#data.set(id, item);
+      this.#cache.set(id, item);
     }
     return this;
   }
@@ -77,9 +190,16 @@ class Storage {
     }
   }
 
+  // eslint-disable-next-line no-unused-vars
+  async saveData(id, data, options = {}) {
+    this.#data.set(id, { ...data });
+    this.#cache.set(id, data);
+    this.#updates.push({ type: 'write', id, timestamp: Date.now(), data });
+  }
+
   async insert(data) {
     const id = generateUUID();
-    this.#data.set(id, { ...data });
+    await this.saveData(id, data);
     return id;
   }
 
@@ -88,30 +208,64 @@ class Storage {
   }
 
   async get(id) {
+    if (this.#cache.has(id)) {
+      return this.#cache.get(id);
+    }
     const data = this.#data.get(id);
-    return data ? { ...data } : null;
+    if (data) {
+      this.#cache.set(id, data);
+      return { ...data };
+    }
+    this.#cache.set(id, null);
+    return null;
+  }
+
+  getCachedData(id) {
+    return this.#cache.has(id) ? this.#cache.get(id) : null;
+  }
+
+  hasRecord(id) {
+    return this.#cache.has(id) || this.#records.has(id);
+  }
+
+  addUpdate(update) {
+    this.#updates.push(update);
   }
 
   async set(id, data) {
     const oldData = this.#data.get(id);
-    this.#data.set(id, { ...data });
+    await this.saveData(id, data);
     if (oldData) {
       const delta = calculateDelta(oldData, data);
       this.#emitUpdate(id, data, delta);
+      this.#updates.push({
+        type: 'delta',
+        id,
+        timestamp: Date.now(),
+        data: delta,
+      });
     }
   }
 
   async delete(id) {
     this.#data.delete(id);
     this.#records.delete(id);
+    this.#cache.delete(id);
+    this.#updates.push({ type: 'delete', id, timestamp: Date.now() });
   }
 
   async update(id, delta) {
     const data = this.#data.get(id);
     if (!data) throw new Error(`Record ${id} not found`);
     const updated = { ...data, ...delta };
-    this.#data.set(id, updated);
+    await this.saveData(id, updated);
     this.#emitUpdate(id, updated, delta);
+    this.#updates.push({
+      type: 'delta',
+      id,
+      timestamp: Date.now(),
+      data: delta,
+    });
   }
 
   async swap(id, changes, prev) {
@@ -125,11 +279,16 @@ class Storage {
     return true;
   }
 
-  record(id) {
+  async record(id) {
     if (!this.#records.has(id)) {
-      this.#records.set(id, new Record(this, id));
+      const recordPromise = new Record(id, this);
+      const record = await recordPromise;
+      this.#records.set(id, record);
+      return record;
     }
-    return this.#records.get(id);
+    const record = this.#records.get(id);
+    await record.ensureLoaded();
+    return record;
   }
 
   // eslint-disable-next-line no-unused-vars
