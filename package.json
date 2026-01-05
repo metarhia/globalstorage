@@ -47,6 +47,7 @@
     "node": ">=18"
   },
   "dependencies": {
+    "metacom": "^3.2.6",
     "metaschema": "^2.2.2",
     "metautil": "^5.4.0"
   },

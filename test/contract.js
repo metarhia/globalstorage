@@ -120,18 +120,15 @@ test('Contract module', async (t) => {
         result: args.input * 2,
       });
 
-      const saveResult = await gs.SmartContract.save(
+      const hash = await gs.SmartContract.save(
         'test-contract',
         blockchain,
         testProc,
       );
-      assert.strictEqual(typeof saveResult.id, 'number');
-      assert.strictEqual(typeof saveResult.hash, 'string');
+      assert.strictEqual(typeof hash, 'string');
+      assert.strictEqual(hash.length, 64);
 
-      const loadedContract = await gs.SmartContract.load(
-        saveResult.hash,
-        context,
-      );
+      const loadedContract = await gs.SmartContract.load(hash, context);
       assert.ok(loadedContract instanceof gs.SmartContract);
       assert.strictEqual(loadedContract.name, 'test-contract');
 

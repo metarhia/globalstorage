@@ -25,7 +25,6 @@ test('Chain module', async (t) => {
 
       assert.strictEqual(blockchain.path, tempDir);
       assert.strictEqual(typeof blockchain.tailHash, 'string');
-      assert.strictEqual(blockchain.nextId, 1);
 
       const chainFile = path.join(tempDir, '.blockchain.json');
       assert.strictEqual(await fileExists(chainFile), true);
@@ -40,13 +39,11 @@ test('Chain module', async (t) => {
       const blockchain = await new gs.Blockchain(tempDir);
       const testData = { message: 'Test block data' };
 
-      const result = await blockchain.addBlock(testData);
-      assert.strictEqual(typeof result.id, 'number');
-      assert.strictEqual(typeof result.hash, 'string');
-      assert.strictEqual(result.id, 1);
+      const hash = await blockchain.addBlock(testData);
+      assert.strictEqual(typeof hash, 'string');
+      assert.strictEqual(hash.length, 64);
 
-      const block = await blockchain.readBlock(result.hash);
-      assert.strictEqual(block.id, '1');
+      const block = await blockchain.readBlock(hash);
       assert.notStrictEqual(block.prev, '0');
       assert.strictEqual(typeof block.timestamp, 'number');
       assert.deepStrictEqual(block.data, testData);
@@ -80,7 +77,7 @@ test('Chain module', async (t) => {
       const blockchain = await new gs.Blockchain(tempDir);
       const timestamp = Date.now();
       const data = { test: 'data' };
-      const testBlock = { id: '1', prev: '0', timestamp, data };
+      const testBlock = { prev: '0', timestamp, data };
 
       const hash = await blockchain.writeBlock(testBlock);
       assert.strictEqual(typeof hash, 'string');

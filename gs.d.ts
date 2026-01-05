@@ -1,5 +1,3 @@
-// Submodule: keys
-
 export interface KeyPair {
   publicKey: string;
   privateKey: string;
@@ -10,10 +8,7 @@ export function encrypt(data: unknown, publicKey: string): string;
 export function decrypt(data: string, privateKey: string): unknown;
 export function loadKeys(basePath: string): Promise<KeyPair>;
 
-// Submodule: chain
-
 export interface Block {
-  id: string;
   prev: string;
   timestamp: number;
   data: unknown;
@@ -21,12 +16,6 @@ export interface Block {
 
 export interface ChainInfo {
   tailHash: string;
-  nextId: number;
-}
-
-export interface BlockResult {
-  id: number;
-  hash: string;
 }
 
 export function calculateHash(data: unknown): string;
@@ -35,16 +24,13 @@ export class Blockchain {
   constructor(basePath: string);
   path: string;
   tailHash: string;
-  nextId: number;
 
   writeChain(): Promise<void>;
-  addBlock(data: unknown): Promise<BlockResult>;
+  addBlock(data: unknown): Promise<string>;
   writeBlock(block: Block): Promise<string>;
   readBlock(hash: string): Promise<Block>;
-  isValid(options?: { last?: number; from?: string }): Promise<boolean>;
+  validate(options?: { last?: number; from?: string }): Promise<boolean>;
 }
-
-// Submodule: contract
 
 export interface ContractContext {
   storage: Storage;
@@ -75,17 +61,15 @@ export class SmartContract {
 
   execute(args: { id: string; [key: string]: unknown }): Promise<unknown>;
 
-  static save(
-    name: string,
-    chain: Blockchain,
-    proc: Function,
-  ): Promise<BlockResult>;
+  static save(name: string, chain: Blockchain, proc: Function): Promise<string>;
   static load(hash: string, context: ContractContext): Promise<SmartContract>;
 }
 
-// Submodule: storage
-
 export interface StorageOptions {
+  path?: string;
+}
+
+export interface StorageDataOptions {
   encrypted?: boolean;
 }
 
@@ -96,10 +80,59 @@ export interface StorageEntry {
   block: string;
 }
 
-export class Storage {
-  constructor(basePath: string, blockchain: Blockchain, keys?: KeyPair);
-
-  saveData(id: string, data: unknown, options?: StorageOptions): Promise<void>;
-  loadData(id: string): Promise<unknown>;
-  validate(id: string, data: unknown, blockHash: string): Promise<boolean>;
+export class Record {
+  constructor(storage: Storage, id: string);
+  _storage: Storage;
+  _id: string;
+  on(event: 'update', listener: (data: unknown, delta: unknown) => void): void;
 }
+
+export interface Node {
+  id: string;
+  type: 'uplink' | 'downlink';
+  url: string;
+  token?: string;
+  enabled: boolean;
+  lastSync: number;
+}
+
+export interface NodeData {
+  url: string;
+  type: 'uplink' | 'downlink';
+  token?: string;
+}
+
+export class SyncManager {
+  constructor(basePath: string);
+  addNode(nodeData: NodeData): Promise<void>;
+  removeNode(url: string): Promise<void>;
+  listNodes(): Node[];
+  start(): Promise<void>;
+}
+
+export class Storage {
+  constructor(options?: StorageOptions);
+
+  saveData(
+    id: string,
+    data: unknown,
+    options?: StorageDataOptions,
+  ): Promise<void>;
+  loadData(id: string): Promise<unknown>;
+  validate(
+    idOrOptions: string | { last?: number; from?: string },
+    data?: unknown,
+    blockHash?: string,
+  ): Promise<boolean>;
+  insert(data: unknown): Promise<string>;
+  has(id: string): Promise<boolean>;
+  get(id: string): Promise<unknown>;
+  set(id: string, data: unknown): Promise<void>;
+  delete(id: string): Promise<void>;
+  update(id: string, delta: unknown): Promise<void>;
+  swap(id: string, changes: unknown, prev: unknown): Promise<boolean>;
+  record(id: string): Record;
+  get sync(): SyncManager;
+}
+
+export function open(options?: StorageOptions): Promise<Storage>;
