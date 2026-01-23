@@ -65,8 +65,29 @@ export class SmartContract {
   static load(hash: string, context: ContractContext): Promise<SmartContract>;
 }
 
+export type SchemaEntity = { [fieldName: string]: unknown };
+export type SchemaEntities =
+  | { [entityName: string]: SchemaEntity }
+  | Map<string, SchemaEntity>;
+
+export interface Schema {
+  entities?: SchemaEntities;
+  [key: string]: unknown;
+}
+
 export interface StorageOptions {
   path?: string;
+  schema?: Schema;
+}
+
+export class Collection {
+  constructor(storage: Storage, name: string);
+  readonly name: string;
+  insert(data: unknown): Promise<Record>;
+  get(id: string): Promise<unknown>;
+  delete(id: string): Promise<void>;
+  update(id: string, delta: unknown): Promise<void>;
+  record(id: string): Promise<Record>;
 }
 
 export interface StorageDataOptions {
@@ -80,12 +101,6 @@ export interface StorageEntry {
   block: string;
 }
 
-export class Reference {
-  constructor(id: string, storage: Storage);
-  id: string;
-  record(): Promise<Record>;
-}
-
 export class Record {
   constructor(id: string, storage: Storage);
   readonly id: string;
@@ -94,8 +109,6 @@ export class Record {
   delta(): { [key: string]: unknown };
   save(): Promise<void>;
   delete(): Promise<void>;
-  ensureLoaded(): Promise<Record>;
-  [key: string]: unknown;
 }
 
 export interface Node {
@@ -122,6 +135,8 @@ export class SyncManager {
 
 export class Storage {
   constructor(options?: StorageOptions);
+  readonly schema: Schema | null;
+  readonly sync: SyncManager;
 
   saveData(
     id: string,
@@ -150,7 +165,6 @@ export class Storage {
     timestamp: number;
     data: unknown;
   }): void;
-  get sync(): SyncManager;
 }
 
 export function open(options?: StorageOptions): Promise<Storage>;
