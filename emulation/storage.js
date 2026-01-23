@@ -41,8 +41,9 @@ class Record extends Emitter {
 
   async #load() {
     if (this.#data !== null) return this;
-    this.#data = await this.#storage.get(this.#id);
-    if (this.#data) {
+    const rawData = await this.#storage.get(this.#id);
+    if (rawData) {
+      this.#data = JSON.parse(JSON.stringify(rawData));
       this.#convertToReferences(this.#data);
       this.#defineProperties();
     }
@@ -123,11 +124,6 @@ class Record extends Emitter {
     this.#data = null;
     this.#changes = {};
   }
-
-  async ensureLoaded() {
-    if (this.#data !== null) return this;
-    return await this.#load();
-  }
 }
 
 class SyncManager {
@@ -160,15 +156,53 @@ class SyncManager {
   }
 }
 
+class Collection {
+  #storage;
+  #name;
+
+  constructor(storage, name) {
+    this.#storage = storage;
+    this.#name = name;
+  }
+
+  get name() {
+    return this.#name;
+  }
+
+  async insert(data) {
+    const id = generateUUID();
+    const record = { ...data, $type: this.#name };
+    await this.#storage.saveData(id, record);
+    return this.#storage.record(id);
+  }
+
+  async get(id) {
+    return this.#storage.get(id);
+  }
+
+  async delete(id) {
+    return this.#storage.delete(id);
+  }
+
+  async update(id, delta) {
+    return this.#storage.update(id, delta);
+  }
+
+  async record(id) {
+    return this.#storage.record(id);
+  }
+}
+
 class Storage {
   #data = new Map();
   #records = new Map();
   #sync = null;
   #cache = new Map();
   #updates = [];
+  #schema = null;
 
-  // eslint-disable-next-line no-unused-vars
   constructor(options = {}) {
+    if (options.schema) this.#schema = options.schema;
     this.#sync = new SyncManager();
     return this.#init();
   }
@@ -180,7 +214,20 @@ class Storage {
       this.#data.set(id, item);
       this.#cache.set(id, item);
     }
+    this.#initCollections();
     return this;
+  }
+
+  #initCollections() {
+    const entities = this.#schema?.entities;
+    if (!entities) return;
+    for (const [name] of entities.entries?.() ?? Object.entries(entities)) {
+      this[name] = new Collection(this, name);
+    }
+  }
+
+  get schema() {
+    return this.#schema;
   }
 
   #emitUpdate(id, data, delta) {
@@ -207,7 +254,7 @@ class Storage {
     return this.#data.has(id);
   }
 
-  async get(id) {
+  async loadData(id) {
     if (this.#cache.has(id)) {
       return this.#cache.get(id);
     }
@@ -218,6 +265,10 @@ class Storage {
     }
     this.#cache.set(id, null);
     return null;
+  }
+
+  async get(id) {
+    return this.loadData(id);
   }
 
   getCachedData(id) {
@@ -281,14 +332,10 @@ class Storage {
 
   async record(id) {
     if (!this.#records.has(id)) {
-      const recordPromise = new Record(id, this);
-      const record = await recordPromise;
+      const record = await new Record(id, this);
       this.#records.set(id, record);
-      return record;
     }
-    const record = this.#records.get(id);
-    await record.ensureLoaded();
-    return record;
+    return this.#records.get(id);
   }
 
   // eslint-disable-next-line no-unused-vars
@@ -307,4 +354,4 @@ class Storage {
 
 const open = async (options = {}) => new Storage(options);
 
-module.exports = { Storage, open, SyncManager };
+module.exports = { Storage, Collection, Record, open, SyncManager };

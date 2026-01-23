@@ -1,9 +1,12 @@
 'use strict';
 
 const globalStorage = require('./gs.js');
+const xxii = require('xxii-schema');
 
 const main = async () => {
-  const storage = await globalStorage.open();
+  const xxiiSchema = await xxii.load();
+  console.log(xxiiSchema);
+  const storage = await globalStorage.open({ schema: xxiiSchema });
 
   await storage.sync
     .addNode({
@@ -36,20 +39,19 @@ const main = async () => {
   const nodes = storage.sync.listNodes();
   console.log('List nodes', nodes);
 
-  // Domain logic
+  // Implicit API - Record with dynamic getters/setters
 
   const authorData = { name: 'Timur', email: 'timur@example.com' };
   const authorId = await storage.insert(authorData);
+  const authorRecord = await storage.record(authorId);
+  authorRecord.email = 'timur.shemsedinov@gmail.com';
+  await authorRecord.save();
 
   const post = { title: 'Example', content: 'Text', author: authorId };
-  const id = await storage.insert(post);
-
-  // Implicit API - Record with dynamic getters/setters
-
-  const postRecord = await storage.record(id);
+  const postRecord = await storage.Post.insert(post);
 
   postRecord.on('update', (data, delta) => {
-    console.log('Record updated:', { id, data, delta });
+    console.log('Record updated:', { id: postRecord.id, data, delta });
   });
 
   console.log('Title:', postRecord.title);
@@ -64,19 +66,15 @@ const main = async () => {
 
   await postRecord.save();
 
-  const authorRecord = await postRecord.author.record();
-  console.log('Author name:', authorRecord.name);
-
-  // Delete record
-  // await postRecord.delete();
+  console.log('Author name:', postRecord.author.name);
 
   // Explicit API (still available)
 
-  const exists = await storage.has(id);
+  const exists = await storage.has(postRecord.id);
   if (exists) {
-    const data = await storage.get(id);
+    const data = await storage.get(postRecord.id);
     data.content += ' more changes';
-    await storage.set(id, data);
+    await storage.set(postRecord.id, data);
   }
 
   await storage.sync.start();
