@@ -133,10 +133,24 @@ export class SyncManager {
   start(): Promise<void>;
 }
 
+export interface SearchResult {
+  id: string;
+  score: number;
+}
+
+export class SearchIndex {
+  constructor(basePath: string, storage: Storage, chain: Blockchain);
+  index(id: string, data: unknown): Promise<void>;
+  remove(id: string): Promise<void>;
+  search(query: string, limit?: number): SearchResult[];
+  rebuild(): Promise<void>;
+}
+
 export class Storage {
   constructor(options?: StorageOptions);
   readonly schema: Schema | null;
   readonly sync: SyncManager;
+  readonly fts: SearchIndex;
 
   saveData(
     id: string,
@@ -157,6 +171,7 @@ export class Storage {
   update(id: string, delta: unknown): Promise<void>;
   swap(id: string, changes: unknown, prev: unknown): Promise<boolean>;
   record(id: string): Promise<Record>;
+  search(query: string, limit?: number): SearchResult[];
   getCachedData(id: string): unknown | null;
   hasRecord(id: string): boolean;
   addUpdate(update: {
