@@ -1,6 +1,7 @@
 'use strict';
 
 const { Emitter, generateUUID } = require('metautil');
+const { getInitialDataWithIds } = require('./data.js');
 
 const calculateDelta = (oldData, newData) => {
   const delta = {};
@@ -208,7 +209,6 @@ class Storage {
   }
 
   async #init() {
-    const { getInitialDataWithIds } = require('./data.js');
     const { data } = getInitialDataWithIds();
     for (const [id, item] of Object.entries(data)) {
       this.#data.set(id, item);

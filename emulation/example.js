@@ -1,6 +1,7 @@
 'use strict';
 
 const globalStorage = require('./storage.js');
+const { getInitialDataWithIds } = require('./data.js');
 
 const formatAuthor = (author) =>
   `${author.icon} ${author.name} (@${author.nick}) - ${author.bio}`;
@@ -48,7 +49,6 @@ const main = async () => {
   const messages = [];
   const chats = new Map();
 
-  const { getInitialDataWithIds } = require('./data.js');
   const { ids } = getInitialDataWithIds();
 
   for (const authorId of ids.authors) {
