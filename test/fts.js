@@ -277,9 +277,13 @@ test('SearchIndex via Storage', async (t) => {
     const tempDir = await createTempDir();
     try {
       const storage = await new gs.Storage({ path: tempDir });
-      await storage.saveData('secret-1', { title: 'top secret' }, {
-        encrypted: true,
-      });
+      await storage.saveData(
+        'secret-1',
+        { title: 'top secret' },
+        {
+          encrypted: true,
+        },
+      );
 
       const results = storage.search('secret');
       assert.strictEqual(results.length, 0);

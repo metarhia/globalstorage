@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>GlobalStorage FTS — Browser Demo</title>
+  <style>
+    body { font-family: monospace; padding: 20px; background: #1e1e1e; color: #d4d4d4; }
+    h2 { color: #569cd6; }
+    #output { white-space: pre-wrap; line-height: 1.6; margin-bottom: 12px; }
+    .result { color: #4ec9b0; }
+    .info { color: #9cdcfe; }
+    .error { color: #f44747; }
+    form { display: flex; gap: 8px; align-items: center; }
+    input {
+      font-family: monospace; font-size: 14px; padding: 6px 10px;
+      background: #2d2d2d; color: #d4d4d4; border: 1px solid #569cd6;
+      flex: 1; max-width: 400px;
+    }
+    button {
+      font-family: monospace; font-size: 14px; padding: 6px 16px;
+      background: #569cd6; color: #1e1e1e; border: none; cursor: pointer;
+    }
+    label { color: #9cdcfe; }
+    input[type="number"] { max-width: 60px; }
+  </style>
+</head>
+<body>
+  <h2>fts&gt; Full-Text Search Demo (Browser + OPFS)</h2>
+
+  <form id="search-form">
+    <label>Query:</label>
+    <input type="text" id="query" placeholder='Try "inverse" or "trigram index"' autofocus>
+    <label>Limit:</label>
+    <input type="number" id="limit" value="10" min="1" max="100">
+    <button type="submit">Search</button>
+  </form>
+
+  <div id="output"></div>
+
+  <script type="module">
+    import {
+      calculateHash,
+      SearchRepositoryOPFS,
+      SearchIndex,
+    } from '../dist/browser.js';
+
+    const output = document.getElementById('output');
+
+    const print = (msg, cls = '') => {
+      const span = document.createElement('span');
+      span.className = cls;
+      span.textContent = msg + '\n';
+      output.appendChild(span);
+    };
+
+    const seed = [
+      {
+        title: 'Term Frequency (TF)',
+        body: "Term Frequency (TF) measures how frequently a specific term (word or phrase) appears in a document, used in information retrieval and text mining to determine keyword relevance. Calculated as the ratio of a term's count to the total terms in a document, higher TF suggests greater importance, frequently combined with Inverse Document Frequency (IDF).",
+      },
+      {
+        title: 'Inverse Document Frequency (IDF)',
+        body: 'Inverse Document Frequency (IDF) is a metric that evaluates how rare or common a word is across a collection of documents.',
+      },
+      {
+        title: 'TF-IDF',
+        body: 'TF-IDF is the product of TF and IDF, used to rank documents based on the importance of the terms in the query.',
+      },
+      {
+        title: 'Trigram Index',
+        body: 'A trigram index is a data structure that stores all possible three-character combinations (trigrams) of a document, used to quickly search for documents containing specific words or phrases.',
+      },
+    ];
+
+    // Mock chain backed by in-memory Map
+    const createMockChain = () => {
+      const blocks = new Map();
+      let counter = 0;
+      return {
+        async addBlock(data) {
+          const id = `block-${++counter}`;
+          blocks.set(id, { data });
+          return id;
+        },
+        async readBlock(id) {
+          return blocks.get(id) || null;
+        },
+      };
+    };
+
+    // Mock storage with in-memory records
+    const createMockStorage = () => {
+      const records = new Map();
+      let counter = 0;
+      return {
+        async insert(data) {
+          const id = `rec-${++counter}`;
+          records.set(id, data);
+          return id;
+        },
+        async get(id) {
+          return records.get(id) || null;
+        },
+        async listIds() {
+          return [...records.keys()];
+        },
+      };
+    };
+
+    // Clean OPFS fts directory for a fresh start
+    const cleanOPFS = async () => {
+      const root = await navigator.storage.getDirectory();
+      try {
+        await root.removeEntry('fts', { recursive: true });
+      } catch {
+        // Directory may not exist
+      }
+    };
+
+    const main = async () => {
+      await cleanOPFS();
+
+      const chain = createMockChain();
+      const storage = createMockStorage();
+      const repository = await new SearchRepositoryOPFS();
+      const searchIndex = await new SearchIndex(storage, chain, repository);
+
+      print(`Seeding ${seed.length} records...`, 'info');
+      for (const data of seed) {
+        const id = await storage.insert(data);
+        await searchIndex.index(id, data);
+      }
+      print('Done.\n', 'info');
+      print('Enter a query below and click Search.', 'info');
+      print('Try: "inverse", "trigram index", "invarse" (typo)\n', 'info');
+
+      const form = document.getElementById('search-form');
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const query = document.getElementById('query').value.trim();
+        const limit = parseInt(document.getElementById('limit').value, 10) || 10;
+        if (!query) return;
+
+        print(`\nfts> search("${query}", ${limit})`, 'info');
+
+        const results = searchIndex.search(query, limit);
+        if (results.length === 0) {
+          print('  (no results)', 'error');
+        } else {
+          for (const { id, score } of results) {
+            const data = await storage.get(id);
+            const title = data?.title ?? '(no title)';
+            print(`  [${score.toFixed(4)}]  ${title}`, 'result');
+          }
+        }
+        print(`${results.length} result(s)`, 'info');
+      });
+    };
+
+    main().catch((err) => {
+      print(`FATAL: ${err.message}`, 'error');
+      console.error(err);
+    });
+  </script>
+</body>
+</html>
