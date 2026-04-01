@@ -157,6 +157,7 @@ export class Storage {
     data: unknown,
     options?: StorageDataOptions,
   ): Promise<void>;
+  isEncrypted(id: string): Promise<boolean>;
   loadData(id: string): Promise<unknown>;
   validate(
     idOrOptions: string | { last?: number; from?: string },

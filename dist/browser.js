@@ -188,7 +188,7 @@ const normalize = (text) =>
     .normalize('NFD')
     .replace(/\s+/g, ' ')
     .replace(/\p{M}/gu, '')
-    .toLowerCase()
+    .toLocaleLowerCase()
     .trim();
 
 function* extractTrigrams(text) {
@@ -202,7 +202,7 @@ function* extractStrings(data) {
   if (typeof data === 'string') {
     yield data;
   } else if (data !== null && typeof data === 'object') {
-    for (const key in data) yield* extractStrings(data[key]);
+    for (const key of Object.keys(data)) yield* extractStrings(data[key]);
   }
 }
 
@@ -243,7 +243,8 @@ class SearchRepositoryOPFS {
     try {
       const fileHandle = await this.#getFileHandle();
       const file = await fileHandle.getFile();
-      return await file.text();
+      const raw = await file.text();
+      return JSON.parse(raw);
     } catch (cause) {
       if (cause.name !== 'NotFoundError') {
         throw new Error('SearchRepositoryOPFS::load', { cause });
@@ -255,7 +256,7 @@ class SearchRepositoryOPFS {
   async save(data) {
     const fileHandle = await this.#getFileHandle({ create: true });
     const writable = await fileHandle.createWritable();
-    await writable.write(data);
+    await writable.write(JSON.stringify(data));
     await writable.close();
   }
 }
@@ -286,9 +287,9 @@ class SearchIndex {
   }
 
   async #load() {
-    const raw = await this.#repository.load();
-    if (!raw) return;
-    const { data, block } = JSON.parse(raw);
+    const entry = await this.#repository.load();
+    if (!entry) return;
+    const { data, block } = entry;
     const hash = await calculateHash(data);
     const blockRecord = await this.#chain.readBlock(block);
     const valid =
@@ -339,7 +340,7 @@ class SearchIndex {
       hash,
     });
     const entry = { data, timestamp: Date.now(), block: blockHash };
-    await this.#repository.save(JSON.stringify(entry));
+    await this.#repository.save(entry);
   }
 
   #removeFromIndex(id) {
@@ -385,6 +386,7 @@ class SearchIndex {
   }
 
   search(query, limit = 10) {
+    if (typeof query !== 'string') return [];
     const queryTrigrams = new Set(extractTrigrams(query));
     if (queryTrigrams.size === 0 || this.#docCount === 0) return [];
     const scores = new Map();
@@ -410,6 +412,8 @@ class SearchIndex {
     this.#docCount = 0;
     const ids = await this.#storage.listIds();
     for (const id of ids) {
+      const encrypted = await this.#storage.isEncrypted(id);
+      if (encrypted) continue;
       const data = await this.#storage.get(id);
       if (data) this.#indexRecord(id, data);
     }
