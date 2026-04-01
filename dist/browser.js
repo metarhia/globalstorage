@@ -412,8 +412,6 @@ class SearchIndex {
     this.#docCount = 0;
     const ids = await this.#storage.listIds();
     for (const id of ids) {
-      const encrypted = await this.#storage.isEncrypted(id);
-      if (encrypted) continue;
       const data = await this.#storage.get(id);
       if (data) this.#indexRecord(id, data);
     }
