@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>GlobalStorage FTS — Browser Test</title>
+  <style>
+    body { font-family: monospace; padding: 20px; background: #1e1e1e; color: #d4d4d4; }
+    h2 { color: #569cd6; }
+    .pass { color: #4ec9b0; }
+    .fail { color: #f44747; }
+    #log { white-space: pre-wrap; line-height: 1.6; }
+  </style>
+</head>
+<body>
+  <h2>GlobalStorage FTS — Browser Test</h2>
+  <div id="log"></div>
+
+  <script type="module">
+    import {
+      calculateHash,
+      extractTrigrams,
+      extractRecordTrigrams,
+      SearchRepositoryOPFS,
+      SearchIndex,
+    } from '../dist/browser.js';
+
+    const log = document.getElementById('log');
+    let passed = 0;
+    let failed = 0;
+
+    const print = (msg, ok) => {
+      const cls = ok ? 'pass' : 'fail';
+      const icon = ok ? '✔' : '✖';
+      log.innerHTML += `<span class="${cls}">${icon} ${msg}</span>\n`;
+      if (ok) passed++;
+      else failed++;
+    };
+
+    const assert = (condition, msg) => {
+      print(msg, !!condition);
+      if (!condition) console.error('FAIL:', msg);
+    };
+
+    // Mock chain: in-memory Map that stores and retrieves blocks
+    const createMockChain = () => {
+      const blocks = new Map();
+      let counter = 0;
+      return {
+        async addBlock(data) {
+          const id = `block-${++counter}`;
+          blocks.set(id, { data });
+          return id;
+        },
+        async readBlock(id) {
+          return blocks.get(id) || null;
+        },
+      };
+    };
+
+    // Mock storage: in-memory record store
+    const createMockStorage = () => {
+      const records = new Map();
+      return {
+        async get(id) {
+          return records.get(id) || null;
+        },
+        async listIds() {
+          return [...records.keys()];
+        },
+        set(id, data) {
+          records.set(id, data);
+        },
+      };
+    };
+
+    // Clean OPFS fts directory before each test
+    const cleanOPFS = async () => {
+      const root = await navigator.storage.getDirectory();
+      try {
+        await root.removeEntry('fts', { recursive: true });
+      } catch {
+        // Directory may not exist yet
+      }
+    };
+
+    const run = async () => {
+      log.innerHTML = '';
+
+      // --- Test 1: Trigram extraction ---
+      const trigrams = [...extractTrigrams('hello')];
+      assert(
+        trigrams.join(',') === 'hel,ell,llo',
+        'extractTrigrams("hello") → hel,ell,llo',
+      );
+
+      // --- Test 2: Short query yields no trigrams ---
+      const short = [...extractTrigrams('ab')];
+      assert(short.length === 0, 'extractTrigrams("ab") → empty');
+
+      // --- Test 3: OPFS repository save/load ---
+      await cleanOPFS();
+      const repo = await new SearchRepositoryOPFS();
+      const testData = JSON.stringify({ test: true });
+      await repo.save(testData);
+      const loaded = await repo.load();
+      assert(loaded === testData, 'OPFS save → load round-trip');
+
+      // --- Test 4: OPFS load returns null when empty ---
+      await cleanOPFS();
+      const emptyRepo = await new SearchRepositoryOPFS();
+      const empty = await emptyRepo.load();
+      assert(empty === null, 'OPFS load on empty → null');
+
+      // --- Test 5: SearchIndex basic search ---
+      await cleanOPFS();
+      const chain1 = createMockChain();
+      const storage1 = createMockStorage();
+      const repository1 = await new SearchRepositoryOPFS();
+      const index1 = await new SearchIndex(storage1, chain1, repository1);
+
+      await index1.index('doc-1', { title: 'javascript frameworks' });
+      await index1.index('doc-2', { title: 'cooking recipes' });
+      await index1.index('doc-3', { title: 'javascript tutorials' });
+
+      const results1 = index1.search('javascript');
+      assert(results1.length === 2, `search("javascript") → ${results1.length} results (expected 2)`);
+      assert(
+        results1.every((r) => r.id === 'doc-1' || r.id === 'doc-3'),
+        'search results contain doc-1 and doc-3',
+      );
+
+      // --- Test 6: Search ranking (TF-IDF) ---
+      await cleanOPFS();
+      const chain2 = createMockChain();
+      const storage2 = createMockStorage();
+      const repository2 = await new SearchRepositoryOPFS();
+      const index2 = await new SearchIndex(storage2, chain2, repository2);
+
+      await index2.index('a', { content: 'unrelated content here' });
+      await index2.index('b', { content: 'javascript is great' });
+      await index2.index('c', { content: 'javascript javascript javascript rocks' });
+
+      const ranked = index2.search('javascript');
+      assert(ranked.length >= 2, `TF-IDF ranking: ${ranked.length} results`);
+      assert(
+        ranked[0].id === 'c',
+        `highest ranked is "c" (got "${ranked[0]?.id}")`,
+      );
+
+      // --- Test 7: OPFS persistence across instances ---
+      await cleanOPFS();
+      const chain3 = createMockChain();
+      const storage3 = createMockStorage();
+      const repo3 = await new SearchRepositoryOPFS();
+      const idx3 = await new SearchIndex(storage3, chain3, repo3);
+
+      await idx3.index('p1', { title: 'persistent record' });
+      const before = idx3.search('persistent');
+      assert(before.length === 1, 'search before reload → 1 result');
+
+      // Create new SearchIndex with SAME chain (has the blocks)
+      // and a fresh OPFS repository (reads from same OPFS dir)
+      const repo3b = await new SearchRepositoryOPFS();
+      const idx3b = await new SearchIndex(storage3, chain3, repo3b);
+      const after = idx3b.search('persistent');
+      assert(after.length === 1, 'search after reload → 1 result (OPFS persistence works)');
+      assert(
+        after[0].id === before[0].id,
+        'same record ID after reload',
+      );
+
+      // --- Test 8: Remove record ---
+      await index1.remove('doc-1');
+      const afterRemove = index1.search('javascript');
+      assert(
+        afterRemove.length === 1 && afterRemove[0].id === 'doc-3',
+        'remove("doc-1") → only doc-3 remains',
+      );
+
+      // --- Test 9: Search limit ---
+      const limited = index2.search('javascript', 1);
+      assert(limited.length === 1, 'search with limit=1 → 1 result');
+
+      // --- Summary ---
+      log.innerHTML += '\n';
+      print(`${passed} passed, ${failed} failed`, failed === 0);
+    };
+
+    run().catch((err) => {
+      print(`FATAL: ${err.message}`, false);
+      console.error(err);
+    });
+  </script>
+</body>
+</html>
