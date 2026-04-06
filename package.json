@@ -24,20 +24,20 @@
     "type": "git",
     "url": "https://github.com/metarhia/globalstorage"
   },
-  "main": "gs.js",
+  "main": "globalstorage.js",
   "browser": {
-    "./gs.js": "./dist/browser.js"
+    "./globalstorage.js": "./globalstorage.mjs"
   },
   "exports": {
-    ".": "./gs.js",
-    "./browser": "./dist/browser.js",
-    "./dist": "./dist/browser.js"
+    ".": "./globalstorage.js",
+    "./browser": "./globalstorage.mjs"
   },
   "files": [
     "lib/",
-    "dist/"
+    "globalstorage.mjs"
   ],
   "scripts": {
+    "build": "metarhia-build",
     "test": "npm run lint && npm run types && node --test",
     "types": "tsc -p tsconfig.json",
     "lint": "eslint . && prettier -c \"**/*.js\" \"**/*.json\" \"**/*.md\" \"**/*.ts\"",
@@ -49,12 +49,13 @@
   "dependencies": {
     "metacom": "^3.2.6",
     "metaschema": "^2.2.2",
-    "metautil": "^5.5.1"
+    "metautil": "^5.5.2"
   },
   "devDependencies": {
-    "@types/node": "^25.4.0",
+    "@types/node": "^25.5.2",
     "eslint": "^9.39.4",
     "eslint-config-metarhia": "^9.1.8",
+    "metarhia-build": "^0.0.0",
     "prettier": "^3.8.1",
     "typescript": "^5.9.3",
     "xxii-schema": "^0.0.1"
