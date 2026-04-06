@@ -8,6 +8,10 @@ export function encrypt(data: unknown, publicKey: string): string;
 export function decrypt(data: string, privateKey: string): unknown;
 export function loadKeys(basePath: string): Promise<KeyPair>;
 
+export function diff(source: unknown, target: unknown): Record<string, unknown>;
+export function merge(source: unknown, delta: unknown): unknown;
+export function apply(source: unknown, history: unknown[]): unknown;
+
 export interface Block {
   prev: string;
   timestamp: number;
@@ -80,16 +84,6 @@ export interface StorageOptions {
   schema?: Schema;
 }
 
-export class Collection {
-  constructor(storage: Storage, name: string);
-  readonly name: string;
-  insert(data: unknown): Promise<Record>;
-  get(id: string): Promise<unknown>;
-  delete(id: string): Promise<void>;
-  update(id: string, delta: unknown): Promise<void>;
-  record(id: string): Promise<Record>;
-}
-
 export interface StorageDataOptions {
   encrypted?: boolean;
 }
@@ -99,16 +93,6 @@ export interface StorageEntry {
   encrypted: boolean;
   timestamp: number;
   block: string;
-}
-
-export class Record {
-  constructor(id: string, storage: Storage);
-  readonly id: string;
-  on(event: 'update', listener: (data: unknown, delta: unknown) => void): void;
-  data(): Promise<unknown>;
-  delta(): { [key: string]: unknown };
-  save(): Promise<void>;
-  delete(): Promise<void>;
 }
 
 export interface Node {
@@ -156,7 +140,7 @@ export class Storage {
   delete(id: string): Promise<void>;
   update(id: string, delta: unknown): Promise<void>;
   swap(id: string, changes: unknown, prev: unknown): Promise<boolean>;
-  record(id: string): Promise<Record>;
+  record(id: string): Promise<Storage.Record>;
   getCachedData(id: string): unknown | null;
   hasRecord(id: string): boolean;
   addUpdate(update: {
@@ -165,6 +149,31 @@ export class Storage {
     timestamp: number;
     data: unknown;
   }): void;
+}
+
+export namespace Storage {
+  export class Collection {
+    constructor(storage: Storage, name: string);
+    readonly name: string;
+    insert(data: unknown): Promise<Storage.Record>;
+    get(id: string): Promise<unknown>;
+    delete(id: string): Promise<void>;
+    update(id: string, delta: unknown): Promise<void>;
+    record(id: string): Promise<Storage.Record>;
+  }
+
+  export class Record {
+    constructor(id: string, storage: Storage);
+    readonly id: string;
+    on(
+      event: 'update',
+      listener: (data: unknown, delta: unknown) => void,
+    ): void;
+    data(): Promise<unknown>;
+    delta(): { [key: string]: unknown };
+    save(): Promise<void>;
+    delete(): Promise<void>;
+  }
 }
 
 export function open(options?: StorageOptions): Promise<Storage>;
