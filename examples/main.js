@@ -1,21 +1,28 @@
 'use strict';
 
-const globalStorage = require('../gs.js');
+const globalStorage = require('../globalstorage.js');
 const domain = require('./domain.js');
 
 const main = async () => {
-  // App start and init
   const storage = await globalStorage.open();
   domain.init(storage);
 
-  // Create post
+  const authorId = await storage.insert({
+    name: 'Example Author',
+    email: 'author@example.com',
+  });
+  const feedId = await storage.insert({ title: 'Example feed' });
+
   const title = 'Example';
   const content = 'Text';
-  const post = { author: '123', title, content, feed: '123' };
-  const postId = await domain.create(post);
+  const { postId } = await domain.create({
+    author: authorId,
+    title,
+    content,
+    feed: feedId,
+  });
   console.log('Post created:', postId);
 
-  // Publish post
   await domain.publish({ postId });
   console.log('Post published');
 };

@@ -24,10 +24,9 @@ const create = async ({ author, title, content, feed }) => {
 };
 
 const publish = async ({ postId }) => {
-  const postRecord = await storage.get(postId);
-  if (!postRecord) throw new Error('Post not found');
-  postRecord.status = 'published';
-  await postRecord.save();
+  const existing = await storage.get(postId);
+  if (!existing) throw new Error('Post not found');
+  await storage.update(postId, { status: 'published' });
 };
 
 module.exports = { init, create, publish };
