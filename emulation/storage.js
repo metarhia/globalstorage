@@ -352,6 +352,9 @@ class Storage {
   }
 }
 
+Storage.Collection = Collection;
+Storage.Record = Record;
+
 const open = async (options = {}) => new Storage(options);
 
-module.exports = { Storage, Collection, Record, open, SyncManager };
+module.exports = { Storage, open, SyncManager };

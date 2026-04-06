@@ -5,7 +5,7 @@ const assert = require('node:assert');
 const fs = require('node:fs/promises');
 const path = require('node:path');
 const { directoryExists } = require('metautil');
-const gs = require('..');
+const globalStorage = require('..');
 const { createTempDir, cleanupTempDir } = require('./test-utils.js');
 
 const mockSchema = {
@@ -20,9 +20,9 @@ test('Storage module', async (t) => {
   await t.test('Storage constructor and initialization', async () => {
     const tempDir = await createTempDir();
     try {
-      const storage = await new gs.Storage({ path: tempDir });
+      const storage = await globalStorage.open({ path: tempDir });
 
-      assert.ok(storage instanceof gs.Storage);
+      assert.ok(storage instanceof globalStorage.Storage);
       assert.strictEqual(await directoryExists(tempDir), true);
     } finally {
       await cleanupTempDir(tempDir);
@@ -32,7 +32,7 @@ test('Storage module', async (t) => {
   await t.test('Storage saveData and loadData without encryption', async () => {
     const tempDir = await createTempDir();
     try {
-      const storage = await new gs.Storage({ path: tempDir });
+      const storage = await globalStorage.open({ path: tempDir });
 
       const testData = { message: 'Hello, Storage!', number: 123 };
       await storage.saveData('test-1', testData);
@@ -47,7 +47,7 @@ test('Storage module', async (t) => {
   await t.test('Storage saveData and loadData with encryption', async () => {
     const tempDir = await createTempDir();
     try {
-      const storage = await new gs.Storage({ path: tempDir });
+      const storage = await globalStorage.open({ path: tempDir });
 
       const testData = { secret: 'encrypted data', value: 456 };
       await storage.saveData('test-2', testData, { encrypted: true });
@@ -62,7 +62,7 @@ test('Storage module', async (t) => {
   await t.test('Storage loadData with non-existent data', async () => {
     const tempDir = await createTempDir();
     try {
-      const storage = await new gs.Storage({ path: tempDir });
+      const storage = await globalStorage.open({ path: tempDir });
 
       const result = await storage.loadData('nonexistent');
       assert.strictEqual(result, null);
@@ -74,7 +74,7 @@ test('Storage module', async (t) => {
   await t.test('Storage validate method', async () => {
     const tempDir = await createTempDir();
     try {
-      const storage = await new gs.Storage({ path: tempDir });
+      const storage = await globalStorage.open({ path: tempDir });
 
       const testData = { message: 'Test validation' };
       await storage.saveData('test-3', testData);
@@ -101,12 +101,12 @@ test('Storage module', async (t) => {
     const tempDir = await createTempDir();
     try {
       const options = { path: tempDir, schema: mockSchema };
-      const storage = await new gs.Storage(options);
+      const storage = await globalStorage.open(options);
 
       assert.strictEqual(storage.schema, mockSchema);
-      assert.ok(storage.Post instanceof gs.Collection);
-      assert.ok(storage.Author instanceof gs.Collection);
-      assert.ok(storage.Comment instanceof gs.Collection);
+      assert.ok(storage.Post instanceof globalStorage.Storage.Collection);
+      assert.ok(storage.Author instanceof globalStorage.Storage.Collection);
+      assert.ok(storage.Comment instanceof globalStorage.Storage.Collection);
       assert.strictEqual(storage.Post.name, 'Post');
       assert.strictEqual(storage.Author.name, 'Author');
     } finally {
@@ -124,10 +124,10 @@ test('Storage module', async (t) => {
         ]),
       };
       const options = { path: tempDir, schema: mapSchema };
-      const storage = await new gs.Storage(options);
+      const storage = await globalStorage.open(options);
 
-      assert.ok(storage.User instanceof gs.Collection);
-      assert.ok(storage.Article instanceof gs.Collection);
+      assert.ok(storage.User instanceof globalStorage.Storage.Collection);
+      assert.ok(storage.Article instanceof globalStorage.Storage.Collection);
       assert.strictEqual(storage.User.name, 'User');
       assert.strictEqual(storage.Article.name, 'Article');
 
@@ -143,7 +143,7 @@ test('Storage module', async (t) => {
   await t.test('Storage without schema has no collections', async () => {
     const tempDir = await createTempDir();
     try {
-      const storage = await new gs.Storage({ path: tempDir });
+      const storage = await globalStorage.open({ path: tempDir });
 
       assert.strictEqual(storage.schema, null);
       assert.strictEqual(storage.Post, undefined);
@@ -159,12 +159,12 @@ test('Collection module', async (t) => {
     const tempDir = await createTempDir();
     try {
       const options = { path: tempDir, schema: mockSchema };
-      const storage = await new gs.Storage(options);
+      const storage = await globalStorage.open(options);
 
       const authorData = { name: 'John', email: 'john@example.com' };
       const authorRecord = await storage.Author.insert(authorData);
 
-      assert.ok(authorRecord instanceof gs.Record);
+      assert.ok(authorRecord instanceof globalStorage.Storage.Record);
       assert.ok(authorRecord.id);
       assert.strictEqual(authorRecord.name, 'John');
       assert.strictEqual(authorRecord.email, 'john@example.com');
@@ -177,7 +177,7 @@ test('Collection module', async (t) => {
     const tempDir = await createTempDir();
     try {
       const options = { path: tempDir, schema: mockSchema };
-      const storage = await new gs.Storage(options);
+      const storage = await globalStorage.open(options);
 
       const postData = { title: 'Hello', content: 'World' };
       const postRecord = await storage.Post.insert(postData);
@@ -195,7 +195,7 @@ test('Collection module', async (t) => {
     const tempDir = await createTempDir();
     try {
       const options = { path: tempDir, schema: mockSchema };
-      const storage = await new gs.Storage(options);
+      const storage = await globalStorage.open(options);
 
       const authorRecord = await storage.Author.insert({
         name: 'Jane',
@@ -215,7 +215,7 @@ test('Collection module', async (t) => {
     const tempDir = await createTempDir();
     try {
       const options = { path: tempDir, schema: mockSchema };
-      const storage = await new gs.Storage(options);
+      const storage = await globalStorage.open(options);
 
       const postRecord = await storage.Post.insert({
         title: 'Original',
@@ -236,7 +236,7 @@ test('Collection module', async (t) => {
     const tempDir = await createTempDir();
     try {
       const options = { path: tempDir, schema: mockSchema };
-      const storage = await new gs.Storage(options);
+      const storage = await globalStorage.open(options);
 
       const commentRecord = await storage.Comment.insert({
         text: 'Nice post!',
@@ -259,7 +259,7 @@ test('Collection module', async (t) => {
     const tempDir = await createTempDir();
     try {
       const options = { path: tempDir, schema: mockSchema };
-      const storage = await new gs.Storage(options);
+      const storage = await globalStorage.open(options);
 
       const authorRecord = await storage.Author.insert({
         name: 'Bob',
@@ -268,7 +268,7 @@ test('Collection module', async (t) => {
       const id = authorRecord.id;
 
       const record = await storage.Author.record(id);
-      assert.ok(record instanceof gs.Record);
+      assert.ok(record instanceof globalStorage.Storage.Record);
       assert.strictEqual(record.id, id);
       assert.strictEqual(record.name, 'Bob');
     } finally {
@@ -280,7 +280,7 @@ test('Collection module', async (t) => {
     const tempDir = await createTempDir();
     try {
       const options = { path: tempDir, schema: mockSchema };
-      const storage = await new gs.Storage(options);
+      const storage = await globalStorage.open(options);
 
       const author = await storage.Author.insert({
         name: 'Alice',
