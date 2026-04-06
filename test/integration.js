@@ -4,13 +4,13 @@ const path = require('node:path');
 const test = require('node:test');
 const assert = require('node:assert');
 const globalStorage = require('..');
-const { createTempDir, cleanupTempDir } = require('./test-utils.js');
+const { createTemp, cleanupTemp } = require('./utils/temp.js');
 
 test('Integration tests', async (t) => {
   await t.test(
     'Full workflow: keys -> storage -> contract -> chain',
     async () => {
-      const tempDir = await createTempDir();
+      const tempDir = await createTemp();
       try {
         const storage = await globalStorage.open({ path: tempDir });
         const chainPath = path.join(tempDir, 'blockchain');
@@ -44,7 +44,7 @@ test('Integration tests', async (t) => {
         const isValid = await blockchain.validate();
         assert.strictEqual(isValid, true);
       } finally {
-        await cleanupTempDir(tempDir);
+        await cleanupTemp(tempDir);
       }
     },
   );

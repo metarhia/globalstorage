@@ -2,29 +2,23 @@
 
 const test = require('node:test');
 const assert = require('node:assert');
-const gs = require('..');
+const globalStorage = require('..');
 
 test('CRDT module', async (t) => {
   await t.test('diff function - basic object diff', () => {
+    assert.deepStrictEqual(globalStorage.diff({}, {}), {});
+
     const source = { a: 1, b: 2, c: 3 };
     const target = { a: 1, b: 20, d: 4 };
-    const result = gs.diff(source, target);
+    const result = globalStorage.diff(source, target);
 
     assert.deepStrictEqual(result, { b: 20, c: undefined, d: 4 });
-  });
-
-  await t.test('diff function - empty objects', () => {
-    const source = {};
-    const target = {};
-    const result = gs.diff(source, target);
-
-    assert.deepStrictEqual(result, {});
   });
 
   await t.test('diff function - new keys added', () => {
     const source = { a: 1 };
     const target = { a: 1, b: 2, c: 3 };
-    const result = gs.diff(source, target);
+    const result = globalStorage.diff(source, target);
 
     assert.deepStrictEqual(result, { b: 2, c: 3 });
   });
@@ -32,23 +26,29 @@ test('CRDT module', async (t) => {
   await t.test('diff function - keys removed', () => {
     const source = { a: 1, b: 2, c: 3 };
     const target = { a: 1 };
-    const result = gs.diff(source, target);
+    const result = globalStorage.diff(source, target);
 
     assert.deepStrictEqual(result, { b: undefined, c: undefined });
   });
 
-  await t.test('diff function - arrays/sets diff', () => {
-    const source = { items: [1, 2, 3] };
-    const target = { items: [1, 2, 3, 4, 5] };
-    const result = gs.diff(source, target);
+  await t.test('diff function - arrays and sets', () => {
+    const arrDiff = globalStorage.diff(
+      { items: [1, 2, 3] },
+      { items: [1, 2, 3, 4, 5] },
+    );
+    assert.deepStrictEqual(arrDiff, { items: [4, 5] });
 
-    assert.deepStrictEqual(result, { items: [4, 5] });
+    const setDiff = globalStorage.diff(
+      { tags: new Set(['a', 'b']) },
+      { tags: new Set(['a', 'b', 'c']) },
+    );
+    assert.deepStrictEqual(setDiff, { tags: ['c'] });
   });
 
   await t.test('diff function - nested objects', () => {
     const source = { user: { name: 'John', age: 30 } };
     const target = { user: { name: 'Jane', age: 30, city: 'NYC' } };
-    const result = gs.diff(source, target);
+    const result = globalStorage.diff(source, target);
 
     assert.deepStrictEqual(result, {
       user: { name: 'Jane', city: 'NYC' },
@@ -58,7 +58,7 @@ test('CRDT module', async (t) => {
   await t.test('merge function - basic merge', () => {
     const source = { a: 1, b: 2 };
     const delta = { b: 20, c: 3 };
-    const result = gs.merge(source, delta);
+    const result = globalStorage.merge(source, delta);
 
     assert.deepStrictEqual(result, { a: 1, b: 22, c: 3 });
   });
@@ -66,7 +66,7 @@ test('CRDT module', async (t) => {
   await t.test('merge function - delete keys', () => {
     const source = { a: 1, b: 2, c: 3 };
     const delta = { b: undefined };
-    const result = gs.merge(source, delta);
+    const result = globalStorage.merge(source, delta);
 
     assert.deepStrictEqual(result, { a: 1, c: 3 });
   });
@@ -74,7 +74,7 @@ test('CRDT module', async (t) => {
   await t.test('merge function - arrays/sets merge', () => {
     const source = { items: [1, 2, 3] };
     const delta = { items: [3, 4, 5] };
-    const result = gs.merge(source, delta);
+    const result = globalStorage.merge(source, delta);
 
     assert.deepStrictEqual(result, { items: [1, 2, 3, 4, 5] });
   });
@@ -82,7 +82,7 @@ test('CRDT module', async (t) => {
   await t.test('merge function - counter merge', () => {
     const source = { count: 10 };
     const delta = { count: 5 };
-    const result = gs.merge(source, delta);
+    const result = globalStorage.merge(source, delta);
 
     assert.strictEqual(result.count, 15);
   });
@@ -90,7 +90,7 @@ test('CRDT module', async (t) => {
   await t.test('merge function - nested objects', () => {
     const source = { user: { name: 'John', age: 30 } };
     const delta = { user: { age: 31, city: 'NYC' } };
-    const result = gs.merge(source, delta);
+    const result = globalStorage.merge(source, delta);
 
     assert.deepStrictEqual(result, {
       user: { name: 'John', age: 61, city: 'NYC' },
@@ -99,8 +99,8 @@ test('CRDT module', async (t) => {
 
   await t.test('merge function - null/undefined delta', () => {
     const source = { a: 1, b: 2 };
-    const result1 = gs.merge(source, null);
-    const result2 = gs.merge(source, undefined);
+    const result1 = globalStorage.merge(source, null);
+    const result2 = globalStorage.merge(source, undefined);
 
     assert.deepStrictEqual(result1, source);
     assert.deepStrictEqual(result2, source);
@@ -108,7 +108,7 @@ test('CRDT module', async (t) => {
 
   await t.test('merge function - null source', () => {
     const delta = { a: 1, b: 2 };
-    const result = gs.merge(null, delta);
+    const result = globalStorage.merge(null, delta);
 
     assert.deepStrictEqual(result, delta);
   });
@@ -116,7 +116,7 @@ test('CRDT module', async (t) => {
   await t.test('apply function - write record', () => {
     const source = { a: 1, b: 2 };
     const history = [{ type: 'write', data: { c: 3, d: 4 } }];
-    const result = gs.apply(source, history);
+    const result = globalStorage.apply(source, history);
 
     assert.deepStrictEqual(result, { a: 1, b: 2 });
   });
@@ -124,15 +124,20 @@ test('CRDT module', async (t) => {
   await t.test('apply function - delta record', () => {
     const source = { a: 1, b: 2 };
     const history = [{ type: 'delta', data: { b: 20, c: 3 } }];
-    const result = gs.apply(source, history);
+    const result = globalStorage.apply(source, history);
 
     assert.deepStrictEqual(result, { a: 1, b: 22, c: 3 });
+
+    const fromEmpty = globalStorage.apply({}, [
+      { type: 'delta', data: { a: 1, b: 2 } },
+    ]);
+    assert.deepStrictEqual(fromEmpty, { a: 1, b: 2 });
   });
 
   await t.test('apply function - delete record', () => {
     const source = { a: 1, b: 2, c: 3 };
     const history = [{ type: 'delete', key: 'b' }];
-    const result = gs.apply(source, history);
+    const result = globalStorage.apply(source, history);
 
     assert.deepStrictEqual(result, { a: 1, b: undefined, c: 3 });
   });
@@ -140,7 +145,7 @@ test('CRDT module', async (t) => {
   await t.test('apply function - inc record', () => {
     const source = { count: 10 };
     const history = [{ type: 'inc', key: 'count', value: 5 }];
-    const result = gs.apply(source, history);
+    const result = globalStorage.apply(source, history);
 
     assert.strictEqual(result.count, 15);
   });
@@ -148,7 +153,7 @@ test('CRDT module', async (t) => {
   await t.test('apply function - dec record', () => {
     const source = { count: 10 };
     const history = [{ type: 'dec', key: 'count', value: 3 }];
-    const result = gs.apply(source, history);
+    const result = globalStorage.apply(source, history);
 
     assert.strictEqual(result.count, 7);
   });
@@ -160,7 +165,7 @@ test('CRDT module', async (t) => {
       { type: 'delta', data: { c: 3 } },
       { type: 'inc', key: 'a', value: 5 },
     ];
-    const result = gs.apply(source, history);
+    const result = globalStorage.apply(source, history);
 
     assert.deepStrictEqual(result, { a: 6, b: 22, c: 3 });
   });
@@ -171,16 +176,16 @@ test('CRDT module', async (t) => {
       { type: 'delta', data: { d: 4 } },
       { type: 'write', data: { x: 10 } },
     ];
-    const result = gs.apply(source, history);
+    const result = globalStorage.apply(source, history);
 
     assert.deepStrictEqual(result, { a: 1, b: 2, c: 3, d: 4 });
   });
 
   await t.test('apply function - invalid history', () => {
     const source = { a: 1 };
-    const result1 = gs.apply(source, null);
-    const result2 = gs.apply(source, 'not-array');
-    const result3 = gs.apply(source, []);
+    const result1 = globalStorage.apply(source, null);
+    const result2 = globalStorage.apply(source, 'not-array');
+    const result3 = globalStorage.apply(source, []);
 
     assert.deepStrictEqual(result1, source);
     assert.deepStrictEqual(result2, source);
@@ -195,15 +200,7 @@ test('CRDT module', async (t) => {
       { type: 'delta' },
       { type: 'delta', data: { b: 2 } },
     ];
-    const result = gs.apply(source, history);
-
-    assert.deepStrictEqual(result, { a: 1, b: 2 });
-  });
-
-  await t.test('apply function - empty source', () => {
-    const source = {};
-    const history = [{ type: 'delta', data: { a: 1, b: 2 } }];
-    const result = gs.apply(source, history);
+    const result = globalStorage.apply(source, history);
 
     assert.deepStrictEqual(result, { a: 1, b: 2 });
   });
