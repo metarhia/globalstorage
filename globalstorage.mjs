@@ -1,5 +1,4 @@
-// Copyright (c) 2017-2025 Metarhia contributors
-// Version 1.0.0 globalstorage MIT License
+import { Emitter, generateUUID } from './metautil.js';
 
 // crdt.js
 
@@ -103,12 +102,6 @@ const apply = (source, history) => {
   return result;
 };
 
-export {
-  diff,
-  merge,
-  apply,
-};
-
 // contract.js
 
 const deserializeFunction = (source) => {
@@ -183,11 +176,6 @@ class SmartContract {
   }
 }
 
-export {
-  DataReader,
-  SmartContract,
-};
-
 // fsi-browser.js
 
 const resolveDir = async (dirPath) => {
@@ -232,13 +220,6 @@ const remove = async (dir, filename) => {
   } catch {
     // File may not exist
   }
-};
-
-export {
-  read,
-  write,
-  exists,
-  remove,
 };
 
 // crypto-browser.js
@@ -334,14 +315,6 @@ const loadKeys = async (basePath = 'keys') => {
   return { publicKey, privateKey };
 };
 
-export {
-  calculateHash,
-  generateKeys,
-  encrypt,
-  decrypt,
-  loadKeys,
-};
-
 // sync-browser.js
 
 class SyncManager {
@@ -396,8 +369,6 @@ class SyncManager {
     return Array.from(this.#nodes);
   }
 }
-
-export { SyncManager };
 
 // chain.js
 
@@ -469,11 +440,6 @@ class Blockchain {
     return true;
   }
 }
-
-export {
-  Blockchain,
-  calculateHash,
-};
 
 // storage.js
 
@@ -823,6 +789,23 @@ Storage.Record = Record;
 const open = (options) => new Storage(options);
 
 export {
+  diff,
+  merge,
+  apply,
+  DataReader,
+  SmartContract,
+  read,
+  write,
+  exists,
+  remove,
+  calculateHash,
+  generateKeys,
+  encrypt,
+  decrypt,
+  loadKeys,
+  SyncManager,
+  Blockchain,
+  calculateHash,
   Storage,
   open,
 };
