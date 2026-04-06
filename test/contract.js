@@ -3,17 +3,18 @@
 const path = require('node:path');
 const test = require('node:test');
 const assert = require('node:assert');
-const gs = require('..');
+const globalStorage = require('..');
+const { SmartContract, DataReader, Blockchain } = globalStorage;
 const { createTempDir, cleanupTempDir } = require('./test-utils.js');
 
 test('Contract module', async (t) => {
   await t.test('DataReader constructor and get method', async () => {
     const tempDir = await createTempDir();
     try {
-      const storage = await new gs.Storage({ path: tempDir });
-      const reader = new gs.DataReader(storage);
+      const storage = await globalStorage.open({ path: tempDir });
+      const reader = new DataReader(storage);
 
-      assert.ok(reader instanceof gs.DataReader);
+      assert.ok(reader instanceof DataReader);
 
       const result = await reader.get('nonexistent');
       assert.strictEqual(result, null);
@@ -25,19 +26,19 @@ test('Contract module', async (t) => {
   await t.test('SmartContract constructor and properties', async () => {
     const tempDir = await createTempDir();
     try {
-      const storage = await new gs.Storage({ path: tempDir });
+      const storage = await globalStorage.open({ path: tempDir });
       const chainPath = path.join(tempDir, 'blockchain');
-      const blockchain = await new gs.Blockchain(chainPath);
+      const blockchain = await new Blockchain(chainPath);
       const context = { storage, chain: blockchain };
 
       const testProc = async (reader, args) => ({
         processed: args.input,
       });
 
-      const contract = new gs.SmartContract('test-contract', testProc, context);
+      const contract = new SmartContract('test-contract', testProc, context);
 
       assert.strictEqual(contract.name, 'test-contract');
-      assert.ok(contract instanceof gs.SmartContract);
+      assert.ok(contract instanceof SmartContract);
     } finally {
       await cleanupTempDir(tempDir);
     }
@@ -46,9 +47,9 @@ test('Contract module', async (t) => {
   await t.test('SmartContract execute method', async () => {
     const tempDir = await createTempDir();
     try {
-      const storage = await new gs.Storage({ path: tempDir });
+      const storage = await globalStorage.open({ path: tempDir });
       const chainPath = path.join(tempDir, 'blockchain');
-      const blockchain = await new gs.Blockchain(chainPath);
+      const blockchain = await new globalStorage.Blockchain(chainPath);
       const context = { storage, chain: blockchain };
 
       const testProc = async (reader, args) => ({
@@ -56,7 +57,7 @@ test('Contract module', async (t) => {
         doubled: args.input * 2,
       });
 
-      const contract = new gs.SmartContract('test-contract', testProc, context);
+      const contract = new SmartContract('test-contract', testProc, context);
       const args = { id: 'test-1', input: 42 };
 
       const result = await contract.execute(args);
@@ -72,16 +73,16 @@ test('Contract module', async (t) => {
   await t.test('SmartContract execute method with error', async () => {
     const tempDir = await createTempDir();
     try {
-      const storage = await new gs.Storage({ path: tempDir });
+      const storage = await globalStorage.open({ path: tempDir });
       const chainPath = path.join(tempDir, 'blockchain');
-      const blockchain = await new gs.Blockchain(chainPath);
+      const blockchain = await new globalStorage.Blockchain(chainPath);
       const context = { storage, chain: blockchain };
 
       const testProc = async () => {
         throw new Error('Test error');
       };
 
-      const contract = new gs.SmartContract('test-contract', testProc, context);
+      const contract = new SmartContract('test-contract', testProc, context);
       const args = { id: 'test-1', input: 42 };
 
       await assert.rejects(
@@ -111,16 +112,16 @@ test('Contract module', async (t) => {
   await t.test('SmartContract save and load static methods', async () => {
     const tempDir = await createTempDir();
     try {
-      const storage = await new gs.Storage({ path: tempDir });
+      const storage = await globalStorage.open({ path: tempDir });
       const chainPath = path.join(tempDir, 'blockchain');
-      const blockchain = await new gs.Blockchain(chainPath);
+      const blockchain = await new globalStorage.Blockchain(chainPath);
       const context = { storage, chain: blockchain };
 
       const testProc = async (reader, args) => ({
         result: args.input * 2,
       });
 
-      const hash = await gs.SmartContract.save(
+      const hash = await globalStorage.SmartContract.save(
         'test-contract',
         blockchain,
         testProc,
@@ -128,8 +129,8 @@ test('Contract module', async (t) => {
       assert.strictEqual(typeof hash, 'string');
       assert.strictEqual(hash.length, 64);
 
-      const loadedContract = await gs.SmartContract.load(hash, context);
-      assert.ok(loadedContract instanceof gs.SmartContract);
+      const loadedContract = await SmartContract.load(hash, context);
+      assert.ok(loadedContract instanceof SmartContract);
       assert.strictEqual(loadedContract.name, 'test-contract');
 
       const result = await loadedContract.execute({

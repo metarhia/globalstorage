@@ -3,7 +3,7 @@
 const path = require('node:path');
 const test = require('node:test');
 const assert = require('node:assert');
-const gs = require('..');
+const globalStorage = require('..');
 const { createTempDir, cleanupTempDir } = require('./test-utils.js');
 
 test('Integration tests', async (t) => {
@@ -12,9 +12,9 @@ test('Integration tests', async (t) => {
     async () => {
       const tempDir = await createTempDir();
       try {
-        const storage = await new gs.Storage({ path: tempDir });
+        const storage = await globalStorage.open({ path: tempDir });
         const chainPath = path.join(tempDir, 'blockchain');
-        const blockchain = await new gs.Blockchain(chainPath);
+        const blockchain = await new globalStorage.Blockchain(chainPath);
 
         const contractProc = async (reader, args) => {
           const data = await reader.get(args.id);
@@ -26,7 +26,7 @@ test('Integration tests', async (t) => {
           };
         };
 
-        const contract = new gs.SmartContract(
+        const contract = new globalStorage.SmartContract(
           'counter-contract',
           contractProc,
           { storage, chain: blockchain },
