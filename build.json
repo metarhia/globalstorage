@@ -1,0 +1,11 @@
+{
+  "order": [
+    "crdt.js",
+    "contract.js",
+    "fsi-browser.js",
+    "crypto-browser.js",
+    "sync-browser.js",
+    "chain.js",
+    "storage.js"
+  ]
+}
