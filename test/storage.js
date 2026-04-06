@@ -6,7 +6,7 @@ const fs = require('node:fs/promises');
 const path = require('node:path');
 const { directoryExists } = require('metautil');
 const globalStorage = require('..');
-const { createTempDir, cleanupTempDir } = require('./test-utils.js');
+const { createTemp, cleanupTemp } = require('./utils/temp.js');
 
 const mockSchema = {
   entities: {
@@ -18,19 +18,19 @@ const mockSchema = {
 
 test('Storage module', async (t) => {
   await t.test('Storage constructor and initialization', async () => {
-    const tempDir = await createTempDir();
+    const tempDir = await createTemp();
     try {
       const storage = await globalStorage.open({ path: tempDir });
 
       assert.ok(storage instanceof globalStorage.Storage);
       assert.strictEqual(await directoryExists(tempDir), true);
     } finally {
-      await cleanupTempDir(tempDir);
+      await cleanupTemp(tempDir);
     }
   });
 
   await t.test('Storage saveData and loadData without encryption', async () => {
-    const tempDir = await createTempDir();
+    const tempDir = await createTemp();
     try {
       const storage = await globalStorage.open({ path: tempDir });
 
@@ -40,12 +40,12 @@ test('Storage module', async (t) => {
       const loadedData = await storage.loadData('test-1');
       assert.deepStrictEqual(loadedData, testData);
     } finally {
-      await cleanupTempDir(tempDir);
+      await cleanupTemp(tempDir);
     }
   });
 
   await t.test('Storage saveData and loadData with encryption', async () => {
-    const tempDir = await createTempDir();
+    const tempDir = await createTemp();
     try {
       const storage = await globalStorage.open({ path: tempDir });
 
@@ -55,24 +55,24 @@ test('Storage module', async (t) => {
       const loadedData = await storage.loadData('test-2');
       assert.deepStrictEqual(loadedData, testData);
     } finally {
-      await cleanupTempDir(tempDir);
+      await cleanupTemp(tempDir);
     }
   });
 
   await t.test('Storage loadData with non-existent data', async () => {
-    const tempDir = await createTempDir();
+    const tempDir = await createTemp();
     try {
       const storage = await globalStorage.open({ path: tempDir });
 
       const result = await storage.loadData('nonexistent');
       assert.strictEqual(result, null);
     } finally {
-      await cleanupTempDir(tempDir);
+      await cleanupTemp(tempDir);
     }
   });
 
   await t.test('Storage validate method', async () => {
-    const tempDir = await createTempDir();
+    const tempDir = await createTemp();
     try {
       const storage = await globalStorage.open({ path: tempDir });
 
@@ -92,13 +92,62 @@ test('Storage module', async (t) => {
         entry.block,
       );
       assert.strictEqual(isInvalid, false);
+
+      const chainOk = await storage.validate({ last: 2 });
+      assert.strictEqual(chainOk, true);
     } finally {
-      await cleanupTempDir(tempDir);
+      await cleanupTemp(tempDir);
+    }
+  });
+
+  await t.test('Storage loadData throws if tampered', async () => {
+    const tempDir = await createTemp();
+    try {
+      const storage = await globalStorage.open({ path: tempDir });
+      await storage.saveData('tampered', { ok: true });
+
+      const filePath = path.join(tempDir, 'data', 'tampered.json');
+      const entry = JSON.parse(await fs.readFile(filePath, 'utf8'));
+      entry.data = { ok: false };
+      await fs.writeFile(filePath, JSON.stringify(entry), 'utf8');
+
+      const storage2 = await globalStorage.open({ path: tempDir });
+      await assert.rejects(() => storage2.loadData('tampered'), /invalid/);
+    } finally {
+      await cleanupTemp(tempDir);
+    }
+  });
+
+  await t.test('Storage insert set swap and update errors', async () => {
+    const tempDir = await createTemp();
+    try {
+      const storage = await globalStorage.open({ path: tempDir });
+
+      const id = await storage.insert({ n: 1 });
+      assert.strictEqual(typeof id, 'string');
+      assert.deepStrictEqual(await storage.get(id), { n: 1 });
+
+      await storage.set(id, { n: 2, v: 0 });
+      assert.deepStrictEqual(await storage.get(id), { n: 2, v: 0 });
+
+      const swapped = await storage.swap(id, { v: 1 }, { n: 2 });
+      assert.strictEqual(swapped, true);
+      assert.deepStrictEqual(await storage.get(id), { n: 2, v: 1 });
+
+      const notSwapped = await storage.swap(id, { v: 9 }, { n: 999 });
+      assert.strictEqual(notSwapped, false);
+
+      await assert.rejects(
+        () => storage.update('missing-id', { x: 1 }),
+        /not found/,
+      );
+    } finally {
+      await cleanupTemp(tempDir);
     }
   });
 
   await t.test('Storage with schema creates collections', async () => {
-    const tempDir = await createTempDir();
+    const tempDir = await createTemp();
     try {
       const options = { path: tempDir, schema: mockSchema };
       const storage = await globalStorage.open(options);
@@ -110,12 +159,12 @@ test('Storage module', async (t) => {
       assert.strictEqual(storage.Post.name, 'Post');
       assert.strictEqual(storage.Author.name, 'Author');
     } finally {
-      await cleanupTempDir(tempDir);
+      await cleanupTemp(tempDir);
     }
   });
 
   await t.test('Storage with Map-based schema entities', async () => {
-    const tempDir = await createTempDir();
+    const tempDir = await createTemp();
     try {
       const mapSchema = {
         entities: new Map([
@@ -136,12 +185,12 @@ test('Storage module', async (t) => {
       assert.ok(user.id);
       assert.strictEqual(user.name, 'Test');
     } finally {
-      await cleanupTempDir(tempDir);
+      await cleanupTemp(tempDir);
     }
   });
 
   await t.test('Storage without schema has no collections', async () => {
-    const tempDir = await createTempDir();
+    const tempDir = await createTemp();
     try {
       const storage = await globalStorage.open({ path: tempDir });
 
@@ -149,14 +198,14 @@ test('Storage module', async (t) => {
       assert.strictEqual(storage.Post, undefined);
       assert.strictEqual(storage.Author, undefined);
     } finally {
-      await cleanupTempDir(tempDir);
+      await cleanupTemp(tempDir);
     }
   });
 });
 
 test('Collection module', async (t) => {
   await t.test('Collection insert returns a Record', async () => {
-    const tempDir = await createTempDir();
+    const tempDir = await createTemp();
     try {
       const options = { path: tempDir, schema: mockSchema };
       const storage = await globalStorage.open(options);
@@ -169,12 +218,12 @@ test('Collection module', async (t) => {
       assert.strictEqual(authorRecord.name, 'John');
       assert.strictEqual(authorRecord.email, 'john@example.com');
     } finally {
-      await cleanupTempDir(tempDir);
+      await cleanupTemp(tempDir);
     }
   });
 
   await t.test('Collection insert adds $type to data', async () => {
-    const tempDir = await createTempDir();
+    const tempDir = await createTemp();
     try {
       const options = { path: tempDir, schema: mockSchema };
       const storage = await globalStorage.open(options);
@@ -187,12 +236,12 @@ test('Collection module', async (t) => {
       assert.strictEqual(rawData.title, 'Hello');
       assert.strictEqual(rawData.content, 'World');
     } finally {
-      await cleanupTempDir(tempDir);
+      await cleanupTemp(tempDir);
     }
   });
 
   await t.test('Collection get retrieves data', async () => {
-    const tempDir = await createTempDir();
+    const tempDir = await createTemp();
     try {
       const options = { path: tempDir, schema: mockSchema };
       const storage = await globalStorage.open(options);
@@ -207,12 +256,12 @@ test('Collection module', async (t) => {
       assert.strictEqual(data.email, 'jane@example.com');
       assert.strictEqual(data.$type, 'Author');
     } finally {
-      await cleanupTempDir(tempDir);
+      await cleanupTemp(tempDir);
     }
   });
 
   await t.test('Collection update modifies data', async () => {
-    const tempDir = await createTempDir();
+    const tempDir = await createTemp();
     try {
       const options = { path: tempDir, schema: mockSchema };
       const storage = await globalStorage.open(options);
@@ -228,12 +277,12 @@ test('Collection module', async (t) => {
       assert.strictEqual(data.title, 'Updated');
       assert.strictEqual(data.content, 'Content');
     } finally {
-      await cleanupTempDir(tempDir);
+      await cleanupTemp(tempDir);
     }
   });
 
   await t.test('Collection delete removes data', async () => {
-    const tempDir = await createTempDir();
+    const tempDir = await createTemp();
     try {
       const options = { path: tempDir, schema: mockSchema };
       const storage = await globalStorage.open(options);
@@ -251,12 +300,12 @@ test('Collection module', async (t) => {
       const existsAfter = await storage.has(id);
       assert.strictEqual(existsAfter, false);
     } finally {
-      await cleanupTempDir(tempDir);
+      await cleanupTemp(tempDir);
     }
   });
 
   await t.test('Collection record returns a Record instance', async () => {
-    const tempDir = await createTempDir();
+    const tempDir = await createTemp();
     try {
       const options = { path: tempDir, schema: mockSchema };
       const storage = await globalStorage.open(options);
@@ -272,12 +321,12 @@ test('Collection module', async (t) => {
       assert.strictEqual(record.id, id);
       assert.strictEqual(record.name, 'Bob');
     } finally {
-      await cleanupTempDir(tempDir);
+      await cleanupTemp(tempDir);
     }
   });
 
   await t.test('Multiple collections work independently', async () => {
-    const tempDir = await createTempDir();
+    const tempDir = await createTemp();
     try {
       const options = { path: tempDir, schema: mockSchema };
       const storage = await globalStorage.open(options);
@@ -309,7 +358,27 @@ test('Collection module', async (t) => {
       assert.strictEqual(postData.author, author.id);
       assert.strictEqual(commentData.post, post.id);
     } finally {
-      await cleanupTempDir(tempDir);
+      await cleanupTemp(tempDir);
+    }
+  });
+
+  await t.test('Record save persists mutations', async () => {
+    const tempDir = await createTemp();
+    try {
+      const options = { path: tempDir, schema: mockSchema };
+      const storage = await globalStorage.open(options);
+
+      const post = await storage.Post.insert({
+        title: 'Draft',
+        content: 'Body',
+      });
+      post.title = 'Published';
+      await post.save();
+
+      const loaded = await storage.Post.get(post.id);
+      assert.strictEqual(loaded.title, 'Published');
+    } finally {
+      await cleanupTemp(tempDir);
     }
   });
 });
