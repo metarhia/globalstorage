@@ -817,11 +817,12 @@ class Storage {
   }
 }
 
+Storage.Collection = Collection;
+Storage.Record = Record;
+
 const open = (options) => new Storage(options);
 
 export {
   Storage,
-  Collection,
-  Record,
   open,
 };
