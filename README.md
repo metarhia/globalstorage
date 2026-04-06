@@ -22,6 +22,20 @@
 - **Crypto support**: RSA, SHA-256, and more
 - **Built-in integration** with [Impress Application Server](https://github.com/metarhia/impress)
 
+### Install
+
+Requires **Node.js 18+**.
+
+```bash
+npm install globalstorage
+```
+
+### Usage
+
+- **Node.js** loads the CommonJS entry `globalstorage.js`.
+- **Browser** exports `globalstorage.mjs` (ESM).
+- **TypeScript** types for development are maintained in [`globalstorage.d.ts`](./globalstorage.d.ts).
+
 ### Ideal For
 
 - Local-first apps
@@ -33,7 +47,7 @@
 ### Additional features
 
 - Built-in database engine will minimize interprocess communication to access data
-- Minimize data transformations: all data slould be stored, stansmitted, handled and placed in RAM in the same format
+- Minimize data transformations: all data should be stored, transmitted, handled and placed in RAM in the same format
 - Maximum memory usage, read-ahead and lazy-write, minimizing data conversion
 - Using metadata everywhere, special declarative format for subject domein representation (including fields, relations, and indices), memory structures, GUI, API, etc.
 - The same API for client-side runtime and server-side runtime:
@@ -41,9 +55,9 @@
   - client-side storage engine (multiple implementations for different platforms including mobile, desktop and browser)
   - sharding for distributed storage of large data amounts, geo-distribution, save backup copies, access load balancing
   - allows user to exchange data in P2P mode
-- Syncronization between client and server in realtime (close to realtime) and in lazy mode
+- Synchronization between client and server in realtime (close to realtime) and in lazy mode
 - Offline-first approach: applications can work in online and offline (with locally stored data)
-- Bidirectional data sync with CRDT and hieratchical versioning like git have
+- Bidirectional data sync with CRDT and hierarchical versioning like git have
 - Global data structures unification for applications working with [Metarhia](https://github.com/metarhia/Metarhia) technological stack and [Impress](https://github.com/metarhia/impress) application server
 - Ability to work with non-unified data structures (custom schemas), specific to certain subject domain
 - Data structures have global distributed identification system, so data can be inserted anywhere and will not bring ID conflicts
@@ -51,4 +65,4 @@
 
 ## Contributors
 
-See github for full [contributors list](https://github.com/metarhia/globalstorage/graphs/contributors)
+See GitHub for full [contributors list](https://github.com/metarhia/globalstorage/graphs/contributors)
