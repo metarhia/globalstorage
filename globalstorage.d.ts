@@ -1,6 +1,14 @@
+export type JSONSafe =
+  | string
+  | number
+  | boolean
+  | null
+  | { readonly [key: string]: JSONSafe }
+  | readonly JSONSafe[];
+
 export interface KeyPair {
-  publicKey: string;
-  privateKey: string;
+  readonly publicKey: string;
+  readonly privateKey: string;
 }
 
 export function generateKeys(): Promise<KeyPair>;
@@ -8,25 +16,37 @@ export function encrypt(data: unknown, publicKey: string): string;
 export function decrypt(data: string, privateKey: string): unknown;
 export function loadKeys(basePath: string): Promise<KeyPair>;
 
-export function diff(source: unknown, target: unknown): Record<string, unknown>;
-export function merge(source: unknown, delta: unknown): unknown;
-export function apply(source: unknown, history: unknown[]): unknown;
+export type CrdtDelta = Record<string, unknown>;
 
-export interface Block {
+export type CrdtHistoryRecord =
+  | { type: 'write'; id?: string; timestamp?: number; data?: unknown }
+  | { type: 'delta'; data: unknown }
+  | { type: 'delete'; key: string }
+  | { type: 'inc'; key: string; value: number }
+  | { type: 'dec'; key: string; value: number };
+
+export function diff(source: unknown, target: unknown): CrdtDelta;
+export function merge(source: unknown, delta: unknown): unknown;
+export function apply(
+  source: unknown,
+  history: readonly CrdtHistoryRecord[],
+): unknown;
+
+export interface Block<T = unknown> {
   prev: string;
   timestamp: number;
-  data: unknown;
+  data: T;
 }
 
-export interface ChainInfo {
-  tailHash: string;
+export interface ChainDataEntry {
+  id: string;
+  hash: string;
 }
 
-export function calculateHash(data: unknown): string;
+export function calculateHash(data: JSONSafe): string;
 
-export class Blockchain {
-  constructor(basePath: string);
-  path: string;
+export interface Blockchain {
+  readonly path: string;
   tailHash: string;
 
   writeChain(): Promise<void>;
@@ -35,6 +55,13 @@ export class Blockchain {
   readBlock(hash: string): Promise<Block>;
   validate(options?: { last?: number; from?: string }): Promise<boolean>;
 }
+
+export interface BlockchainConstructor {
+  readonly prototype: Blockchain;
+  new (basePath: string): Promise<Blockchain>;
+}
+
+export const Blockchain: BlockchainConstructor;
 
 export interface ContractContext {
   storage: Storage;
@@ -54,33 +81,45 @@ export interface ErrorBlock {
   timestamp: number;
 }
 
+export type ContractExecuteArgs = { id: string } & Record<string, unknown>;
+
+export type ContractProcedure = (
+  reader: DataReader,
+  args: ContractExecuteArgs,
+) => unknown | Promise<unknown>;
+
 export class DataReader {
   constructor(storage: Storage);
   get(id: string): Promise<unknown>;
 }
 
 export class SmartContract {
-  constructor(name: string, proc: Function, context: ContractContext);
-  name: string;
+  constructor(name: string, proc: ContractProcedure, context: ContractContext);
+  readonly name: string;
 
-  execute(args: { id: string; [key: string]: unknown }): Promise<unknown>;
+  execute(args: ContractExecuteArgs): Promise<unknown>;
 
-  static save(name: string, chain: Blockchain, proc: Function): Promise<string>;
+  static save(
+    name: string,
+    chain: Blockchain,
+    proc: ContractProcedure,
+  ): Promise<string>;
   static load(hash: string, context: ContractContext): Promise<SmartContract>;
 }
 
-export type SchemaEntity = { [fieldName: string]: unknown };
+export type SchemaEntity = { readonly [fieldName: string]: unknown };
 export type SchemaEntities =
-  | { [entityName: string]: SchemaEntity }
+  | { readonly [entityName: string]: SchemaEntity }
   | Map<string, SchemaEntity>;
 
 export interface Schema {
   entities?: SchemaEntities;
-  [key: string]: unknown;
+  readonly [key: string]: unknown;
 }
 
 export interface StorageOptions {
   path?: string;
+  name?: string;
   schema?: Schema;
 }
 
@@ -109,16 +148,32 @@ export interface NodeData {
   token?: string;
 }
 
-export class SyncManager {
-  constructor(basePath: string);
+export interface SyncManager {
   addNode(nodeData: NodeData): Promise<void>;
   removeNode(url: string): Promise<void>;
   listNodes(): Node[];
   start(): Promise<void>;
 }
 
-export class Storage {
-  constructor(options?: StorageOptions);
+export interface SyncManagerConstructor {
+  readonly prototype: SyncManager;
+  new (
+    basePath?: string,
+    storage?: Storage,
+    chain?: Blockchain,
+  ): Promise<SyncManager>;
+}
+
+export const SyncManager: SyncManagerConstructor;
+
+export interface StorageUpdate {
+  type: string;
+  id: string;
+  timestamp: number;
+  data: unknown;
+}
+
+export interface Storage {
   readonly schema: Schema | null;
   readonly sync: SyncManager;
 
@@ -127,12 +182,9 @@ export class Storage {
     data: unknown,
     options?: StorageDataOptions,
   ): Promise<void>;
-  loadData(id: string): Promise<unknown>;
-  validate(
-    idOrOptions: string | { last?: number; from?: string },
-    data?: unknown,
-    blockHash?: string,
-  ): Promise<boolean>;
+  loadData(id: string): Promise<unknown | null>;
+  validate(options: { last?: number; from?: string }): Promise<boolean>;
+  validate(id: string, data: unknown, blockHash: string): Promise<boolean>;
   insert(data: unknown): Promise<string>;
   has(id: string): Promise<boolean>;
   get(id: string): Promise<unknown>;
@@ -140,40 +192,48 @@ export class Storage {
   delete(id: string): Promise<void>;
   update(id: string, delta: unknown): Promise<void>;
   swap(id: string, changes: unknown, prev: unknown): Promise<boolean>;
-  record(id: string): Promise<Storage.Record>;
+  record(id: string): Promise<Storage.StorageRecord>;
   getCachedData(id: string): unknown | null;
   hasRecord(id: string): boolean;
-  addUpdate(update: {
-    type: string;
-    id: string;
-    timestamp: number;
-    data: unknown;
-  }): void;
+  addUpdate(update: StorageUpdate): void;
 }
 
-export namespace Storage {
-  export class Collection {
-    constructor(storage: Storage, name: string);
-    readonly name: string;
-    insert(data: unknown): Promise<Storage.Record>;
-    get(id: string): Promise<unknown>;
-    delete(id: string): Promise<void>;
-    update(id: string, delta: unknown): Promise<void>;
-    record(id: string): Promise<Storage.Record>;
-  }
+export interface GsRecord {
+  readonly id: string;
+  on(event: 'update', listener: (data: unknown, delta: unknown) => void): void;
+  data(): Promise<unknown>;
+  delta(): Record<string, unknown>;
+  save(): Promise<void>;
+  delete(): Promise<void>;
+}
 
-  export class Record {
-    constructor(id: string, storage: Storage);
-    readonly id: string;
-    on(
-      event: 'update',
-      listener: (data: unknown, delta: unknown) => void,
-    ): void;
-    data(): Promise<unknown>;
-    delta(): { [key: string]: unknown };
-    save(): Promise<void>;
-    delete(): Promise<void>;
-  }
+declare class GsCollection {
+  constructor(storage: Storage, name: string);
+  readonly name: string;
+  insert(data: unknown): Promise<GsRecord>;
+  get(id: string): Promise<unknown | null>;
+  delete(id: string): Promise<void>;
+  update(id: string, delta: unknown): Promise<void>;
+  record(id: string): Promise<GsRecord>;
+}
+
+declare const GsRecordCtor: {
+  readonly prototype: GsRecord;
+  new (id: string, storage: Storage): Promise<GsRecord>;
+};
+
+export interface StorageConstructor {
+  readonly prototype: Storage;
+  new (options?: StorageOptions): Promise<Storage>;
+  Collection: typeof GsCollection;
+  Record: typeof GsRecordCtor;
+}
+
+export const Storage: StorageConstructor;
+
+export namespace Storage {
+  export type StorageRecord = GsRecord;
+  export type StorageCollection = GsCollection;
 }
 
 export function open(options?: StorageOptions): Promise<Storage>;
