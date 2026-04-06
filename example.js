@@ -1,6 +1,6 @@
 'use strict';
 
-const globalStorage = require('./gs.js');
+const globalStorage = require('./globalstorage.js');
 const xxii = require('xxii-schema');
 
 const main = async () => {
