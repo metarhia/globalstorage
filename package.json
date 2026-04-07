@@ -25,12 +25,9 @@
     "url": "https://github.com/metarhia/globalstorage"
   },
   "main": "globalstorage.js",
+  "types": "globalstorage.d.ts",
   "browser": {
     "./globalstorage.js": "./globalstorage.mjs"
-  },
-  "exports": {
-    ".": "./globalstorage.js",
-    "./browser": "./globalstorage.mjs"
   },
   "files": [
     "lib/",
