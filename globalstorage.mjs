@@ -805,7 +805,6 @@ export {
   loadKeys,
   SyncManager,
   Blockchain,
-  calculateHash,
   Storage,
   open,
 };
