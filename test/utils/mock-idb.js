@@ -7,7 +7,7 @@ const installMockIdb = () => {
     'indexedDB',
   );
 
-  class MockIDBRequest {
+  class MockIDBRequest extends EventTarget {
     result = undefined;
     error = null;
     onsuccess = null;
@@ -15,11 +15,13 @@ const installMockIdb = () => {
 
     _resolve(value) {
       this.result = value;
+      this.dispatchEvent(new Event('success'));
       if (this.onsuccess) this.onsuccess({ target: this });
     }
 
     _reject(err) {
       this.error = err;
+      this.dispatchEvent(new Event('error'));
       if (this.onerror) this.onerror({ target: this });
     }
   }
@@ -181,12 +183,12 @@ const installMockIdb = () => {
           databases.set(name, dbRecord);
         }
         const db = new MockIDBDatabase(dbRecord);
-        req.result = db;
         if (needsUpgrade) {
+          req.result = db;
           dbRecord.version = version;
           if (req.onupgradeneeded) req.onupgradeneeded({ target: req });
         }
-        if (req.onsuccess) req.onsuccess({ target: req });
+        req._resolve(db);
       });
       return req;
     },
