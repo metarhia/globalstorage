@@ -4,48 +4,44 @@ const path = require('node:path');
 const test = require('node:test');
 const assert = require('node:assert');
 const globalStorage = require('..');
-const { createTemp, cleanupTemp } = require('./utils/temp.js');
+const { useTemp } = require('./utils/temp.js');
 
 test('Integration tests', async (t) => {
   await t.test(
     'Full workflow: keys -> storage -> contract -> chain',
-    async () => {
-      const tempDir = await createTemp();
-      try {
-        const storage = await globalStorage.open({ path: tempDir });
-        const chainPath = path.join(tempDir, 'blockchain');
-        const blockchain = await new globalStorage.Blockchain(chainPath);
+    async (t) => {
+      const tempDir = await useTemp(t);
+      const storage = await globalStorage.open({ path: tempDir });
+      const chainPath = path.join(tempDir, 'blockchain');
+      const blockchain = await new globalStorage.Blockchain(chainPath);
 
-        const contractProc = async (reader, args) => {
-          const data = await reader.get(args.id);
-          const existingData = data || { count: 0 };
-          return {
-            ...existingData,
-            count: existingData.count + 1,
-            lastUpdate: Date.now(),
-          };
+      const contractProc = async (reader, args) => {
+        const data = await reader.get(args.id);
+        const existingData = data || { count: 0 };
+        return {
+          ...existingData,
+          count: existingData.count + 1,
+          lastUpdate: Date.now(),
         };
+      };
 
-        const contract = new globalStorage.SmartContract(
-          'counter-contract',
-          contractProc,
-          { storage, chain: blockchain },
-        );
+      const contract = new globalStorage.SmartContract(
+        'counter-contract',
+        contractProc,
+        { storage, chain: blockchain },
+      );
 
-        const result1 = await contract.execute({ id: 'counter-1' });
-        assert.strictEqual(result1.count, 1);
+      const result1 = await contract.execute({ id: 'counter-1' });
+      assert.strictEqual(result1.count, 1);
 
-        const result2 = await contract.execute({ id: 'counter-1' });
-        assert.strictEqual(result2.count, 2);
+      const result2 = await contract.execute({ id: 'counter-1' });
+      assert.strictEqual(result2.count, 2);
 
-        const loadedData = await storage.loadData('counter-1');
-        assert.strictEqual(loadedData.count, 2);
+      const loadedData = await storage.loadData('counter-1');
+      assert.strictEqual(loadedData.count, 2);
 
-        const isValid = await blockchain.validate();
-        assert.strictEqual(isValid, true);
-      } finally {
-        await cleanupTemp(tempDir);
-      }
+      const isValid = await blockchain.validate();
+      assert.strictEqual(isValid, true);
     },
   );
 });

@@ -22,13 +22,6 @@ test('crypto-browser module', async (t) => {
     else delete globalThis.crypto;
   });
 
-  if (typeof globalThis.btoa !== 'function') {
-    globalThis.btoa = (s) => Buffer.from(s, 'latin1').toString('base64');
-  }
-  if (typeof globalThis.atob !== 'function') {
-    globalThis.atob = (s) => Buffer.from(s, 'base64').toString('latin1');
-  }
-
   const cryptoBrowser = require('../lib/crypto-browser.js');
 
   await runCryptoKeysTests(t, assert, cryptoBrowser, {
