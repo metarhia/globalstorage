@@ -50,7 +50,7 @@ const main = async () => {
   const post = { title: 'Example', content: 'Text', author: authorId };
   const postRecord = await storage.Post.insert(post);
 
-  postRecord.on('update', (data, delta) => {
+  postRecord.on('update', ({ data, delta }) => {
     console.log('Record updated:', { id: postRecord.id, data, delta });
   });
 

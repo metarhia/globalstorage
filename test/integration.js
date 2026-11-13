@@ -1,6 +1,5 @@
 'use strict';
 
-const path = require('node:path');
 const test = require('node:test');
 const assert = require('node:assert');
 const globalStorage = require('..');
@@ -12,8 +11,6 @@ test('Integration tests', async (t) => {
     async (t) => {
       const tempDir = await useTemp(t);
       const storage = await globalStorage.open({ path: tempDir });
-      const chainPath = path.join(tempDir, 'blockchain');
-      const blockchain = await new globalStorage.Blockchain(chainPath);
 
       const contractProc = async (reader, args) => {
         const data = await reader.get(args.id);
@@ -28,7 +25,7 @@ test('Integration tests', async (t) => {
       const contract = new globalStorage.SmartContract(
         'counter-contract',
         contractProc,
-        { storage, chain: blockchain },
+        { storage },
       );
 
       const result1 = await contract.execute({ id: 'counter-1' });
@@ -40,7 +37,7 @@ test('Integration tests', async (t) => {
       const loadedData = await storage.loadData('counter-1');
       assert.strictEqual(loadedData.count, 2);
 
-      const isValid = await blockchain.validate();
+      const isValid = await storage.validate();
       assert.strictEqual(isValid, true);
     },
   );
