@@ -109,8 +109,7 @@ export class SmartContract {
 
 export type SchemaEntity = { readonly [fieldName: string]: unknown };
 export type SchemaEntities =
-  | { readonly [entityName: string]: SchemaEntity }
-  | Map<string, SchemaEntity>;
+  { readonly [entityName: string]: SchemaEntity } | Map<string, SchemaEntity>;
 
 export interface Schema {
   entities?: SchemaEntities;
