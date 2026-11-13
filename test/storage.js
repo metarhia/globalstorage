@@ -305,6 +305,52 @@ test('Collection module', async (t) => {
     ]);
   });
 
+  await t.test(
+    'Record turns schema reference fields into References',
+    async (t) => {
+      const tempDir = await useTemp(t);
+      const options = { path: tempDir, schema: mockSchema };
+      const storage = await globalStorage.open(options);
+      const author = await storage.Author.insert({ name: 'Ann', email: 'a@b' });
+      const post = await storage.Post.insert({
+        title: author.id,
+        content: 'Body',
+        author: author.id,
+      });
+
+      const fresh = await globalStorage.open(options);
+      const loaded = await fresh.Post.record(post.id);
+      assert.strictEqual(loaded.title, author.id);
+      const authorRecord = await loaded.author.record();
+      assert.strictEqual(authorRecord.name, 'Ann');
+    },
+  );
+
+  await t.test('Storage reads reference fields from metaschema', async (t) => {
+    const tempDir = await useTemp(t);
+    const schema = {
+      entities: new Map([
+        ['Author', { fields: { name: { type: 'string' } } }],
+        [
+          'Chat',
+          {
+            fields: {
+              name: { type: 'string' },
+              owner: { one: 'Author', type: 'Author' },
+              members: { many: 'Author', type: 'Author' },
+            },
+          },
+        ],
+      ]),
+    };
+    const storage = await globalStorage.open({ path: tempDir, schema });
+    assert.deepStrictEqual(storage.referenceFields('Chat'), [
+      'owner',
+      'members',
+    ]);
+    assert.deepStrictEqual(storage.referenceFields('Author'), []);
+  });
+
   await t.test('Record save persists mutations', async (t) => {
     const tempDir = await useTemp(t);
     const options = { path: tempDir, schema: mockSchema };

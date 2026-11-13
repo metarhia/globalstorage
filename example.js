@@ -66,7 +66,8 @@ const main = async () => {
 
   await postRecord.save();
 
-  console.log('Author name:', postRecord.author.name);
+  const postAuthor = await postRecord.author.record();
+  console.log('Author name:', postAuthor.name);
 
   // Explicit API (still available)
 

@@ -5,5 +5,13 @@ const crypto = require('./lib/crypto.js');
 const crdt = require('./lib/crdt.js');
 const contract = require('./lib/contract.js');
 const storage = require('./lib/storage.js');
+const sync = require('./lib/sync.js');
 
-module.exports = { ...chain, ...contract, ...crdt, ...crypto, ...storage };
+module.exports = {
+  ...chain,
+  ...contract,
+  ...crdt,
+  ...crypto,
+  ...storage,
+  ...sync,
+};

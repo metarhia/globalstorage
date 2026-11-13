@@ -38,11 +38,6 @@ export interface Block<T = unknown> {
   data: T;
 }
 
-export interface ChainDataEntry {
-  id: string;
-  hash: string;
-}
-
 export function calculateHash(data: JSONSafe): string;
 
 export interface Blockchain {
@@ -66,19 +61,6 @@ export const Blockchain: BlockchainConstructor;
 export interface ContractContext {
   storage: Storage;
   chain?: Blockchain;
-}
-
-export interface ContractBlock {
-  type: 'smart contract';
-  name: string;
-  source: string;
-}
-
-export interface ErrorBlock {
-  contract: string;
-  args: unknown;
-  error: string;
-  timestamp: number;
 }
 
 export type ContractExecuteArgs = { id: string } & Record<string, unknown>;
@@ -126,13 +108,6 @@ export interface StorageDataOptions {
   encrypted?: boolean;
 }
 
-export interface StorageEntry {
-  data: unknown;
-  encrypted: boolean;
-  timestamp: number;
-  block: string;
-}
-
 export interface Node {
   type: 'uplink' | 'downlink';
   url: string;
@@ -156,11 +131,7 @@ export interface SyncManager {
 
 export interface SyncManagerConstructor {
   readonly prototype: SyncManager;
-  new (
-    basePath?: string,
-    storage?: Storage,
-    chain?: Blockchain,
-  ): Promise<SyncManager>;
+  new (basePath: string): Promise<SyncManager>;
 }
 
 export const SyncManager: SyncManagerConstructor;
@@ -185,8 +156,8 @@ export interface Storage {
   update(id: string, delta: unknown): Promise<void>;
   swap(id: string, changes: unknown, prev: unknown): Promise<boolean>;
   record(id: string): Promise<Storage.StorageRecord>;
-  getCachedData(id: string): unknown | null;
   hasRecord(id: string): boolean;
+  referenceFields(type: string): string[];
 }
 
 export interface RecordUpdate {

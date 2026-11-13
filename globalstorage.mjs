@@ -471,6 +471,11 @@ class Blockchain {
 
 // storage.js
 
+const fieldType = (def) => {
+  if (typeof def === 'string') return def.startsWith('?') ? def.slice(1) : def;
+  return def?.type ?? def?.one ?? def?.many;
+};
+
 class Reference {
   #id;
   #storage = null;
@@ -509,14 +514,12 @@ class Record extends Emitter {
   }
 
   #convertToReferences(data) {
-    if (!data || typeof data !== 'object') return;
-    for (const key in data) {
+    const toReference = (value) =>
+      typeof value === 'string' ? new Reference(value, this.#storage) : value;
+    for (const key of this.#storage.referenceFields(data.$type)) {
       const value = data[key];
-      if (typeof value === 'string' && this.#storage.hasRecord(value)) {
-        data[key] = new Reference(value, this.#storage);
-      } else if (value && typeof value === 'object') {
-        this.#convertToReferences(value);
-      }
+      if (Array.isArray(value)) data[key] = value.map(toReference);
+      else data[key] = toReference(value);
     }
   }
 
@@ -613,6 +616,7 @@ class Storage {
   #sync = null;
   #cache = new Map();
   #schema = null;
+  #references = new Map();
 
   constructor(options = {}) {
     this.#path = options.path || options.name || 'gs';
@@ -624,7 +628,7 @@ class Storage {
   async #init() {
     this.#keys = await loadKeys(`${this.#path}/keys`);
     this.#chain = await new Blockchain(`${this.#path}/blockchain`);
-    this.#sync = await new SyncManager(this.#path, this, this.#chain);
+    this.#sync = await new SyncManager(this.#path);
     this.#initCollections();
     return this;
   }
@@ -632,9 +636,21 @@ class Storage {
   #initCollections() {
     const entities = this.#schema?.entities;
     if (!entities) return;
-    for (const [name] of entities.entries?.() ?? Object.entries(entities)) {
+    const list = Array.from(entities.entries?.() ?? Object.entries(entities));
+    const names = new Set(list.map(([name]) => name));
+    for (const [name, entity] of list) {
       this[name] = new Collection(this, name);
+      const fields = Object.entries(entity.fields ?? entity);
+      const refs = fields.filter(([, def]) => names.has(fieldType(def)));
+      this.#references.set(
+        name,
+        refs.map(([key]) => key),
+      );
     }
+  }
+
+  referenceFields(type) {
+    return this.#references.get(type) ?? [];
   }
 
   get schema() {
@@ -745,10 +761,6 @@ class Storage {
       this.#records.set(id, record);
     }
     return this.#records.get(id);
-  }
-
-  getCachedData(id) {
-    return this.#cache.has(id) ? this.#cache.get(id) : null;
   }
 
   get chain() {
