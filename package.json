@@ -53,7 +53,7 @@
     "eslint": "^10.14.0",
     "eslint-config-metarhia": "^10.0.1",
     "metarhia-build": "^0.0.3",
-    "metaskills": "^1.0.4",
+    "metaskills": "^1.0.6",
     "prettier": "^3.10.1",
     "typescript": "^7.0.2",
     "xxii-schema": "^0.0.1"
