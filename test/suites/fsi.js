@@ -63,13 +63,10 @@ const runFsiTests = async (t, fsi, options = {}) => {
     }
   });
 
-  await t.test('read when missing rejects', async () => {
+  await t.test('read when missing returns null', async () => {
     const dir = await getRoot();
     try {
-      await assert.rejects(
-        () => fsi.read(dir, 'missing.txt'),
-        (err) => err?.code === 'ENOENT' || err?.name === 'NotFoundError',
-      );
+      assert.strictEqual(await fsi.read(dir, 'missing.txt'), null);
     } finally {
       await finish(dir);
     }
