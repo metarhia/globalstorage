@@ -13,14 +13,9 @@ const diff = (source, target) => {
     if (!sourceKeys.has(key)) {
       delta[key] = target[key];
     } else if (Array.isArray(target[key]) || target[key] instanceof Set) {
-      const sourceArr = Array.isArray(source[key]) ? source[key] : source[key];
-      const targetArr = Array.isArray(target[key]) ? target[key] : target[key];
-      const sourceSet = new Set(sourceArr);
-      const targetSet = new Set(targetArr);
-      const diffSet = new Set([...targetSet].filter((x) => !sourceSet.has(x)));
-      if (diffSet.size > 0) {
-        delta[key] = Array.from(diffSet);
-      }
+      const sourceSet = new Set(source[key]);
+      const added = [...new Set(target[key])].filter((x) => !sourceSet.has(x));
+      if (added.length > 0) delta[key] = added;
     } else if (typeof target[key] === 'object' && target[key] !== null) {
       const nestedDiff = diff(source[key], target[key]);
       if (Object.keys(nestedDiff).length > 0) {
@@ -53,19 +48,11 @@ const merge = (source, delta) => {
     }
 
     if (Array.isArray(delta[key]) || delta[key] instanceof Set) {
-      const sourceSet = new Set(
-        Array.isArray(result[key]) ? result[key] : result[key] || [],
-      );
-      const deltaSet = new Set(
-        Array.isArray(delta[key]) ? delta[key] : delta[key],
-      );
-      result[key] = Array.from(new Set([...sourceSet, ...deltaSet]));
+      const merged = new Set(result[key] || []);
+      for (const item of delta[key]) merged.add(item);
+      result[key] = [...merged];
     } else if (typeof delta[key] === 'object' && delta[key] !== null) {
-      if (typeof result[key] === 'object' && result[key] !== null) {
-        result[key] = merge(result[key], delta[key]);
-      } else {
-        result[key] = delta[key];
-      }
+      result[key] = merge(result[key], delta[key]);
     } else if (
       typeof delta[key] === 'number' &&
       typeof result[key] === 'number'
@@ -79,21 +66,21 @@ const merge = (source, delta) => {
   return result;
 };
 
+const HANDLERS = {
+  write: (record, state) => state,
+  delta: (record, state) => merge(state, record.data),
+  delete: (record, state) => ({ ...state, [record.key]: undefined }),
+  inc: (record, state) => merge(state, { [record.key]: record.value }),
+  dec: (record, state) => merge(state, { [record.key]: -record.value }),
+};
+
 const apply = (source, history) => {
   if (!Array.isArray(history)) return source;
   let result = { ...source };
 
-  const handlers = {
-    write: (record, state) => ({ ...state }),
-    delta: (record, state) => merge(state, record.data),
-    delete: (record, state) => ({ ...state, [record.key]: undefined }),
-    inc: (record, state) => merge(state, { [record.key]: record.value }),
-    dec: (record, state) => merge(state, { [record.key]: -record.value }),
-  };
-
   for (const record of history) {
     if (!record || typeof record !== 'object' || !record.type) continue;
-    const handler = handlers[record.type];
+    const handler = HANDLERS[record.type];
     if (handler) {
       result = handler(record, result);
     }
@@ -104,18 +91,7 @@ const apply = (source, history) => {
 
 // contract.js
 
-const deserializeFunction = (source) => {
-  const arrowIndex = source.indexOf('=>');
-  const header = source.slice(0, arrowIndex).trim();
-  let body = source.slice(arrowIndex + 2).trim();
-  const argsStart = header.indexOf('(');
-  const argsEnd = header.lastIndexOf(')');
-  const args = header.slice(argsStart + 1, argsEnd);
-  if (body.startsWith('{')) body = body.slice(1, -1);
-  else body = `return ${body};`;
-  body = `return async (${args}) => {${body}}`;
-  return new Function('reader', 'args', body)();
-};
+const deserializeFunction = (source) => new Function(`return (${source});`)();
 
 class DataReader {
   #storage;
@@ -159,20 +135,17 @@ class SmartContract {
   static async save(name, chain, proc) {
     const source = proc.toString();
     const block = { type: 'smart contract', name, source };
-    const hash = await chain.addBlock(block);
-    return hash;
+    return chain.addBlock(block);
   }
 
   static async load(hash, { storage, chain }) {
     const block = await chain.readBlock(hash);
-    if (!block) throw new Error('Block not found');
     if (block.data.type !== 'smart contract') {
       throw new Error('Not a smart contract block');
     }
     const { name, source } = block.data;
     const proc = deserializeFunction(source);
-    const contract = new SmartContract(name, proc, { storage, chain });
-    return contract;
+    return new SmartContract(name, proc, { storage, chain });
   }
 }
 
@@ -265,8 +238,10 @@ const generateKeys = async () => {
     true,
     ['encrypt', 'decrypt'],
   );
-  const pubBuf = await crypto.subtle.exportKey('spki', keyPair.publicKey);
-  const privBuf = await crypto.subtle.exportKey('pkcs8', keyPair.privateKey);
+  const [pubBuf, privBuf] = await Promise.all([
+    crypto.subtle.exportKey('spki', keyPair.publicKey),
+    crypto.subtle.exportKey('pkcs8', keyPair.privateKey),
+  ]);
   const pub = toBase64UrlSafe(pubBuf);
   const priv = toBase64UrlSafe(privBuf);
   return {
@@ -302,23 +277,21 @@ const decrypt = async (data, privateKey) => {
 };
 
 const loadKeys = async (basePath = 'keys') => {
-  let publicKey, privateKey;
   if (await fsi.exists(basePath, 'public.pem')) {
-    publicKey = await fsi.read(basePath, 'public.pem');
-    privateKey = await fsi.read(basePath, 'private.pem');
-  } else {
-    const keys = await generateKeys();
-    ({ publicKey, privateKey } = keys);
-    await fsi.write(basePath, 'public.pem', publicKey);
-    await fsi.write(basePath, 'private.pem', privateKey);
+    const publicKey = await fsi.read(basePath, 'public.pem');
+    const privateKey = await fsi.read(basePath, 'private.pem');
+    return { publicKey, privateKey };
   }
-  return { publicKey, privateKey };
+  const keys = await generateKeys();
+  await fsi.write(basePath, 'public.pem', keys.publicKey);
+  await fsi.write(basePath, 'private.pem', keys.privateKey);
+  return keys;
 };
 
 // sync-browser.js
 
 class SyncManager {
-  #nodes = new Set();
+  #nodes = new Map();
 
   constructor() {
     return this.#init();
@@ -332,7 +305,7 @@ class SyncManager {
   async start() {
     // TODO: Implement metacom-based sync (WebSocket client)
     // Future: WebRTC transport for peer-to-peer sync
-    const uplinks = Array.from(this.#nodes).filter(
+    const uplinks = this.listNodes().filter(
       (node) => node.type === 'uplink' && node.enabled,
     );
     if (uplinks.length === 0) return;
@@ -351,22 +324,23 @@ class SyncManager {
     if (type !== 'uplink' && type !== 'downlink') {
       throw new Error('Node type must be uplink or downlink');
     }
-    const existing = Array.from(this.#nodes).find((n) => n.url === url);
-    if (existing) throw new Error(`Node with URL ${url} already exists`);
+    if (this.#nodes.has(url)) {
+      throw new Error(`Node with URL ${url} already exists`);
+    }
     const now = Date.now();
     const node = { type, url, token, enabled: true, lastSync: now };
-    this.#nodes.add(node);
+    this.#nodes.set(url, node);
     await this.start();
   }
 
   async removeNode(url) {
-    const node = Array.from(this.#nodes).find((n) => n.url === url);
-    if (!node) throw new Error(`Node with URL ${url} not found`);
-    this.#nodes.delete(node);
+    if (!this.#nodes.delete(url)) {
+      throw new Error(`Node with URL ${url} not found`);
+    }
   }
 
   listNodes() {
-    return Array.from(this.#nodes);
+    return [...this.#nodes.values()];
   }
 }
 
@@ -463,7 +437,7 @@ class Reference {
   }
 
   async record() {
-    return await this.#storage.record(this.#id);
+    return this.#storage.record(this.#id);
   }
 }
 
@@ -481,7 +455,6 @@ class Record extends Emitter {
   }
 
   async #load() {
-    if (this.#data !== null) return this;
     const rawData = await this.#storage.get(this.#id);
     if (rawData) {
       this.#data = JSON.parse(JSON.stringify(rawData));
@@ -495,15 +468,10 @@ class Record extends Emitter {
     if (!data || typeof data !== 'object') return;
     for (const key in data) {
       const value = data[key];
-      if (typeof value === 'string') {
-        if (this.#storage.hasRecord(value)) {
-          data[key] = new Reference(value, this.#storage);
-        }
+      if (typeof value === 'string' && this.#storage.hasRecord(value)) {
+        data[key] = new Reference(value, this.#storage);
       } else if (value && typeof value === 'object') {
-        const isReference = value instanceof Reference;
-        if (!isReference) {
-          this.#convertToReferences(value);
-        }
+        this.#convertToReferences(value);
       }
     }
   }
@@ -515,14 +483,10 @@ class Record extends Emitter {
   #defineProperties() {
     for (const key in this.#data) {
       if (key === 'id') continue;
-      if (Object.prototype.hasOwnProperty.call(this, key)) continue;
+      if (Object.hasOwn(this, key)) continue;
       Object.defineProperty(this, key, {
         get() {
-          const value = this.#data?.[key];
-          if (value instanceof Reference) {
-            return value;
-          }
-          return value;
+          return this.#data?.[key];
         },
         set(newValue) {
           const oldValue = this.#data?.[key];
@@ -606,9 +570,10 @@ class Collection {
 
 class Storage {
   #path;
+  #dataDir;
   #keys = null;
   #chain = null;
-  #records = null;
+  #records = new Map();
   #sync = null;
   #updates = [];
   #cache = new Map();
@@ -616,8 +581,8 @@ class Storage {
 
   constructor(options = {}) {
     this.#path = options.path || options.name || 'gs';
-    this.#records = new Map();
-    if (options.schema) this.#schema = options.schema;
+    this.#dataDir = `${this.#path}/data`;
+    this.#schema = options.schema || null;
     return this.#init();
   }
 
@@ -642,10 +607,12 @@ class Storage {
   }
 
   #emitUpdate(id, data, delta) {
-    const emitter = this.#records.get(id);
-    if (emitter) {
-      emitter.emit('update', data, delta);
-    }
+    this.#records.get(id)?.emit('update', data, delta);
+  }
+
+  #logDelta(id, delta) {
+    const timestamp = Date.now();
+    this.#updates.push({ type: 'delta', id, timestamp, data: delta });
   }
 
   addUpdate(update) {
@@ -661,7 +628,7 @@ class Storage {
     const blockHash = await this.#chain.addBlock({ id, hash });
 
     const entry = { data: record, encrypted, timestamp, block: blockHash };
-    await fsi.write(`${this.#path}/data`, `${id}.json`, JSON.stringify(entry));
+    await fsi.write(this.#dataDir, `${id}.json`, JSON.stringify(entry));
     this.#cache.set(id, data);
 
     this.#updates.push({ type: 'write', id, timestamp, data });
@@ -669,13 +636,12 @@ class Storage {
 
   async loadData(id) {
     if (this.#cache.has(id)) return this.#cache.get(id);
-    const dataDir = `${this.#path}/data`;
-    const exists = await fsi.exists(dataDir, `${id}.json`);
+    const exists = await fsi.exists(this.#dataDir, `${id}.json`);
     if (!exists) {
       this.#cache.set(id, null);
       return null;
     }
-    const raw = await fsi.read(dataDir, `${id}.json`);
+    const raw = await fsi.read(this.#dataDir, `${id}.json`);
     const { data, encrypted, block } = JSON.parse(raw);
     const isValid = await this.validate(id, data, block);
     if (!isValid) throw new Error(`Storage record ${id} is invalid`);
@@ -688,13 +654,12 @@ class Storage {
     const isChainValidation =
       !data && !blockHash && ('last' in idOrOptions || 'from' in idOrOptions);
     if (isChainValidation) {
-      return await this.#chain.validate(idOrOptions);
+      return this.#chain.validate(idOrOptions);
     }
     const id = idOrOptions;
     try {
       const block = await this.#chain.readBlock(blockHash);
       const expectedHash = await calculateHash(data);
-      if (!block) return false;
       return block.data.hash === expectedHash && block.data.id === id;
     } catch {
       return false;
@@ -708,7 +673,7 @@ class Storage {
   }
 
   async has(id) {
-    return fsi.exists(`${this.#path}/data`, `${id}.json`);
+    return fsi.exists(this.#dataDir, `${id}.json`);
   }
 
   hasRecord(id) {
@@ -716,7 +681,7 @@ class Storage {
   }
 
   async get(id) {
-    return await this.loadData(id);
+    return this.loadData(id);
   }
 
   async set(id, data) {
@@ -725,17 +690,12 @@ class Storage {
     if (oldData) {
       const delta = calculateDelta(oldData, data);
       this.#emitUpdate(id, data, delta);
-      this.#updates.push({
-        type: 'delta',
-        id,
-        timestamp: Date.now(),
-        data: delta,
-      });
+      this.#logDelta(id, delta);
     }
   }
 
   async delete(id) {
-    await fsi.remove(`${this.#path}/data`, `${id}.json`);
+    await fsi.remove(this.#dataDir, `${id}.json`);
     this.#records.delete(id);
     this.#cache.delete(id);
     this.#updates.push({ type: 'delete', id, timestamp: Date.now() });
@@ -747,12 +707,7 @@ class Storage {
     const updated = { ...data, ...delta };
     await this.saveData(id, updated);
     this.#emitUpdate(id, updated, delta);
-    this.#updates.push({
-      type: 'delta',
-      id,
-      timestamp: Date.now(),
-      data: delta,
-    });
+    this.#logDelta(id, delta);
   }
 
   async swap(id, changes, prev) {

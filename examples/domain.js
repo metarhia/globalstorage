@@ -15,7 +15,7 @@ const create = async ({ author, title, content, feed }) => {
   const feedExists = await storage.has(feed);
   if (!feedExists) throw new Error('Feed not found');
 
-  const created = new Date().getTime();
+  const created = Date.now();
   const status = 'draft';
   const post = { title, content, author, created, status };
   const postId = await storage.insert(post);

@@ -5,10 +5,10 @@ const path = require('node:path');
 
 const runFsiTests = async (t, fsi, options = {}) => {
   const { getRoot, afterEach } = options;
-  const joinPath = options.joinPath ?? ((r, ...p) => path.join(r, ...p));
+  const joinPath = options.joinPath ?? path.join;
 
   const finish = async (dir) => {
-    if (afterEach) await afterEach(dir);
+    await afterEach?.(dir);
   };
 
   await t.test('write read exists and remove', async () => {
@@ -52,12 +52,7 @@ const runFsiTests = async (t, fsi, options = {}) => {
     try {
       await assert.rejects(
         () => fsi.read(dir, 'missing.txt'),
-        (err) => {
-          const isEnoent = err?.code === 'ENOENT';
-          const isNotFound = err?.name === 'NotFoundError';
-          const matches = isEnoent || isNotFound;
-          return Boolean(err && matches);
-        },
+        (err) => err?.code === 'ENOENT' || err?.name === 'NotFoundError',
       );
     } finally {
       await finish(dir);
