@@ -151,19 +151,36 @@ class SmartContract {
 
 // fsi-browser.js
 
-const resolveDir = async (dirPath) => {
-  const root = await navigator.storage.getDirectory();
-  const parts = dirPath.split('/').filter(Boolean);
-  let dir = root;
-  for (const part of parts) {
+const dirs = new Map();
+
+const openDir = async (dirPath) => {
+  let dir = await navigator.storage.getDirectory();
+  for (const part of dirPath.split('/').filter(Boolean)) {
     dir = await dir.getDirectoryHandle(part, { create: true });
   }
   return dir;
 };
 
+const resolveDir = (dirPath) => {
+  if (!dirs.has(dirPath)) {
+    const dir = openDir(dirPath);
+    dir.catch(() => dirs.delete(dirPath));
+    dirs.set(dirPath, dir);
+  }
+  return dirs.get(dirPath);
+};
+
+const ifMissing = (value) => (error) => {
+  if (error.name === 'NotFoundError') return value;
+  throw error;
+};
+
 const read = async (dir, filename) => {
   const dirHandle = await resolveDir(dir);
-  const fileHandle = await dirHandle.getFileHandle(filename);
+  const fileHandle = await dirHandle
+    .getFileHandle(filename)
+    .catch(ifMissing(null));
+  if (!fileHandle) return null;
   const file = await fileHandle.getFile();
   return file.text();
 };
@@ -188,11 +205,7 @@ const exists = async (dir, filename) => {
 
 const remove = async (dir, filename) => {
   const dirHandle = await resolveDir(dir);
-  try {
-    await dirHandle.removeEntry(filename);
-  } catch {
-    // File may not exist
-  }
+  await dirHandle.removeEntry(filename).catch(ifMissing());
 };
 
 const list = async (dir) => {
@@ -265,17 +278,30 @@ const generateKeys = async () => {
   };
 };
 
-const importPublicKey = async (pemKey) => {
+// Remembers the last parsed key, storage always uses the same key pair
+const memoizeLast = (fn) => {
+  let lastPem = null;
+  let lastKey = null;
+  return (pem) => {
+    if (pem !== lastPem) {
+      lastKey = fn(pem);
+      lastPem = pem;
+    }
+    return lastKey;
+  };
+};
+
+const importPublicKey = memoizeLast(async (pemKey) => {
   const base64 = cleanPemKey(pemKey, PUBLIC_KEY_HEADER, PUBLIC_KEY_FOOTER);
   const bytes = base64ToBytes(base64);
   return crypto.subtle.importKey('spki', bytes, ALG, false, ['encrypt']);
-};
+});
 
-const importPrivateKey = async (pemKey) => {
+const importPrivateKey = memoizeLast(async (pemKey) => {
   const base64 = cleanPemKey(pemKey, PRIVATE_KEY_HEADER, PRIVATE_KEY_FOOTER);
   const bytes = base64ToBytes(base64);
   return crypto.subtle.importKey('pkcs8', bytes, ALG, false, ['decrypt']);
-};
+});
 
 const encrypt = async (data, publicKey) => {
   const key = await importPublicKey(publicKey);
@@ -292,9 +318,10 @@ const decrypt = async (data, privateKey) => {
 };
 
 const loadKeys = async (basePath = 'keys') => {
-  if (await fsi.exists(basePath, 'public.pem')) {
-    const publicKey = await fsi.read(basePath, 'public.pem');
+  const publicKey = await fsi.read(basePath, 'public.pem');
+  if (publicKey !== null) {
     const privateKey = await fsi.read(basePath, 'private.pem');
+    if (privateKey === null) throw new Error(`No private key in ${basePath}`);
     return { publicKey, privateKey };
   }
   const keys = await generateKeys();
@@ -386,16 +413,14 @@ class Blockchain {
   }
 
   async #init() {
-    const exists = await fsi.exists(this.path, BLOCKCHAIN);
-    if (!exists) {
-      const block = { prev: '0', timestamp: Date.now(), data: {} };
-      this.tailHash = await this.writeBlock(block);
-      await this.writeChain();
-    } else {
-      const raw = await fsi.read(this.path, BLOCKCHAIN);
-      const chain = JSON.parse(raw);
-      this.tailHash = chain.tailHash;
+    const raw = await fsi.read(this.path, BLOCKCHAIN);
+    if (raw !== null) {
+      this.tailHash = JSON.parse(raw).tailHash;
+      return this;
     }
+    const block = { prev: '0', timestamp: Date.now(), data: {} };
+    this.tailHash = await this.writeBlock(block);
+    await this.writeChain();
     return this;
   }
 
@@ -421,9 +446,8 @@ class Blockchain {
   }
 
   async readBlock(hash) {
-    const exists = await fsi.exists(this.path, `${hash}.json`);
-    if (!exists) throw new Error(`Block not found: ${hash}`);
     const raw = await fsi.read(this.path, `${hash}.json`);
+    if (raw === null) throw new Error(`Block not found: ${hash}`);
     return JSON.parse(raw);
   }
 
@@ -587,7 +611,6 @@ class Storage {
   #chain = null;
   #records = new Map();
   #sync = null;
-  #updates = [];
   #cache = new Map();
   #schema = null;
 
@@ -625,8 +648,6 @@ class Storage {
   async #commit(id, data, delta) {
     await this.saveData(id, data);
     this.#emitUpdate(id, data, delta);
-    const timestamp = Date.now();
-    this.#updates.push({ type: 'delta', id, timestamp, data: delta });
   }
 
   async saveData(id, data, options = {}) {
@@ -640,18 +661,15 @@ class Storage {
     const entry = { data: record, encrypted, timestamp, block: blockHash };
     await fsi.write(this.#dataDir, `${id}.json`, JSON.stringify(entry));
     this.#cache.set(id, data);
-
-    this.#updates.push({ type: 'write', id, timestamp, data });
   }
 
   async loadData(id) {
     if (this.#cache.has(id)) return this.#cache.get(id);
-    const exists = await fsi.exists(this.#dataDir, `${id}.json`);
-    if (!exists) {
+    const raw = await fsi.read(this.#dataDir, `${id}.json`);
+    if (raw === null) {
       this.#cache.set(id, null);
       return null;
     }
-    const raw = await fsi.read(this.#dataDir, `${id}.json`);
     const { data, encrypted, block } = JSON.parse(raw);
     const isValid = await this.#verify(id, data, block);
     if (!isValid) throw new Error(`Storage record ${id} is invalid`);
@@ -704,7 +722,6 @@ class Storage {
     await fsi.remove(this.#dataDir, `${id}.json`);
     this.#records.delete(id);
     this.#cache.delete(id);
-    this.#updates.push({ type: 'delete', id, timestamp: Date.now() });
   }
 
   async update(id, delta) {
