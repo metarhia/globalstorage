@@ -65,22 +65,11 @@ test('Storage module', async (t) => {
     const testData = { message: 'Test validation' };
     await storage.saveData('test-3', testData);
 
-    const filePath = path.join(tempDir, 'data', 'test-3.json');
-    const raw = await fs.readFile(filePath, { encoding: 'utf8' });
-    const entry = JSON.parse(raw);
+    assert.strictEqual(await storage.validate(), true);
+    assert.strictEqual(await storage.validate({ last: 2 }), true);
 
-    const isValid = await storage.validate('test-3', entry.data, entry.block);
-    assert.strictEqual(isValid, true);
-
-    const isInvalid = await storage.validate(
-      'test-3',
-      { modified: 'data' },
-      entry.block,
-    );
-    assert.strictEqual(isInvalid, false);
-
-    const chainOk = await storage.validate({ last: 2 });
-    assert.strictEqual(chainOk, true);
+    const storage2 = await globalStorage.open({ path: tempDir });
+    assert.deepStrictEqual(await storage2.loadData('test-3'), testData);
   });
 
   await t.test('Storage loadData throws if tampered', async (t) => {
@@ -297,6 +286,25 @@ test('Collection module', async (t) => {
     assert.strictEqual(commentData.post, post.id);
   });
 
+  await t.test('Storage set, update and swap emit deltas', async (t) => {
+    const tempDir = await useTemp(t);
+    const storage = await globalStorage.open({ path: tempDir });
+    const id = await storage.insert({ a: 1, b: 2, tags: ['x'] });
+    const record = await storage.record(id);
+    const deltas = [];
+    record.on('update', ({ delta }) => deltas.push(delta));
+
+    await storage.set(id, { a: 1, tags: ['x', 'y'] });
+    await storage.update(id, { a: 2 });
+    await storage.swap(id, { a: 3 }, { a: 2 });
+
+    assert.deepStrictEqual(deltas, [
+      { tags: ['y'], b: undefined },
+      { a: 2 },
+      { a: 3 },
+    ]);
+  });
+
   await t.test('Record save persists mutations', async (t) => {
     const tempDir = await useTemp(t);
     const options = { path: tempDir, schema: mockSchema };
@@ -306,10 +314,16 @@ test('Collection module', async (t) => {
       title: 'Draft',
       content: 'Body',
     });
+    const deltas = [];
+    post.on('update', ({ delta }) => deltas.push(delta));
     post.title = 'Published';
     await post.save();
 
     const loaded = await storage.Post.get(post.id);
     assert.strictEqual(loaded.title, 'Published');
+    assert.deepStrictEqual(deltas, [
+      { title: 'Published' },
+      { title: 'Published' },
+    ]);
   });
 });

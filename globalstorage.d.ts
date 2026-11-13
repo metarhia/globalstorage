@@ -65,7 +65,7 @@ export const Blockchain: BlockchainConstructor;
 
 export interface ContractContext {
   storage: Storage;
-  chain: Blockchain;
+  chain?: Blockchain;
 }
 
 export interface ContractBlock {
@@ -165,15 +165,9 @@ export interface SyncManagerConstructor {
 
 export const SyncManager: SyncManagerConstructor;
 
-export interface StorageUpdate {
-  type: string;
-  id: string;
-  timestamp: number;
-  data: unknown;
-}
-
 export interface Storage {
   readonly schema: Schema | null;
+  readonly chain: Blockchain;
   readonly sync: SyncManager;
 
   saveData(
@@ -182,8 +176,7 @@ export interface Storage {
     options?: StorageDataOptions,
   ): Promise<void>;
   loadData(id: string): Promise<unknown | null>;
-  validate(options: { last?: number; from?: string }): Promise<boolean>;
-  validate(id: string, data: unknown, blockHash: string): Promise<boolean>;
+  validate(options?: { last?: number; from?: string }): Promise<boolean>;
   insert(data: unknown): Promise<string>;
   has(id: string): Promise<boolean>;
   get(id: string): Promise<unknown>;
@@ -194,12 +187,16 @@ export interface Storage {
   record(id: string): Promise<Storage.StorageRecord>;
   getCachedData(id: string): unknown | null;
   hasRecord(id: string): boolean;
-  addUpdate(update: StorageUpdate): void;
+}
+
+export interface RecordUpdate {
+  data: unknown;
+  delta: Record<string, unknown>;
 }
 
 export interface GsRecord {
   readonly id: string;
-  on(event: 'update', listener: (data: unknown, delta: unknown) => void): void;
+  on(event: 'update', listener: (event: RecordUpdate) => void): void;
   data(): Promise<unknown>;
   delta(): Record<string, unknown>;
   save(): Promise<void>;

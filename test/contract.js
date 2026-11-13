@@ -22,9 +22,7 @@ test('Contract module', async (t) => {
   await t.test('SmartContract execute method', async (t) => {
     const tempDir = await useTemp(t);
     const storage = await globalStorage.open({ path: tempDir });
-    const chainPath = path.join(tempDir, 'blockchain');
-    const blockchain = await new globalStorage.Blockchain(chainPath);
-    const context = { storage, chain: blockchain };
+    const context = { storage };
 
     const testProc = async (reader, args) => ({
       processed: args.input,
@@ -47,9 +45,8 @@ test('Contract module', async (t) => {
   await t.test('SmartContract execute method with error', async (t) => {
     const tempDir = await useTemp(t);
     const storage = await globalStorage.open({ path: tempDir });
-    const chainPath = path.join(tempDir, 'blockchain');
-    const blockchain = await new globalStorage.Blockchain(chainPath);
-    const context = { storage, chain: blockchain };
+    const blockchain = storage.chain;
+    const context = { storage };
 
     const testProc = async () => {
       throw new Error('Test error');
@@ -79,9 +76,8 @@ test('Contract module', async (t) => {
   await t.test('SmartContract save and load static methods', async (t) => {
     const tempDir = await useTemp(t);
     const storage = await globalStorage.open({ path: tempDir });
-    const chainPath = path.join(tempDir, 'blockchain');
-    const blockchain = await new globalStorage.Blockchain(chainPath);
-    const context = { storage, chain: blockchain };
+    const blockchain = storage.chain;
+    const context = { storage };
 
     const testProc = async (reader, args) => ({
       result: args.input * 2,

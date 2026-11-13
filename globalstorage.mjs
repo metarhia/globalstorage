@@ -110,7 +110,7 @@ class SmartContract {
   #chain;
   #proc;
 
-  constructor(name, proc, { storage, chain }) {
+  constructor(name, proc, { storage, chain = storage.chain }) {
     this.name = name;
     this.#storage = storage;
     this.#chain = chain;
@@ -138,7 +138,7 @@ class SmartContract {
     return chain.addBlock(block);
   }
 
-  static async load(hash, { storage, chain }) {
+  static async load(hash, { storage, chain = storage.chain }) {
     const block = await chain.readBlock(hash);
     if (block.data.type !== 'smart contract') {
       throw new Error('Not a smart contract block');
@@ -447,16 +447,6 @@ class Blockchain {
 
 // storage.js
 
-const calculateDelta = (oldData, newData) => {
-  const delta = {};
-  for (const key in newData) {
-    if (oldData[key] !== newData[key]) {
-      delta[key] = newData[key];
-    }
-  }
-  return delta;
-};
-
 class Reference {
   #id;
   #storage = null;
@@ -524,7 +514,7 @@ class Record extends Emitter {
           this.#data[key] = newValue;
           this.#changes[key] = newValue;
           const delta = { [key]: newValue };
-          this.emit('update', this.#data, delta);
+          this.emit('update', { data: this.#data, delta });
         },
         enumerable: true,
         configurable: true,
@@ -542,16 +532,8 @@ class Record extends Emitter {
 
   async save() {
     if (Object.keys(this.#changes).length === 0) return;
-    const delta = this.delta();
-    const data = this.#data;
-    await this.#storage.saveData(this.#id, data);
+    await this.#storage.update(this.#id, this.delta());
     this.#changes = {};
-    this.#storage.addUpdate({
-      type: 'delta',
-      id: this.#id,
-      timestamp: Date.now(),
-      data: delta,
-    });
   }
 
   async delete() {
@@ -637,16 +619,14 @@ class Storage {
   }
 
   #emitUpdate(id, data, delta) {
-    this.#records.get(id)?.emit('update', data, delta);
+    this.#records.get(id)?.emit('update', { data, delta });
   }
 
-  #logDelta(id, delta) {
+  async #commit(id, data, delta) {
+    await this.saveData(id, data);
+    this.#emitUpdate(id, data, delta);
     const timestamp = Date.now();
     this.#updates.push({ type: 'delta', id, timestamp, data: delta });
-  }
-
-  addUpdate(update) {
-    this.#updates.push(update);
   }
 
   async saveData(id, data, options = {}) {
@@ -673,7 +653,7 @@ class Storage {
     }
     const raw = await fsi.read(this.#dataDir, `${id}.json`);
     const { data, encrypted, block } = JSON.parse(raw);
-    const isValid = await this.validate(id, data, block);
+    const isValid = await this.#verify(id, data, block);
     if (!isValid) throw new Error(`Storage record ${id} is invalid`);
     const decrypted = encrypted
       ? await decrypt(data, this.#keys.privateKey)
@@ -682,13 +662,11 @@ class Storage {
     return decrypted;
   }
 
-  async validate(idOrOptions, data, blockHash) {
-    const isChainValidation =
-      !data && !blockHash && ('last' in idOrOptions || 'from' in idOrOptions);
-    if (isChainValidation) {
-      return this.#chain.validate(idOrOptions);
-    }
-    const id = idOrOptions;
+  async validate(options = {}) {
+    return this.#chain.validate(options);
+  }
+
+  async #verify(id, data, blockHash) {
     try {
       const block = await this.#chain.readBlock(blockHash);
       const expectedHash = await calculateHash(data);
@@ -718,12 +696,8 @@ class Storage {
 
   async set(id, data) {
     const oldData = await this.get(id);
-    await this.saveData(id, data);
-    if (oldData) {
-      const delta = calculateDelta(oldData, data);
-      this.#emitUpdate(id, data, delta);
-      this.#logDelta(id, delta);
-    }
+    if (oldData) await this.#commit(id, data, diff(oldData, data));
+    else await this.saveData(id, data);
   }
 
   async delete(id) {
@@ -736,10 +710,7 @@ class Storage {
   async update(id, delta) {
     const data = await this.get(id);
     if (!data) throw new Error(`Record ${id} not found`);
-    const updated = { ...data, ...delta };
-    await this.saveData(id, updated);
-    this.#emitUpdate(id, updated, delta);
-    this.#logDelta(id, delta);
+    await this.#commit(id, { ...data, ...delta }, delta);
   }
 
   async swap(id, changes, prev) {
@@ -747,9 +718,7 @@ class Storage {
     if (!data) throw new Error(`Record ${id} not found`);
     const matches = Object.keys(prev).every((key) => data[key] === prev[key]);
     if (!matches) return false;
-    const updated = { ...data, ...changes };
-    await this.saveData(id, updated);
-    this.#emitUpdate(id, updated, changes);
+    await this.#commit(id, { ...data, ...changes }, changes);
     return true;
   }
 
@@ -763,6 +732,10 @@ class Storage {
 
   getCachedData(id) {
     return this.#cache.has(id) ? this.#cache.get(id) : null;
+  }
+
+  get chain() {
+    return this.#chain;
   }
 
   get sync() {
