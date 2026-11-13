@@ -49,13 +49,16 @@
     "metautil": "^5.5.2"
   },
   "devDependencies": {
-    "@types/node": "^25.5.2",
-    "eslint": "^9.39.4",
-    "eslint-config-metarhia": "^9.1.8",
+    "@types/node": "^26.6.6",
+    "eslint": "^10.14.0",
+    "eslint-config-metarhia": "^10.0.1",
     "metarhia-build": "^0.0.3",
     "metaskills": "^1.0.4",
-    "prettier": "^3.8.1",
-    "typescript": "^5.9.3",
+    "prettier": "^3.10.1",
+    "typescript": "^7.0.2",
     "xxii-schema": "^0.0.1"
+  },
+  "overrides": {
+    "minimatch": "^11.0.1"
   }
 }

@@ -138,7 +138,7 @@ const main = async () => {
 
   const updatedMessage = await storage.get(firstMessageId);
   if (updatedMessage) {
-    console.log('\n' + formatMessage(updatedMessage, authors));
+    console.log(`\n${formatMessage(updatedMessage, authors)}`);
   }
 
   console.log('\n');
