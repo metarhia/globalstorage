@@ -8,7 +8,7 @@ test('fsi-browser module (OPFS mock)', async (t) => {
   const opfs = installMockOpfs();
   t.after(() => opfs.uninstall());
 
-  const fsiBrowser = require('../lib/fsi-browser.js');
+  const { fsi: fsiBrowser } = require('../lib/fsi-browser.js');
 
   await runFsiTests(t, fsiBrowser, {
     getRoot: async () =>

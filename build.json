@@ -4,7 +4,7 @@
     "contract.js",
     "fsi-browser.js",
     "crypto-browser.js",
-    "sync-browser.js",
+    "sync.js",
     "chain.js",
     "storage.js"
   ]

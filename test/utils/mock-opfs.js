@@ -63,6 +63,10 @@ class MockDirectoryHandle {
     return new MockFileHandle(entry);
   }
 
+  async *keys() {
+    yield* this.#entries.keys();
+  }
+
   async removeEntry(name) {
     if (!this.#entries.has(name)) {
       throw new DOMException(`Entry ${name} not found`, 'NotFoundError');
