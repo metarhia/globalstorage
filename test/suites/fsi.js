@@ -47,6 +47,22 @@ const runFsiTests = async (t, fsi, options = {}) => {
     }
   });
 
+  await t.test('list returns file names', async () => {
+    const root = await getRoot();
+    try {
+      const dir = joinPath(root, 'list');
+      assert.deepStrictEqual(await fsi.list(dir), []);
+      await fsi.write(dir, 'a.json', '{}');
+      await fsi.write(dir, 'b.json', '{}');
+      assert.deepStrictEqual((await fsi.list(dir)).sort(), [
+        'a.json',
+        'b.json',
+      ]);
+    } finally {
+      await finish(root);
+    }
+  });
+
   await t.test('read when missing rejects', async () => {
     const dir = await getRoot();
     try {

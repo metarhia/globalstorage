@@ -1,4 +1,4 @@
-import { Emitter, generateUUID } from './metautil.js';
+import { between, Emitter, generateUUID } from './metautil.js';
 
 // crdt.js
 
@@ -195,6 +195,15 @@ const remove = async (dir, filename) => {
   }
 };
 
+const list = async (dir) => {
+  const dirHandle = await resolveDir(dir);
+  const names = [];
+  for await (const name of dirHandle.keys()) names.push(name);
+  return names;
+};
+
+const fsi = { read, write, exists, remove, list };
+
 // crypto-browser.js
 
 const PUBLIC_KEY_HEADER = '-----BEGIN PUBLIC KEY-----';
@@ -212,9 +221,17 @@ const calculateHash = async (data) => {
   return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
 };
 
+const toBase64 = (buffer) =>
+  btoa(String.fromCharCode(...new Uint8Array(buffer)));
+
 const toBase64UrlSafe = (buffer) => {
-  const base64 = btoa(String.fromCharCode(...new Uint8Array(buffer)));
+  const base64 = toBase64(buffer);
   return base64.replaceAll('+', '-').replaceAll('/', '_').replaceAll('=', '');
+};
+
+const toPem = (header, footer, buffer) => {
+  const lines = toBase64(buffer).match(/.{1,64}/g);
+  return [header, ...lines, footer].join('\n');
 };
 
 const base64ToBytes = (base64) => {
@@ -242,11 +259,9 @@ const generateKeys = async () => {
     crypto.subtle.exportKey('spki', keyPair.publicKey),
     crypto.subtle.exportKey('pkcs8', keyPair.privateKey),
   ]);
-  const pub = toBase64UrlSafe(pubBuf);
-  const priv = toBase64UrlSafe(privBuf);
   return {
-    publicKey: [PUBLIC_KEY_HEADER, pub, PUBLIC_KEY_FOOTER].join('\n'),
-    privateKey: [PRIVATE_KEY_HEADER, priv, PRIVATE_KEY_FOOTER].join('\n'),
+    publicKey: toPem(PUBLIC_KEY_HEADER, PUBLIC_KEY_FOOTER, pubBuf),
+    privateKey: toPem(PRIVATE_KEY_HEADER, PRIVATE_KEY_FOOTER, privBuf),
   };
 };
 
@@ -288,23 +303,36 @@ const loadKeys = async (basePath = 'keys') => {
   return keys;
 };
 
-// sync-browser.js
+// sync.js
+
+const nodeFile = (url) => `${between(url, '://', ':')}.json`;
 
 class SyncManager {
+  #path;
   #nodes = new Map();
 
-  constructor() {
+  constructor(basePath) {
+    this.#path = `${basePath}/remote`;
     return this.#init();
   }
 
   async #init() {
+    const files = await fsi.list(this.#path);
+    const jsonFiles = files.filter((file) => file.endsWith('.json'));
+    const reads = jsonFiles.map((file) => fsi.read(this.#path, file));
+    for (const raw of await Promise.all(reads)) {
+      const node = JSON.parse(raw);
+      this.#nodes.set(node.url, node);
+    }
     await this.start();
     return this;
   }
 
   async start() {
-    // TODO: Implement metacom-based sync (WebSocket client)
-    // Future: WebRTC transport for peer-to-peer sync
+    // TODO: Implement metacom-based sync
+    // This would connect to the node using metacom protocol
+    // and exchange CRDT delta logs for sync
+    // Future: WebRTC transport for peer-to-peer sync in browser
     const uplinks = this.listNodes().filter(
       (node) => node.type === 'uplink' && node.enabled,
     );
@@ -330,6 +358,7 @@ class SyncManager {
     const now = Date.now();
     const node = { type, url, token, enabled: true, lastSync: now };
     this.#nodes.set(url, node);
+    await fsi.write(this.#path, nodeFile(url), JSON.stringify(node));
     await this.start();
   }
 
@@ -337,6 +366,7 @@ class SyncManager {
     if (!this.#nodes.delete(url)) {
       throw new Error(`Node with URL ${url} not found`);
     }
+    await fsi.remove(this.#path, nodeFile(url));
   }
 
   listNodes() {
@@ -621,7 +651,7 @@ class Storage {
 
   async saveData(id, data, options = {}) {
     const { encrypted = false } = options;
-    const record = encrypted ? encrypt(data, this.#keys.publicKey) : data;
+    const record = encrypted ? await encrypt(data, this.#keys.publicKey) : data;
     const timestamp = Date.now();
 
     const hash = await calculateHash(record);
@@ -645,7 +675,9 @@ class Storage {
     const { data, encrypted, block } = JSON.parse(raw);
     const isValid = await this.validate(id, data, block);
     if (!isValid) throw new Error(`Storage record ${id} is invalid`);
-    const decrypted = encrypted ? decrypt(data, this.#keys.privateKey) : data;
+    const decrypted = encrypted
+      ? await decrypt(data, this.#keys.privateKey)
+      : data;
     this.#cache.set(id, decrypted);
     return decrypted;
   }
@@ -749,10 +781,7 @@ export {
   apply,
   DataReader,
   SmartContract,
-  read,
-  write,
-  exists,
-  remove,
+  fsi,
   calculateHash,
   generateKeys,
   encrypt,
