@@ -30,19 +30,46 @@ export function loadKeyPair(
 
 export type CrdtDelta = Record<string, unknown>;
 
-export type CrdtHistoryRecord =
-  | { type: 'write'; id?: string; timestamp?: number; data?: unknown }
-  | { type: 'delta'; data: unknown }
-  | { type: 'delete'; key: string }
-  | { type: 'inc'; key: string; value: number }
-  | { type: 'dec'; key: string; value: number };
+export interface CrdtStamp {
+  readonly time: number;
+  readonly replica: string;
+}
+
+export interface LwwRegister {
+  readonly $lww: CrdtStamp & { readonly value: JSONSafe };
+}
+
+export type CrdtCounts = { readonly [replica: string]: number };
+
+export interface CrdtCounter {
+  readonly $counter: { readonly inc?: CrdtCounts; readonly dec?: CrdtCounts };
+}
+
+export type CrdtSetItem = string | number | boolean | null;
+
+export type CrdtValue =
+  LwwRegister | CrdtCounter | readonly CrdtSetItem[] | CrdtState;
+
+export interface CrdtState {
+  readonly [key: string]: CrdtValue;
+}
 
 export function diff(source: unknown, target: unknown): CrdtDelta;
 export function merge(source: unknown, delta: unknown): unknown;
-export function apply(
-  source: unknown,
-  history: readonly CrdtHistoryRecord[],
-): unknown;
+export function apply(source: unknown, deltas: readonly unknown[]): unknown;
+export function materialize(state: unknown): unknown;
+export function latestTime(state: unknown): number;
+export function assign(
+  fields: Record<string, unknown>,
+  stamp: CrdtStamp,
+): CrdtState;
+export function increment(
+  state: unknown,
+  path: readonly string[],
+  amount: number,
+  replica: string,
+): CrdtState;
+export function isDelta(delta: unknown): delta is CrdtState;
 
 export interface Block<T = unknown> {
   prev: string;
