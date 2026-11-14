@@ -1,10 +1,12 @@
 {
   "order": [
+    "utils.js",
     "crdt.js",
     "contract.js",
     "fsi-browser.js",
     "keys.js",
     "crypto-browser.js",
+    "replica.js",
     "sync.js",
     "chain.js",
     "storage.js"
