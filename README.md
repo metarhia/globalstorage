@@ -113,11 +113,61 @@ new replica id, so other replicas send their data again.
 | `origin(position)`                         | Where a logged delta came from                  |
 | `getLink(name)`, `setLink(name, link)`     | Stored `{ source, pulled, pushed }` cursors     |
 | `clear()`                                  | Removes data and takes a new replica id         |
+| `cleared`                                  | Ids of logs cleared on purpose, the latest last |
 | `save()`                                   | Waits for pending writes                        |
 
 Events: `log` with `{ deltas, position, origin }` after fresh deltas,
 `clear`, and `error` for failed background writes. `validate(delta)` is an
 optional application check, it runs after the CRDT shape check.
+
+### Sync over Metacom
+
+`SyncService` serves a replica as a [metacom](https://github.com/metarhia/metacom)
+unit and `Uplink` syncs another replica with it. Globalstorage does not
+create connections: pass a metacom server, `MetacomProxy`, `MetacomPeer`, or
+client connection you already have, so one protocol works from server to
+service worker, to tabs, and between peers over WebRTC.
+
+```js
+// Node.js: metacom application unit
+const replica = await new Replica({ path: './data' }).open();
+const service = new SyncService(replica, { unit: 'sync' });
+const api = { sync: service.api };
+
+// Browser or Node.js client
+const local = new Replica();
+const metacom = Metacom.create('wss://example.com/api');
+const uplink = new Uplink(local, metacom, { unit: 'sync', name: 'server' });
+uplink.start();
+await metacom.open();
+```
+
+| Call                         | Result                                           |
+| ---------------------------- | ------------------------------------------------ |
+| `subscribe()`                | Caller's `context.client` receives `<unit>/log`  |
+| `pull({ source, position })` | `{ source, deltas, position, more, cleared }`    |
+| `push({ deltas })`           | `{ source, position, applied }` after merge      |
+| event `log`                  | `{ source, deltas, position }` with fresh deltas |
+
+`source` is the served replica id: a cursor is a position in that replica's
+log. When the id changes, the uplink cleared, lost, or replaced its log:
+`Uplink` pulls from zero and pushes its whole log again. With option
+`clear: 'follow'` an uplink cleared on purpose (its old id is in `cleared`)
+clears this replica too, so a local cache follows the clear instead of
+filling the uplink again. SyncService sends an empty `log` event with the
+new id when its replica is cleared, so subscribers learn it at once. An event that does not
+continue the cursor makes `Uplink` pull. Own deltas are pushed after each
+connect and each change, deltas received from the uplink are not pushed back.
+Cursors are kept in replica links under the uplink `name`.
+
+`SyncService` options: `unit` (`'sync'`) names the `log` event, and `name`
+(`'downlink'`) marks the origin of pushed deltas. `subscribe` keeps
+`context.client` of the caller until its `close` event: metacom server,
+`MetacomProxy`, and `MetacomPeer` handlers all have it. Event data is frozen,
+so metacom serializes an event once for all subscribers. `Uplink` options: `unit`
+(`'sync'`), `name` (`'uplink'`), and `clear` (`'resend'` or `'follow'`). `start()` and `stop()` attach and detach
+its listeners; `sync()`, `pull()`, and `flush()` resolve to `true` when
+everything is sent.
 
 ### Ideal For
 

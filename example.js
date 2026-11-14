@@ -8,37 +8,6 @@ const main = async () => {
   console.log(xxiiSchema);
   const storage = await globalStorage.open({ schema: xxiiSchema });
 
-  await storage.sync
-    .addNode({
-      type: 'uplink',
-      url: 'ws://example.com:8001',
-      name: 'Main Server',
-      token: 'secret-token-123',
-    })
-    .then(() => {
-      console.log('Added uplink node');
-    })
-    .catch((error) => {
-      console.error('Error adding uplink node:', error.message);
-    });
-
-  await storage.sync
-    .addNode({
-      type: 'downlink',
-      url: 'ws://client.example.com:8002',
-      name: 'Client Node',
-      token: 'secret-token-456',
-    })
-    .then(() => {
-      console.log('Added downlink node');
-    })
-    .catch((error) => {
-      console.error('Error adding downlink node:', error.message);
-    });
-
-  const nodes = storage.sync.listNodes();
-  console.log('List nodes', nodes);
-
   // Implicit API - Record with dynamic getters/setters
 
   const authorData = { name: 'Timur', email: 'timur@example.com' };
@@ -78,15 +47,8 @@ const main = async () => {
     await storage.set(postRecord.id, data);
   }
 
-  await storage.sync.start();
-  console.log('Synced');
-
   const valid = await storage.validate({ last: 10 });
   console.log('Storage valid after adding:', valid);
-
-  await storage.sync.removeNode('ws://client.example.com:8002');
-  console.log('Removed downlink node');
-  console.log('Remaining nodes:', storage.sync.listNodes());
 };
 
 main();
