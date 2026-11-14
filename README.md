@@ -36,6 +36,46 @@ npm install globalstorage
 - **Browser** exports `globalstorage.mjs` (ESM).
 - **TypeScript** types for development are maintained in [`globalstorage.d.ts`](./globalstorage.d.ts).
 
+### CRDT
+
+Records are synchronized with delta-state CRDT: a delta is a part of a
+record state, and `merge(state, delta)` joins them. For CRDT values the join
+is idempotent, commutative, and associative, so replicas reach the same state
+when they receive the same deltas, repeated or in any order. A full state is a
+delta too.
+
+| Value    | Shape                                        | Join                       | `materialize`           |
+| -------- | -------------------------------------------- | -------------------------- | ----------------------- |
+| Register | `{ $lww: { value, time, replica } }`         | later `time`, then replica | `value`, `null` removes |
+| Counter  | `{ $counter: { inc: { r1: 3 }, dec: { } } }` | maximum for each replica   | sum of `inc` - `dec`    |
+| Set      | `[1, 'a', true]` primitives                  | sorted union               | array                   |
+| Map      | `{ key: value }` of values above             | join for each key          | object                  |
+
+Plain values outside CRDT shapes follow merge patch rules: the delta replaces
+them and `undefined` removes a key. They never replace a register or counter.
+
+```js
+const { assign, increment, merge, materialize, diff } = globalStorage;
+
+const stamp = { time: Date.now(), replica: 'r1' };
+let state = merge({}, assign({ title: 'Hello' }, stamp));
+const previous = state;
+state = merge(state, increment(state, ['likes'], 1, 'r1'));
+materialize(state); // { title: 'Hello', likes: 1 }
+diff(previous, state); // { likes: { $counter: { inc: { r1: 1 }, dec: {} } } }
+```
+
+| Function                                  | Result                                       |
+| ----------------------------------------- | -------------------------------------------- |
+| `merge(state, delta)`                     | Joined state, `state` itself when unchanged  |
+| `apply(state, deltas)`                    | State after merging deltas in order          |
+| `diff(source, target)`                    | Delta of what `target` adds to `source`      |
+| `materialize(state)`                      | Plain JSON value of a state                  |
+| `assign(fields, { time, replica })`       | Delta with a register for each field         |
+| `increment(state, path, amount, replica)` | Delta raising this replica's counter entry   |
+| `latestTime(state)`                       | Latest register time, for a hybrid clock     |
+| `isDelta(value)`                          | Whether a value from network is a CRDT delta |
+
 ### Ideal For
 
 - Local-first apps
