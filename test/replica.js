@@ -229,6 +229,19 @@ test('emitError: reports only to listeners', () => {
   assert.deepStrictEqual(errors, [error]);
 });
 
+test('Replica: clear remembers ids of cleared logs', async (t) => {
+  const dir = await useTemp(t);
+  const replica = await new Replica({ path: dir }).open();
+  const ids = [];
+  for (let i = 0; i < 18; i++) {
+    ids.push(replica.id);
+    await replica.clear();
+  }
+  assert.deepStrictEqual(replica.cleared, ids.slice(-16));
+  const restored = await new Replica({ path: dir }).open();
+  assert.deepStrictEqual(restored.cleared, replica.cleared);
+});
+
 test('Replica: keys of one entity', async (t) => {
   const dir = await useTemp(t);
   const replica = await new Replica({ path: dir }).open();

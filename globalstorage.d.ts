@@ -106,6 +106,7 @@ export class Replica extends Emitter {
   readonly id: string;
   readonly position: number;
   readonly size: number;
+  readonly cleared: string[];
 
   open(): Promise<Replica>;
   get(target: string): Record<string, unknown> | null;
@@ -212,38 +213,83 @@ export interface StorageDataOptions {
   encrypted?: boolean;
 }
 
-export interface Node {
-  type: 'uplink' | 'downlink';
-  url: string;
-  token?: string;
-  enabled: boolean;
-  lastSync: number;
+export interface SyncEntries extends LogEntries {
+  readonly source: string;
 }
 
-export interface NodeData {
-  url: string;
-  type: 'uplink' | 'downlink';
-  token?: string;
+export interface PullReply extends SyncEntries {
+  readonly more: boolean;
+  readonly cleared: readonly string[];
 }
 
-export interface SyncManager {
-  addNode(nodeData: NodeData): Promise<void>;
-  removeNode(url: string): Promise<void>;
-  listNodes(): Node[];
-  start(): Promise<void>;
+export interface PushReply {
+  readonly source: string;
+  readonly position: number;
+  readonly applied: number;
 }
 
-export interface SyncManagerConstructor {
-  readonly prototype: SyncManager;
-  new (basePath: string): Promise<SyncManager>;
+export interface SyncClient {
+  emit(name: string, data: unknown): unknown;
+  on(name: 'close', listener: () => void): void;
 }
 
-export const SyncManager: SyncManagerConstructor;
+export interface SyncContext {
+  client?: SyncClient | null;
+}
+
+export interface SyncApi {
+  subscribe(args?: unknown, context?: SyncContext): Promise<boolean>;
+  pull(args: { source?: string; position?: number }): Promise<PullReply>;
+  push(args: { deltas: readonly unknown[] }): Promise<PushReply>;
+}
+
+export interface SyncServiceOptions {
+  unit?: string;
+  name?: string;
+}
+
+export class SyncService {
+  constructor(replica: Replica, options?: SyncServiceOptions);
+  readonly api: SyncApi;
+  close(): void;
+}
+
+export interface MetacomUnitLike {
+  on(name: string, listener: (data: never) => void): void;
+  off(name: string, listener?: (data: never) => void): void;
+  listeners(name: string): Function[];
+  readonly [method: string]: unknown;
+}
+
+export interface MetacomLike {
+  readonly active: boolean;
+  readonly api: { readonly [unit: string]: MetacomUnitLike };
+  load(...units: string[]): Promise<void>;
+  on(name: 'open', listener: () => void): void;
+  off(name: 'open', listener?: () => void): void;
+}
+
+export interface UplinkOptions {
+  unit?: string;
+  name?: string;
+  clear?: 'follow' | 'resend';
+}
+
+export class Uplink extends Emitter {
+  constructor(replica: Replica, metacom: MetacomLike, options?: UplinkOptions);
+  readonly link: Link;
+  start(): void;
+  stop(): void;
+  sync(): Promise<boolean>;
+  pull(): Promise<boolean>;
+  flush(): Promise<boolean>;
+  on(event: 'error', listener: (error: Error) => void): void;
+  on(event: string, listener: (...args: any[]) => void): void;
+}
 
 export interface Storage {
   readonly schema: Schema | null;
   readonly chain: Blockchain;
-  readonly sync: SyncManager;
 
   saveData(
     id: string,
