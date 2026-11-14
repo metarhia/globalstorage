@@ -14,7 +14,7 @@ const calculateDelta = (oldData, newData) => {
 };
 
 class Reference {
-  #id;
+  #id = undefined;
   #storage = null;
 
   constructor(id, storage) {
@@ -28,7 +28,7 @@ class Reference {
 }
 
 class Record extends Emitter {
-  #id;
+  #id = undefined;
   #storage = null;
   #data = null;
   #changes = {};
@@ -158,8 +158,8 @@ class SyncManager {
 }
 
 class Collection {
-  #storage;
-  #name;
+  #storage = null;
+  #name = undefined;
 
   constructor(storage, name) {
     this.#storage = storage;

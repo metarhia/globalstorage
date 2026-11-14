@@ -94,7 +94,7 @@ const apply = (source, history) => {
 const deserializeFunction = (source) => new Function(`return (${source});`)();
 
 class DataReader {
-  #storage;
+  #storage = null;
 
   constructor(storage) {
     this.#storage = storage;
@@ -106,9 +106,10 @@ class DataReader {
 }
 
 class SmartContract {
-  #storage;
-  #chain;
-  #proc;
+  name = undefined;
+  #storage = null;
+  #chain = null;
+  #proc = null;
 
   constructor(name, proc, { storage, chain = storage.chain }) {
     this.name = name;
@@ -263,11 +264,13 @@ const cleanPemKey = (pemKey, header, footer) => {
 };
 
 const generateKeys = async () => {
-  const keyPair = await crypto.subtle.generateKey(
-    { ...ALG, modulusLength: 2048, publicExponent: new Uint8Array([1, 0, 1]) },
-    true,
-    ['encrypt', 'decrypt'],
-  );
+  const modulusLength = 2048;
+  const publicExponent = new Uint8Array([1, 0, 1]);
+  const algorithm = { ...ALG, modulusLength, publicExponent };
+  const keyPair = await crypto.subtle.generateKey(algorithm, true, [
+    'encrypt',
+    'decrypt',
+  ]);
   const [pubBuf, privBuf] = await Promise.all([
     crypto.subtle.exportKey('spki', keyPair.publicKey),
     crypto.subtle.exportKey('pkcs8', keyPair.privateKey),
@@ -317,6 +320,8 @@ const decrypt = async (data, privateKey) => {
   return JSON.parse(new TextDecoder().decode(buffer));
 };
 
+const cryptography = { calculateHash, generateKeys, encrypt, decrypt };
+
 const loadKeys = async (basePath = 'keys') => {
   const publicKey = await fsi.read(basePath, 'public.pem');
   if (publicKey !== null) {
@@ -324,18 +329,20 @@ const loadKeys = async (basePath = 'keys') => {
     if (privateKey === null) throw new Error(`No private key in ${basePath}`);
     return { publicKey, privateKey };
   }
-  const keys = await generateKeys();
+  const keys = await cryptography.generateKeys();
   await fsi.write(basePath, 'public.pem', keys.publicKey);
   await fsi.write(basePath, 'private.pem', keys.privateKey);
   return keys;
 };
+
+cryptography.loadKeys = loadKeys;
 
 // sync.js
 
 const nodeFile = (url) => `${between(url, '://', ':')}.json`;
 
 class SyncManager {
-  #path;
+  #path = undefined;
   #nodes = new Map();
 
   constructor(basePath) {
@@ -406,9 +413,11 @@ class SyncManager {
 const BLOCKCHAIN = '.blockchain.json';
 
 class Blockchain {
+  path = undefined;
+  tailHash = null;
+
   constructor(basePath) {
     this.path = basePath;
-    this.tailHash = null;
     return this.#init();
   }
 
@@ -440,7 +449,7 @@ class Blockchain {
   }
 
   async writeBlock(block) {
-    const hash = await calculateHash(block);
+    const hash = await cryptography.calculateHash(block);
     await fsi.write(this.path, `${hash}.json`, JSON.stringify(block));
     return hash;
   }
@@ -457,7 +466,7 @@ class Blockchain {
     let count = 0;
     while (currentHash) {
       const block = await this.readBlock(currentHash);
-      const expectedHash = await calculateHash(block);
+      const expectedHash = await cryptography.calculateHash(block);
       const valid = currentHash === expectedHash;
       if (!valid) return false;
       count++;
@@ -477,7 +486,7 @@ const fieldType = (def) => {
 };
 
 class Reference {
-  #id;
+  #id = undefined;
   #storage = null;
 
   constructor(id, storage) {
@@ -491,7 +500,7 @@ class Reference {
 }
 
 class Record extends Emitter {
-  #id;
+  #id = undefined;
   #storage = null;
   #data = null;
   #changes = {};
@@ -571,8 +580,8 @@ class Record extends Emitter {
 }
 
 class Collection {
-  #storage;
-  #name;
+  #storage = null;
+  #name = undefined;
 
   constructor(storage, name) {
     this.#storage = storage;
@@ -608,8 +617,11 @@ class Collection {
 }
 
 class Storage {
-  #path;
-  #dataDir;
+  static Collection = Collection;
+  static Record = Record;
+
+  #path = 'gs';
+  #dataDir = 'gs/data';
   #keys = null;
   #chain = null;
   #records = new Map();
@@ -626,7 +638,7 @@ class Storage {
   }
 
   async #init() {
-    this.#keys = await loadKeys(`${this.#path}/keys`);
+    this.#keys = await cryptography.loadKeys(`${this.#path}/keys`);
     this.#chain = await new Blockchain(`${this.#path}/blockchain`);
     this.#sync = await new SyncManager(this.#path);
     this.#initCollections();
@@ -668,10 +680,12 @@ class Storage {
 
   async saveData(id, data, options = {}) {
     const { encrypted = false } = options;
-    const record = encrypted ? await encrypt(data, this.#keys.publicKey) : data;
+    const record = encrypted
+      ? await cryptography.encrypt(data, this.#keys.publicKey)
+      : data;
     const timestamp = Date.now();
 
-    const hash = await calculateHash(record);
+    const hash = await cryptography.calculateHash(record);
     const blockHash = await this.#chain.addBlock({ id, hash });
 
     const entry = { data: record, encrypted, timestamp, block: blockHash };
@@ -690,7 +704,7 @@ class Storage {
     const isValid = await this.#verify(id, data, block);
     if (!isValid) throw new Error(`Storage record ${id} is invalid`);
     const decrypted = encrypted
-      ? await decrypt(data, this.#keys.privateKey)
+      ? await cryptography.decrypt(data, this.#keys.privateKey)
       : data;
     this.#cache.set(id, decrypted);
     return decrypted;
@@ -703,7 +717,7 @@ class Storage {
   async #verify(id, data, blockHash) {
     try {
       const block = await this.#chain.readBlock(blockHash);
-      const expectedHash = await calculateHash(data);
+      const expectedHash = await cryptography.calculateHash(data);
       return block.data.hash === expectedHash && block.data.id === id;
     } catch {
       return false;
@@ -771,9 +785,6 @@ class Storage {
     return this.#sync;
   }
 }
-
-Storage.Collection = Collection;
-Storage.Record = Record;
 
 const open = (options) => new Storage(options);
 
