@@ -25,7 +25,7 @@ test('crypto-browser module', async (t) => {
   const cryptoBrowser = require('../lib/crypto-browser.js');
 
   await t.test('interoperates with node crypto', async () => {
-    const nodeCrypto = require('../lib/crypto.js');
+    const nodeCrypto = require('../lib/crypto-node.js');
     const data = { message: 'cross-runtime', value: 1 };
     const nodeHash = nodeCrypto.calculateHash(data);
     assert.strictEqual(await cryptoBrowser.calculateHash(data), nodeHash);
