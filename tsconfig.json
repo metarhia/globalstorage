@@ -5,7 +5,8 @@
     "moduleResolution": "nodenext",
     "strict": true,
     "noEmit": true,
-    "preserveWatchOutput": true
+    "preserveWatchOutput": true,
+    "types": ["node"]
   },
   "include": ["*.d.ts"]
 }

@@ -1,3 +1,5 @@
+import { Emitter } from 'metautil';
+
 export type JSONSafe =
   | string
   | number
@@ -70,6 +72,69 @@ export function increment(
   replica: string,
 ): CrdtState;
 export function isDelta(delta: unknown): delta is CrdtState;
+export function emitError(emitter: Emitter, error: Error): void;
+
+export interface Delta {
+  readonly id: string;
+  readonly entity: string;
+  readonly target: string;
+  readonly data: CrdtState;
+}
+
+export interface LogEntries {
+  readonly deltas: readonly Delta[];
+  readonly position: number;
+}
+
+export interface LogEvent extends LogEntries {
+  readonly origin: string;
+}
+
+export interface Link {
+  source: string;
+  pulled: number;
+  pushed: number;
+}
+
+export interface ReplicaOptions {
+  path?: string;
+  validate?: (delta: Delta) => boolean;
+}
+
+export class Replica extends Emitter {
+  constructor(options?: ReplicaOptions);
+  readonly id: string;
+  readonly position: number;
+  readonly size: number;
+
+  open(): Promise<Replica>;
+  get(target: string): Record<string, unknown> | null;
+  state(target: string): CrdtState | null;
+  keys(entity?: string): IterableIterator<string>;
+  since(position?: number, limit?: number): LogEntries;
+  origin(position: number): string;
+  assign(
+    entity: string,
+    target: string,
+    fields: Record<string, unknown>,
+  ): Delta | null;
+  increment(
+    entity: string,
+    target: string,
+    path: readonly string[],
+    amount?: number,
+  ): Delta | null;
+  merge(deltas: readonly unknown[], origin?: string): Delta[];
+  getLink(name: string): Link;
+  setLink(name: string, link: Link): void;
+  clear(): Promise<void>;
+  save(): Promise<void>;
+
+  on(event: 'log', listener: (event: LogEvent) => void): void;
+  on(event: 'clear', listener: () => void): void;
+  on(event: 'error', listener: (error: Error) => void): void;
+  on(event: string, listener: (...args: any[]) => void): void;
+}
 
 export interface Block<T = unknown> {
   prev: string;

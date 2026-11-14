@@ -76,6 +76,49 @@ diff(previous, state); // { likes: { $counter: { inc: { r1: 1 }, dec: {} } } }
 | `latestTime(state)`                       | Latest register time, for a hybrid clock     |
 | `isDelta(value)`                          | Whether a value from network is a CRDT delta |
 
+### Replica
+
+`Replica` keeps records as CRDT states and logs every delta that changed
+them. Deltas are envelopes `{ id, entity, target, data }`: `target` is the
+record id and `data` is a CRDT delta for it. A delta that adds nothing to the
+state is not logged, so deltas going around between replicas stop.
+
+```js
+const chat = await new Replica({ path: 'chat', validate }).open();
+chat.assign('message', id, { username, content, timestamp });
+chat.increment('message', id, ['reactions', 'like']);
+chat.get(id); // { username, content, timestamp, reactions: { like: 1 } }
+chat.on('log', ({ deltas, position, origin }) => {});
+const fresh = chat.merge(deltasFromPeer, 'peer');
+```
+
+Without `path` the replica lives in memory. With `path` it is stored by
+`fsi`: OPFS in browsers and the file system in Node.js. The log is split into
+segments of 256 deltas, `meta.json` keeps the replica id, log length, and link
+cursors. Segments are read in parallel on open; cursors are saved with the
+next log write or a second later, a stale cursor only repeats a pull or push. On open the log is replayed, and a log shorter than recorded gets a
+new replica id, so other replicas send their data again.
+
+| Member                                     | Description                                     |
+| ------------------------------------------ | ----------------------------------------------- |
+| `open()`                                   | Loads a stored replica, required before changes |
+| `id`                                       | Replica id, used for own registers and counters |
+| `position`                                 | Log length                                      |
+| `get(target)`, `keys(entity?)`, `size`     | Materialized records, ids of an entity          |
+| `state(target)`                            | CRDT state of a record                          |
+| `assign(entity, target, fields)`           | Own write of registers, returns the delta       |
+| `increment(entity, target, path, amount?)` | Own counter change, returns the delta           |
+| `merge(deltas, origin?)`                   | Applies deltas from elsewhere, returns fresh    |
+| `since(position, limit?)`                  | `{ deltas, position }` for other replicas       |
+| `origin(position)`                         | Where a logged delta came from                  |
+| `getLink(name)`, `setLink(name, link)`     | Stored `{ source, pulled, pushed }` cursors     |
+| `clear()`                                  | Removes data and takes a new replica id         |
+| `save()`                                   | Waits for pending writes                        |
+
+Events: `log` with `{ deltas, position, origin }` after fresh deltas,
+`clear`, and `error` for failed background writes. `validate(delta)` is an
+optional application check, it runs after the CRDT shape check.
+
 ### Ideal For
 
 - Local-first apps
