@@ -218,6 +218,35 @@ const list = async (dir) => {
 
 const fsi = { read, write, exists, remove, list };
 
+// keys.js
+
+// Remembers the last parsed key, storage always uses the same key pair
+const memoizeLast = (fn) => {
+  let lastPem = null;
+  let lastKey = null;
+  return (pem) => {
+    if (pem !== lastPem) {
+      lastKey = fn(pem);
+      lastPem = pem;
+    }
+    return lastKey;
+  };
+};
+
+// Key pair kept as PEM files, generated and written on the first use
+const loadKeyPair = async (files, generateKeys, basePath) => {
+  const publicKey = await files.read(basePath, 'public.pem');
+  if (publicKey !== null) {
+    const privateKey = await files.read(basePath, 'private.pem');
+    if (privateKey === null) throw new Error(`No private key in ${basePath}`);
+    return { publicKey, privateKey };
+  }
+  const keys = await generateKeys();
+  await files.write(basePath, 'public.pem', keys.publicKey);
+  await files.write(basePath, 'private.pem', keys.privateKey);
+  return keys;
+};
+
 // crypto-browser.js
 
 const PUBLIC_KEY_HEADER = '-----BEGIN PUBLIC KEY-----';
@@ -281,19 +310,6 @@ const generateKeys = async () => {
   };
 };
 
-// Remembers the last parsed key, storage always uses the same key pair
-const memoizeLast = (fn) => {
-  let lastPem = null;
-  let lastKey = null;
-  return (pem) => {
-    if (pem !== lastPem) {
-      lastKey = fn(pem);
-      lastPem = pem;
-    }
-    return lastKey;
-  };
-};
-
 const importPublicKey = memoizeLast(async (pemKey) => {
   const base64 = cleanPemKey(pemKey, PUBLIC_KEY_HEADER, PUBLIC_KEY_FOOTER);
   const bytes = base64ToBytes(base64);
@@ -320,22 +336,8 @@ const decrypt = async (data, privateKey) => {
   return JSON.parse(new TextDecoder().decode(buffer));
 };
 
-const cryptography = { calculateHash, generateKeys, encrypt, decrypt };
-
-const loadKeys = async (basePath = 'keys') => {
-  const publicKey = await fsi.read(basePath, 'public.pem');
-  if (publicKey !== null) {
-    const privateKey = await fsi.read(basePath, 'private.pem');
-    if (privateKey === null) throw new Error(`No private key in ${basePath}`);
-    return { publicKey, privateKey };
-  }
-  const keys = await cryptography.generateKeys();
-  await fsi.write(basePath, 'public.pem', keys.publicKey);
-  await fsi.write(basePath, 'private.pem', keys.privateKey);
-  return keys;
-};
-
-cryptography.loadKeys = loadKeys;
+const loadKeys = (basePath = 'keys') =>
+  loadKeyPair(fsi, generateKeys, basePath);
 
 // sync.js
 
@@ -449,7 +451,7 @@ class Blockchain {
   }
 
   async writeBlock(block) {
-    const hash = await cryptography.calculateHash(block);
+    const hash = await calculateHash(block);
     await fsi.write(this.path, `${hash}.json`, JSON.stringify(block));
     return hash;
   }
@@ -466,7 +468,7 @@ class Blockchain {
     let count = 0;
     while (currentHash) {
       const block = await this.readBlock(currentHash);
-      const expectedHash = await cryptography.calculateHash(block);
+      const expectedHash = await calculateHash(block);
       const valid = currentHash === expectedHash;
       if (!valid) return false;
       count++;
@@ -638,7 +640,7 @@ class Storage {
   }
 
   async #init() {
-    this.#keys = await cryptography.loadKeys(`${this.#path}/keys`);
+    this.#keys = await loadKeys(`${this.#path}/keys`);
     this.#chain = await new Blockchain(`${this.#path}/blockchain`);
     this.#sync = await new SyncManager(this.#path);
     this.#initCollections();
@@ -680,12 +682,10 @@ class Storage {
 
   async saveData(id, data, options = {}) {
     const { encrypted = false } = options;
-    const record = encrypted
-      ? await cryptography.encrypt(data, this.#keys.publicKey)
-      : data;
+    const record = encrypted ? await encrypt(data, this.#keys.publicKey) : data;
     const timestamp = Date.now();
 
-    const hash = await cryptography.calculateHash(record);
+    const hash = await calculateHash(record);
     const blockHash = await this.#chain.addBlock({ id, hash });
 
     const entry = { data: record, encrypted, timestamp, block: blockHash };
@@ -704,7 +704,7 @@ class Storage {
     const isValid = await this.#verify(id, data, block);
     if (!isValid) throw new Error(`Storage record ${id} is invalid`);
     const decrypted = encrypted
-      ? await cryptography.decrypt(data, this.#keys.privateKey)
+      ? await decrypt(data, this.#keys.privateKey)
       : data;
     this.#cache.set(id, decrypted);
     return decrypted;
@@ -717,7 +717,7 @@ class Storage {
   async #verify(id, data, blockHash) {
     try {
       const block = await this.#chain.readBlock(blockHash);
-      const expectedHash = await cryptography.calculateHash(data);
+      const expectedHash = await calculateHash(data);
       return block.data.hash === expectedHash && block.data.id === id;
     } catch {
       return false;
@@ -795,6 +795,8 @@ export {
   DataReader,
   SmartContract,
   fsi,
+  memoizeLast,
+  loadKeyPair,
   calculateHash,
   generateKeys,
   encrypt,
