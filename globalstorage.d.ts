@@ -16,6 +16,18 @@ export function encrypt(data: unknown, publicKey: string): string;
 export function decrypt(data: string, privateKey: string): unknown;
 export function loadKeys(basePath: string): Promise<KeyPair>;
 
+export interface KeyFiles {
+  read(dir: string, filename: string): Promise<string | null>;
+  write(dir: string, filename: string, content: string): Promise<void>;
+}
+
+export function memoizeLast<T>(fn: (pem: string) => T): (pem: string) => T;
+export function loadKeyPair(
+  files: KeyFiles,
+  generateKeys: () => Promise<KeyPair>,
+  basePath: string,
+): Promise<KeyPair>;
+
 export type CrdtDelta = Record<string, unknown>;
 
 export type CrdtHistoryRecord =

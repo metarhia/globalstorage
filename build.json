@@ -3,6 +3,7 @@
     "crdt.js",
     "contract.js",
     "fsi-browser.js",
+    "keys.js",
     "crypto-browser.js",
     "sync.js",
     "chain.js",
