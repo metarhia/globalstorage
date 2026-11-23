@@ -8,8 +8,6 @@ const main = async () => {
   console.log(xxiiSchema);
   const storage = await globalStorage.open({ schema: xxiiSchema });
 
-  // Implicit API - Record with dynamic getters/setters
-
   const authorData = { name: 'Timur', email: 'timur@example.com' };
   const authorId = await storage.insert(authorData);
   const authorRecord = await storage.record(authorId);
@@ -37,8 +35,6 @@ const main = async () => {
 
   const postAuthor = await postRecord.author.record();
   console.log('Author name:', postAuthor.name);
-
-  // Explicit API (still available)
 
   const exists = await storage.has(postRecord.id);
   if (exists) {
