@@ -1,7 +1,5 @@
 'use strict';
 
-// Domain logic: message
-
 let storage = null;
 
 const init = (storageProvider) => {
