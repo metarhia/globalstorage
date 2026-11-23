@@ -2,6 +2,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert');
+
 const globalStorage = require('..');
 const { useTemp } = require('./utils/temp.js');
 
@@ -14,12 +15,10 @@ test('Integration tests', async (t) => {
 
       const contractProc = async (reader, args) => {
         const data = await reader.get(args.id);
-        const existingData = data || { count: 0 };
-        return {
-          ...existingData,
-          count: existingData.count + 1,
-          lastUpdate: Date.now(),
-        };
+        const existing = data || { count: 0 };
+        const count = existing.count + 1;
+        const lastUpdate = Date.now();
+        return { ...existing, count, lastUpdate };
       };
 
       const contract = new globalStorage.SmartContract(

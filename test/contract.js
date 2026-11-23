@@ -3,6 +3,7 @@
 const path = require('node:path');
 const test = require('node:test');
 const assert = require('node:assert');
+
 const globalStorage = require('..');
 const { SmartContract, DataReader, Blockchain } = globalStorage;
 const { useTemp } = require('./utils/temp.js');
@@ -65,11 +66,13 @@ test('Contract module', async (t) => {
       currentHash = block.prev;
     }
 
-    const errorBlock = blocks.find(
-      (block) =>
-        block.data.contract === 'test-contract' &&
-        block.data.error === 'Test error',
-    );
+    const isContractError = (block) => {
+      const data = block.data;
+      const isContract = data.contract === 'test-contract';
+      const isFailed = data.error === 'Test error';
+      return isContract && isFailed;
+    };
+    const errorBlock = blocks.find(isContractError);
     assert.ok(errorBlock);
   });
 

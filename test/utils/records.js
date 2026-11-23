@@ -1,7 +1,9 @@
 'use strict';
 
-const message = (replica, id, content) =>
-  replica.assign('message', id, { content, username: 'ada' });
+const message = (replica, id, content) => {
+  const fields = { content, username: 'ada' };
+  return replica.assign('message', id, fields);
+};
 
 const values = (replica) => {
   const result = {};
