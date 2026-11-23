@@ -49,7 +49,6 @@ const joinRegister = (source, delta) => {
   return isNewer ? delta : source;
 };
 
-// Per-replica counts of target above source, null when none is above
 const above = (source = {}, target = {}) => {
   let result = null;
   const keys = Object.keys(target);
@@ -64,7 +63,6 @@ const above = (source = {}, target = {}) => {
   return result;
 };
 
-// Per-replica maximum, returns source itself when nothing grows
 const raise = (source = {}, delta = {}) => {
   const grown = above(source, delta);
   return grown === null ? source : { ...source, ...grown };
@@ -90,12 +88,20 @@ const compareItems = (a, b) => {
   return compareValues(a, b);
 };
 
+const addAll = (items, values) => {
+  if (Array.isArray(values)) {
+    for (let i = 0; i < values.length; i++) items.add(values[i]);
+    return;
+  }
+  for (const item of values) items.add(item);
+};
+
 const union = (source, delta) => {
   const items = new Set(isSet(source) ? source : []);
   const size = items.size;
-  for (const item of delta) items.add(item);
+  addAll(items, delta);
   const isSame = items.size === size && Array.isArray(source);
-  return isSame ? source : Array.from(items).sort(compareItems);
+  return isSame ? source : Array.from(items).toSorted(compareItems);
 };
 
 // Patch removal: CRDT values are removed by a tombstone, not by absence
@@ -112,6 +118,17 @@ const join = (source, delta) => {
   return Object.is(source, delta) ? source : delta;
 };
 
+// Absence removes the key; storing undefined would keep it for later diffs
+const omitKey = (record, key) => {
+  const next = {};
+  const names = Object.keys(record);
+  for (let i = 0; i < names.length; i++) {
+    const name = names[i];
+    if (name !== key) next[name] = record[name];
+  }
+  return next;
+};
+
 // Copy on write: unchanged map is returned as is, so callers can see growth
 const mergeMaps = (source, delta) => {
   let result = source;
@@ -126,9 +143,13 @@ const mergeMaps = (source, delta) => {
       joined = mergeMaps(base, value);
     }
     if (joined === before) continue;
+    if (joined === undefined) {
+      const base = result === source ? source : result;
+      result = omitKey(base, key);
+      continue;
+    }
     if (result === source) result = { ...source };
-    if (joined === undefined) delete result[key];
-    else result[key] = joined;
+    result[key] = joined;
   }
   return result;
 };
@@ -189,9 +210,9 @@ const diff = (source, target) => {
       delta[key] = value;
       continue;
     }
-    const source = before[key];
-    let change = diffValue(source, value);
-    if (change === NESTED) change = diff(source, value);
+    const current = before[key];
+    let change = diffValue(current, value);
+    if (change === NESTED) change = diff(current, value);
     const isEmpty = isObject(change) && Object.keys(change).length === 0;
     if (change !== NO_CHANGE && !isEmpty) delta[key] = change;
   }
@@ -299,7 +320,12 @@ const isPlainObject = (value) => {
 const isJson = (value, depth) => {
   if (isPrimitive(value)) return true;
   if (depth > MAX_DEPTH) return false;
-  if (Array.isArray(value)) return value.every((x) => isJson(x, depth + 1));
+  if (Array.isArray(value)) {
+    for (let i = 0; i < value.length; i++) {
+      if (!isJson(value[i], depth + 1)) return false;
+    }
+    return true;
+  }
   if (!isPlainObject(value)) return false;
   const keys = Object.keys(value);
   for (let i = 0; i < keys.length; i++) {
@@ -425,32 +451,45 @@ const dirs = new Map();
 
 const openDir = async (dirPath) => {
   let dir = await navigator.storage.getDirectory();
-  for (const part of dirPath.split('/').filter(Boolean)) {
+  const parts = dirPath.split('/').filter(Boolean);
+  for (let i = 0; i < parts.length; i++) {
+    const part = parts[i];
     dir = await dir.getDirectoryHandle(part, { create: true });
   }
   return dir;
 };
 
-const resolveDir = (dirPath) => {
-  if (!dirs.has(dirPath)) {
-    const dir = openDir(dirPath);
-    dir.catch(() => dirs.delete(dirPath));
-    dirs.set(dirPath, dir);
+const cacheDir = async (dirPath) => {
+  try {
+    return await openDir(dirPath);
+  } catch (error) {
+    dirs.delete(dirPath);
+    throw error;
   }
+};
+
+const resolveDir = (dirPath) => {
+  if (!dirs.has(dirPath)) dirs.set(dirPath, cacheDir(dirPath));
   return dirs.get(dirPath);
 };
 
-const ifMissing = (value) => (error) => {
+const ifMissing = (error, value) => {
   if (error.name === 'NotFoundError') return value;
   throw error;
 };
 
+const openFile = async (dirHandle, filename) => {
+  try {
+    return await dirHandle.getFileHandle(filename);
+  } catch (error) {
+    return ifMissing(error, null);
+  }
+};
+
 const read = async (dir, filename) => {
   const dirHandle = await resolveDir(dir);
-  const fileHandle = await dirHandle
-    .getFileHandle(filename)
-    .catch(ifMissing(null));
-  if (!fileHandle) return null;
+  const fileHandle = await openFile(dirHandle, filename);
+  if (fileHandle === null) return null;
   const file = await fileHandle.getFile();
   return file.text();
 };
@@ -475,7 +514,11 @@ const exists = async (dir, filename) => {
 
 const remove = async (dir, filename) => {
   const dirHandle = await resolveDir(dir);
-  await dirHandle.removeEntry(filename).catch(ifMissing());
+  try {
+    await dirHandle.removeEntry(filename);
+  } catch (error) {
+    ifMissing(error, undefined);
+  }
 };
 
 const list = async (dir) => {
@@ -502,7 +545,6 @@ const memoizeLast = (fn) => {
   };
 };
 
-// Key pair kept as PEM files, generated and written on the first use
 const loadKeyPair = async (files, generateKeys, basePath) => {
   const publicKey = await files.read(basePath, 'public.pem');
   if (publicKey !== null) {
@@ -527,14 +569,25 @@ const ALG = { name: 'RSA-OAEP', hash: 'SHA-256' };
 
 const calculateHash = async (data) => {
   const block = JSON.stringify(data);
-  const dataBuffer = new TextEncoder().encode(block);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', dataBuffer);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
+  const bytes = new TextEncoder().encode(block);
+  const digest = await crypto.subtle.digest('SHA-256', bytes);
+  const hash = new Uint8Array(digest);
+  const parts = new Array(hash.length).fill('');
+  for (let i = 0; i < hash.length; i++) {
+    const hex = hash[i].toString(16).padStart(2, '0');
+    parts[i] = hex;
+  }
+  return parts.join('');
 };
 
-const toBase64 = (buffer) =>
-  btoa(String.fromCharCode(...new Uint8Array(buffer)));
+const toBase64 = (buffer) => {
+  const bytes = new Uint8Array(buffer);
+  let binary = '';
+  for (let i = 0; i < bytes.length; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+};
 
 const toBase64UrlSafe = (buffer) => {
   const base64 = toBase64(buffer);
@@ -542,8 +595,9 @@ const toBase64UrlSafe = (buffer) => {
 };
 
 const toPem = (header, footer, buffer) => {
-  const lines = toBase64(buffer).match(/.{1,64}/g);
-  return [header, ...lines, footer].join('\n');
+  const body = toBase64(buffer).match(/.{1,64}/g) ?? [];
+  const lines = [header].concat(body, [footer]);
+  return lines.join('\n');
 };
 
 const base64ToBytes = (base64) => {
@@ -557,26 +611,26 @@ const base64ToBytes = (base64) => {
 };
 
 const cleanPemKey = (pemKey, header, footer) => {
-  const s = pemKey.replace(header, '').replace(footer, '');
-  return s.replaceAll(/\s/g, '');
+  const stripped = pemKey.replace(header, '').replace(footer, '');
+  return stripped.replaceAll(/\s/g, '');
 };
 
 const generateKeys = async () => {
   const modulusLength = 2048;
   const publicExponent = new Uint8Array([1, 0, 1]);
   const algorithm = { ...ALG, modulusLength, publicExponent };
-  const keyPair = await crypto.subtle.generateKey(algorithm, true, [
-    'encrypt',
-    'decrypt',
-  ]);
-  const [pubBuf, privBuf] = await Promise.all([
-    crypto.subtle.exportKey('spki', keyPair.publicKey),
-    crypto.subtle.exportKey('pkcs8', keyPair.privateKey),
-  ]);
-  return {
-    publicKey: toPem(PUBLIC_KEY_HEADER, PUBLIC_KEY_FOOTER, pubBuf),
-    privateKey: toPem(PRIVATE_KEY_HEADER, PRIVATE_KEY_FOOTER, privBuf),
-  };
+  const usages = ['encrypt', 'decrypt'];
+  const keyPair = await crypto.subtle.generateKey(algorithm, true, usages);
+  const publicExport = crypto.subtle.exportKey('spki', keyPair.publicKey);
+  const privateExport = crypto.subtle.exportKey('pkcs8', keyPair.privateKey);
+  const exported = await Promise.all([publicExport, privateExport]);
+  const publicBytes = exported[0];
+  const privateBytes = exported[1];
+  const publicKey = toPem(PUBLIC_KEY_HEADER, PUBLIC_KEY_FOOTER, publicBytes);
+  const privateHeader = PRIVATE_KEY_HEADER;
+  const privateFooter = PRIVATE_KEY_FOOTER;
+  const privateKey = toPem(privateHeader, privateFooter, privateBytes);
+  return { publicKey, privateKey };
 };
 
 const importPublicKey = memoizeLast(async (pemKey) => {
@@ -610,6 +664,8 @@ const loadKeys = (basePath = 'keys') =>
 
 // replica.js
 
+const { merge, materialize, latestTime, assign, increment, isDelta } = crdt;
+
 const SEGMENT_SIZE = 256;
 const META_FILE = 'meta.json';
 const LINK_SAVE_DELAY_MS = 1000;
@@ -618,7 +674,30 @@ const MAX_ID_LENGTH = 128;
 const EMPTY_STATE = Object.freeze({});
 const EMPTY_SET = new Set();
 
-const ignore = () => {};
+const follow = async (pending, task) => {
+  try {
+    await pending;
+  } catch {
+    // a failed write does not block the next one
+  }
+  return task();
+};
+
+const finish = async (result) => {
+  try {
+    await result;
+  } catch {
+    // keep the queue moving
+  }
+};
+
+const report = async (promise, emitter) => {
+  try {
+    await promise;
+  } catch (error) {
+    emitError(emitter, error);
+  }
+};
 
 const isId = (value) => {
   const isString = typeof value === 'string';
@@ -635,7 +714,6 @@ const isEnvelope = (delta) => {
 const segmentOf = (position) => Math.floor(position / SEGMENT_SIZE);
 const segmentFile = (index) => `${index}.json`;
 
-// Segments 0, 1, 2... are read until the first missing one
 const countSegments = (names) => {
   const files = new Set(names);
   let count = 0;
@@ -712,10 +790,10 @@ class Replica extends Emitter {
   async #load() {
     const reading = fsi.read(this.#path, META_FILE);
     const names = await fsi.list(this.#logPath);
-    const reads = [];
     const count = countSegments(names);
+    const reads = new Array(count).fill(null);
     for (let i = 0; i < count; i++) {
-      reads.push(fsi.read(this.#logPath, segmentFile(i)));
+      reads[i] = fsi.read(this.#logPath, segmentFile(i));
     }
     const raw = await reading;
     const meta = raw === null ? null : jsonParse(raw);
@@ -877,7 +955,7 @@ class Replica extends Emitter {
     this.#isMetaDirty = true;
     this.#schedule();
     const event = { deltas, position, origin };
-    this.emit('log', event).catch((error) => emitError(this, error));
+    report(this.emit('log', event), this);
   }
 
   getLink(name) {
@@ -910,10 +988,9 @@ class Replica extends Emitter {
     this.#cleared.push(this.#id);
     if (this.#cleared.length > CLEARED_LIMIT) this.#cleared.shift();
     this.#reset();
-    this.emit('clear').catch((error) => emitError(this, error));
+    report(this.emit('clear'), this);
     if (this.#path === '') return;
-    const removing = this.#saving.then(() => this.#removeFiles());
-    this.#saving = removing.then(ignore, ignore);
+    const removing = this.#enqueue(() => this.#removeFiles());
     await removing;
     await this.save();
   }
@@ -923,18 +1000,24 @@ class Replica extends Emitter {
   save() {
     if (this.#path === '') return Promise.resolve();
     if (this.#scheduled) return this.#scheduled;
-    const scheduled = this.#saving.then(() => {
+    const scheduled = this.#enqueue(() => {
       this.#scheduled = null;
       return this.#write();
     });
     this.#scheduled = scheduled;
-    this.#saving = scheduled.then(ignore, ignore);
     return scheduled;
+  }
+
+  #enqueue(task) {
+    const pending = this.#saving;
+    const result = follow(pending, task);
+    this.#saving = finish(result);
+    return result;
   }
 
   #schedule() {
     if (this.#path === '' || this.#scheduled) return;
-    this.save().catch((error) => emitError(this, error));
+    report(this.save(), this);
   }
 
   async #write() {
@@ -987,6 +1070,31 @@ class Replica extends Emitter {
 const BATCH_SIZE = 256;
 const MAX_PUSH = 1024;
 
+const after = async (pending, task) => {
+  try {
+    await pending;
+  } catch {
+    // a failed step does not block the next one
+  }
+  return task();
+};
+
+const settled = async (result) => {
+  try {
+    await result;
+  } catch {
+    // keep the queue moving
+  }
+};
+
+const guard = async (promise, emitter) => {
+  try {
+    await promise;
+  } catch (error) {
+    emitError(emitter, error);
+  }
+};
+
 const isEntries = (entries) => {
   if (typeof entries !== 'object' || entries === null) return false;
   const { source, deltas, position } = entries;
@@ -1001,7 +1109,6 @@ class SyncError extends Error {
   }
 }
 
-// Serves a replica as a metacom unit: subscribe, pull, push, and `log` event
 class SyncService {
   #replica = null;
   #unit = '';
@@ -1083,7 +1190,6 @@ class SyncService {
   }
 }
 
-// Syncs a replica with one served by SyncService over a metacom connection
 class Uplink extends Emitter {
   #replica = null;
   #metacom = null;
@@ -1186,8 +1292,9 @@ class Uplink extends Emitter {
 
   // Pulls and events change the same cursor: they run one at a time
   #serialize(task) {
-    const result = this.#queue.then(task);
-    this.#queue = result.catch(() => {});
+    const pending = this.#queue;
+    const result = after(pending, task);
+    this.#queue = settled(result);
     return result;
   }
 
@@ -1298,7 +1405,7 @@ class Uplink extends Emitter {
   }
 
   #run(promise) {
-    promise.catch((error) => emitError(this, error));
+    return guard(promise, this);
   }
 }
 
@@ -1374,9 +1481,35 @@ class Blockchain {
 
 // storage.js
 
+const { calculateHash, encrypt, decrypt, loadKeys } = cryptoNode;
+
 const fieldType = (def) => {
   if (typeof def === 'string') return def.startsWith('?') ? def.slice(1) : def;
   return def?.type ?? def?.one ?? def?.many;
+};
+
+const pairsOf = (record) => {
+  const hasEntries = typeof record.entries === 'function';
+  if (hasEntries) return Array.from(record.entries());
+  const names = Object.keys(record);
+  const pairs = new Array(names.length).fill(null);
+  for (let i = 0; i < names.length; i++) {
+    const name = names[i];
+    pairs[i] = [name, record[name]];
+  }
+  return pairs;
+};
+
+const referenceNames = (entity, names) => {
+  const fields = pairsOf(entity.fields ?? entity);
+  const refs = [];
+  for (let i = 0; i < fields.length; i++) {
+    const pair = fields[i];
+    const key = pair[0];
+    const def = pair[1];
+    if (names.has(fieldType(def))) refs.push(key);
+  }
+  return refs;
 };
 
 class Reference {
@@ -1417,9 +1550,13 @@ class Record extends Emitter {
   }
 
   #convertToReferences(data) {
-    const toReference = (value) =>
-      typeof value === 'string' ? new Reference(value, this.#storage) : value;
-    for (const key of this.#storage.referenceFields(data.$type)) {
+    const toReference = (value) => {
+      if (typeof value !== 'string') return value;
+      return new Reference(value, this.#storage);
+    };
+    const keys = this.#storage.referenceFields(data.$type);
+    for (let i = 0; i < keys.length; i++) {
+      const key = keys[i];
       const value = data[key];
       if (Array.isArray(value)) data[key] = value.map(toReference);
       else data[key] = toReference(value);
@@ -1431,9 +1568,10 @@ class Record extends Emitter {
   }
 
   #defineProperties() {
-    for (const key in this.#data) {
-      if (key === 'id') continue;
-      if (Object.hasOwn(this, key)) continue;
+    const keys = Object.keys(this.#data);
+    for (let i = 0; i < keys.length; i++) {
+      const key = keys[i];
+      if (key === 'id' || Object.hasOwn(this, key)) continue;
       Object.defineProperty(this, key, {
         get() {
           return this.#data?.[key];
@@ -1524,8 +1662,9 @@ class Storage {
   #references = new Map();
 
   constructor(options = {}) {
-    this.#path = options.path || options.name || 'gs';
-    this.#dataDir = `${this.#path}/data`;
+    const path = options.path || options.name || 'gs';
+    this.#path = path;
+    this.#dataDir = `${path}/data`;
     this.#schema = options.schema || null;
     return this.#init();
   }
@@ -1540,16 +1679,15 @@ class Storage {
   #initCollections() {
     const entities = this.#schema?.entities;
     if (!entities) return;
-    const list = Array.from(entities.entries?.() ?? Object.entries(entities));
-    const names = new Set(list.map(([name]) => name));
-    for (const [name, entity] of list) {
+    const pairs = pairsOf(entities);
+    const names = new Set();
+    for (let i = 0; i < pairs.length; i++) names.add(pairs[i][0]);
+    for (let i = 0; i < pairs.length; i++) {
+      const name = pairs[i][0];
+      const entity = pairs[i][1];
       this[name] = new Collection(this, name);
-      const fields = Object.entries(entity.fields ?? entity);
-      const refs = fields.filter(([, def]) => names.has(fieldType(def)));
-      this.#references.set(
-        name,
-        refs.map(([key]) => key),
-      );
+      const refs = referenceNames(entity, names);
+      this.#references.set(name, refs);
     }
   }
 
@@ -1653,7 +1791,14 @@ class Storage {
   async swap(id, changes, prev) {
     const data = await this.get(id);
     if (!data) throw new Error(`Record ${id} not found`);
-    const matches = Object.keys(prev).every((key) => data[key] === prev[key]);
+    const keys = Object.keys(prev);
+    let matches = true;
+    for (let i = 0; i < keys.length; i++) {
+      const key = keys[i];
+      if (data[key] === prev[key]) continue;
+      matches = false;
+      break;
+    }
     if (!matches) return false;
     await this.#commit(id, { ...data, ...changes }, changes);
     return true;
