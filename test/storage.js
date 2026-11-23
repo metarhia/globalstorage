@@ -4,7 +4,9 @@ const test = require('node:test');
 const assert = require('node:assert');
 const fs = require('node:fs/promises');
 const path = require('node:path');
+
 const { directoryExists } = require('metautil');
+
 const globalStorage = require('..');
 const { useTemp } = require('./utils/temp.js');
 

@@ -54,10 +54,8 @@ const runFsiTests = async (t, fsi, options = {}) => {
       assert.deepStrictEqual(await fsi.list(dir), []);
       await fsi.write(dir, 'a.json', '{}');
       await fsi.write(dir, 'b.json', '{}');
-      assert.deepStrictEqual((await fsi.list(dir)).sort(), [
-        'a.json',
-        'b.json',
-      ]);
+      const names = await fsi.list(dir);
+      assert.deepStrictEqual(names.toSorted(), ['a.json', 'b.json']);
     } finally {
       await finish(root);
     }

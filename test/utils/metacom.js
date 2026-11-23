@@ -7,10 +7,12 @@ const copy = (data) => {
   return json === undefined ? data : JSON.parse(json);
 };
 
-const tick = () =>
-  new Promise((resolve) => {
+const tick = () => {
+  const resolveOnNext = (resolve) => {
     setImmediate(resolve);
-  });
+  };
+  return new Promise(resolveOnNext);
+};
 
 const until = async (check, attempts = 200) => {
   for (let i = 0; i < attempts; i++) {
@@ -20,7 +22,6 @@ const until = async (check, attempts = 200) => {
   throw new Error('Condition is not reached');
 };
 
-// Server side `context.client`: emit sends an event to its connection
 class HubClient extends Emitter {
   #connection = null;
 
@@ -36,8 +37,6 @@ class HubClient extends Emitter {
   }
 }
 
-// In-memory metacom connection with the client API used by Uplink:
-// active, open and close events, load, api units with methods and events
 class Connection extends Emitter {
   #units = null;
   #client = null;
@@ -71,7 +70,7 @@ class Connection extends Emitter {
       const handlers = this.#units[unit];
       if (!handlers) continue;
       const methods = this.api[unit] ?? new Emitter();
-      for (const name of Object.keys(handlers)) {
+      for (const name in handlers) {
         methods[name] = (args = {}) => this.#call(unit, name, args);
       }
       this.api[unit] = methods;

@@ -4,6 +4,7 @@ const test = require('node:test');
 const assert = require('node:assert');
 const fs = require('node:fs/promises');
 const path = require('node:path');
+
 const { Replica, emitError } = require('..');
 const { useTemp } = require('./utils/temp.js');
 const { message, values } = require('./utils/records.js');
@@ -232,9 +233,10 @@ test('emitError: reports only to listeners', () => {
 test('Replica: clear remembers ids of cleared logs', async (t) => {
   const dir = await useTemp(t);
   const replica = await new Replica({ path: dir }).open();
-  const ids = [];
-  for (let i = 0; i < 18; i++) {
-    ids.push(replica.id);
+  const rounds = 18;
+  const ids = new Array(rounds).fill('');
+  for (let i = 0; i < rounds; i++) {
+    ids[i] = replica.id;
     await replica.clear();
   }
   assert.deepStrictEqual(replica.cleared, ids.slice(-16));
@@ -249,13 +251,19 @@ test('Replica: keys of one entity', async (t) => {
   message(replica, 'm1', 'hello');
   message(replica, 'm2', 'again');
   replica.assign('message', 'c1', { content: 'other entity' });
-  assert.deepStrictEqual([...replica.keys('chat')], ['c1']);
-  assert.deepStrictEqual([...replica.keys('message')], ['m1', 'm2']);
-  assert.deepStrictEqual([...replica.keys('user')], []);
-  assert.deepStrictEqual([...replica.keys()], ['c1', 'm1', 'm2']);
+  const chatKeys = Array.from(replica.keys('chat'));
+  const messageKeys = Array.from(replica.keys('message'));
+  const userKeys = Array.from(replica.keys('user'));
+  const allKeys = Array.from(replica.keys());
+  assert.deepStrictEqual(chatKeys, ['c1']);
+  assert.deepStrictEqual(messageKeys, ['m1', 'm2']);
+  assert.deepStrictEqual(userKeys, []);
+  assert.deepStrictEqual(allKeys, ['c1', 'm1', 'm2']);
   await replica.save();
   const restored = await new Replica({ path: dir }).open();
-  assert.deepStrictEqual([...restored.keys('chat')], ['c1']);
+  const restoredChat = Array.from(restored.keys('chat'));
+  assert.deepStrictEqual(restoredChat, ['c1']);
   await restored.clear();
-  assert.deepStrictEqual([...restored.keys('message')], []);
+  const restoredMessages = Array.from(restored.keys('message'));
+  assert.deepStrictEqual(restoredMessages, []);
 });

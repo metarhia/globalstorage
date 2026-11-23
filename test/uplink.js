@@ -2,7 +2,9 @@
 
 const test = require('node:test');
 const assert = require('node:assert');
+
 const { Emitter } = require('metautil');
+
 const { Replica, SyncService, Uplink } = require('..');
 const { Connection, tick, until } = require('./utils/metacom.js');
 const { useTemp } = require('./utils/temp.js');
@@ -22,10 +24,11 @@ const connect = (server, replica = new Replica(), name = 'server') => {
   return { replica, connection, uplink };
 };
 
-const pushed = (connection) =>
-  connection.calls
-    .filter((call) => call.method === 'sync/push')
-    .flatMap((call) => call.args.deltas);
+const pushed = (connection) => {
+  const isPush = (call) => call.method === 'sync/push';
+  const pushes = connection.calls.filter(isPush);
+  return pushes.flatMap((call) => call.args.deltas);
+};
 
 test('Uplink: replicas sync through a service', async () => {
   const server = createServer();
@@ -166,7 +169,6 @@ test('Uplink: stop removes listeners', async () => {
   assert.strictEqual(server.replica.get('m2'), null);
 });
 
-// Client of a metacom host: events it receives and its close event
 class Subscriber extends Emitter {
   events = [];
 

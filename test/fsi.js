@@ -1,6 +1,7 @@
 'use strict';
 
 const test = require('node:test');
+
 const { fsi } = require('../lib/fsi-node.js');
 const { createTemp, cleanupTemp } = require('./utils/temp.js');
 const { runFsiTests } = require('./suites/fsi.js');

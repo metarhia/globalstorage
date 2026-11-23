@@ -19,7 +19,9 @@ class MockFileHandle {
     const chunks = [];
     return {
       write: async (data) => {
-        chunks.push(String(data));
+        const isText = typeof data === 'string';
+        const text = isText ? data : `${data ?? ''}`;
+        chunks.push(text);
       },
       close: async () => {
         entry.content = chunks.join('');

@@ -2,6 +2,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert');
+
 const globalStorage = require('..');
 
 const { diff, merge, apply, materialize } = globalStorage;
@@ -10,11 +11,22 @@ const { assign, increment, latestTime, isDelta } = globalStorage;
 const stamp = (time, replica = 'a') => ({ time, replica });
 
 const permutations = (list) => {
-  if (list.length <= 1) return [list];
-  const result = [];
-  for (let i = 0; i < list.length; i++) {
-    const rest = list.slice(0, i).concat(list.slice(i + 1));
-    for (const tail of permutations(rest)) result.push([list[i]].concat(tail));
+  const count = list.length;
+  if (count <= 1) return [list];
+  const rows = new Array(count).fill(null);
+  for (let i = 0; i < count; i++) {
+    const head = list.slice(0, i);
+    const tail = list.slice(i + 1);
+    rows[i] = permutations(head.concat(tail));
+  }
+  const width = rows[0].length;
+  const result = new Array(count * width).fill(null);
+  for (let i = 0; i < count; i++) {
+    const row = rows[i];
+    const item = list[i];
+    for (let j = 0; j < width; j++) {
+      result[i * width + j] = [item].concat(row[j]);
+    }
   }
   return result;
 };
