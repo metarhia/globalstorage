@@ -23,7 +23,7 @@ class Reference {
   }
 
   async record() {
-    return await this.#storage.record(this.#id);
+    return this.#storage.record(this.#id);
   }
 }
 
@@ -41,7 +41,6 @@ class Record extends Emitter {
   }
 
   async #load() {
-    if (this.#data !== null) return this;
     const rawData = await this.#storage.get(this.#id);
     if (rawData) {
       this.#data = JSON.parse(JSON.stringify(rawData));
@@ -74,15 +73,10 @@ class Record extends Emitter {
 
   #defineProperties() {
     for (const key in this.#data) {
-      if (key === 'id') continue;
-      if (Object.hasOwn(this, key)) continue;
+      if (key === 'id' || Object.hasOwn(this, key)) continue;
       Object.defineProperty(this, key, {
         get() {
-          const value = this.#data?.[key];
-          if (value instanceof Reference) {
-            return value;
-          }
-          return value;
+          return this.#data?.[key];
         },
         set(newValue) {
           const oldValue = this.#data?.[key];
@@ -109,15 +103,9 @@ class Record extends Emitter {
   async save() {
     if (Object.keys(this.#changes).length === 0) return;
     const delta = this.delta();
-    const data = this.#data;
-    await this.#storage.saveData(this.#id, data);
+    await this.#storage.saveData(this.#id, this.#data);
     this.#changes = {};
-    this.#storage.addUpdate({
-      type: 'delta',
-      id: this.#id,
-      timestamp: Date.now(),
-      data: delta,
-    });
+    this.#storage.addDelta(this.#id, delta);
   }
 
   async delete() {
@@ -195,6 +183,9 @@ class Collection {
 }
 
 class Storage {
+  static Collection = Collection;
+  static Record = Record;
+
   #data = new Map();
   #records = new Map();
   #sync = null;
@@ -210,7 +201,8 @@ class Storage {
 
   async #init() {
     const { data } = getInitialDataWithIds();
-    for (const [id, item] of Object.entries(data)) {
+    for (const id in data) {
+      const item = data[id];
       this.#data.set(id, item);
       this.#cache.set(id, item);
     }
@@ -221,9 +213,8 @@ class Storage {
   #initCollections() {
     const entities = this.#schema?.entities;
     if (!entities) return;
-    for (const [name] of entities.entries?.() ?? Object.entries(entities)) {
-      this[name] = new Collection(this, name);
-    }
+    const names = entities.keys?.() ?? Object.keys(entities);
+    for (const name of names) this[name] = new Collection(this, name);
   }
 
   get schema() {
@@ -231,10 +222,7 @@ class Storage {
   }
 
   #emitUpdate(id, data, delta) {
-    const emitter = this.#records.get(id);
-    if (emitter) {
-      emitter.emit('update', data, delta);
-    }
+    this.#records.get(id)?.emit('update', data, delta);
   }
 
   // eslint-disable-next-line no-unused-vars
@@ -279,23 +267,18 @@ class Storage {
     return this.#cache.has(id) || this.#records.has(id);
   }
 
-  addUpdate(update) {
-    this.#updates.push(update);
+  addDelta(id, data) {
+    const timestamp = Date.now();
+    this.#updates.push({ type: 'delta', id, timestamp, data });
   }
 
   async set(id, data) {
     const oldData = this.#data.get(id);
     await this.saveData(id, data);
-    if (oldData) {
-      const delta = calculateDelta(oldData, data);
-      this.#emitUpdate(id, data, delta);
-      this.#updates.push({
-        type: 'delta',
-        id,
-        timestamp: Date.now(),
-        data: delta,
-      });
-    }
+    if (!oldData) return;
+    const delta = calculateDelta(oldData, data);
+    this.#emitUpdate(id, data, delta);
+    this.addDelta(id, delta);
   }
 
   async delete(id) {
@@ -311,12 +294,7 @@ class Storage {
     const updated = { ...data, ...delta };
     await this.saveData(id, updated);
     this.#emitUpdate(id, updated, delta);
-    this.#updates.push({
-      type: 'delta',
-      id,
-      timestamp: Date.now(),
-      data: delta,
-    });
+    this.addDelta(id, delta);
   }
 
   async swap(id, changes, prev) {
@@ -351,9 +329,6 @@ class Storage {
     return this.#sync;
   }
 }
-
-Storage.Collection = Collection;
-Storage.Record = Record;
 
 const open = async (options = {}) => new Storage(options);
 
