@@ -7,6 +7,31 @@ const emitError = (emitter, error) => {
   if (emitter.listenerCount('error') > 0) emitter.emit('error', error);
 };
 
+const follow = async (pending, task) => {
+  try {
+    await pending;
+  } catch {
+    // a failed step does not block the next one
+  }
+  return task();
+};
+
+const settle = async (promise) => {
+  try {
+    await promise;
+  } catch {
+    // keep the queue moving
+  }
+};
+
+const report = async (promise, emitter) => {
+  try {
+    await promise;
+  } catch (error) {
+    emitError(emitter, error);
+  }
+};
+
 // crdt.js
 
 const RESERVED_KEYS = ['__proto__', 'constructor', 'prototype'];
@@ -144,8 +169,7 @@ const mergeMaps = (source, delta) => {
     }
     if (joined === before) continue;
     if (joined === undefined) {
-      const base = result === source ? source : result;
-      result = omitKey(base, key);
+      result = omitKey(result, key);
       continue;
     }
     if (result === source) result = { ...source };
@@ -560,24 +584,19 @@ const loadKeyPair = async (files, generateKeys, basePath) => {
 
 // crypto-browser.js
 
-const PUBLIC_KEY_HEADER = '-----BEGIN PUBLIC KEY-----';
-const PUBLIC_KEY_FOOTER = '-----END PUBLIC KEY-----';
-const PRIVATE_KEY_HEADER = '-----BEGIN PRIVATE KEY-----';
-const PRIVATE_KEY_FOOTER = '-----END PRIVATE KEY-----';
+const PEM_BOUNDARY = /-----(BEGIN|END) [A-Z ]+-----/g;
+const PEM_LINE = /.{1,64}/g;
 
 const ALG = { name: 'RSA-OAEP', hash: 'SHA-256' };
 
+const toHex = (byte) => byte.toString(16).padStart(2, '0');
+
 const calculateHash = async (data) => {
   const block = JSON.stringify(data);
-  const bytes = new TextEncoder().encode(block);
-  const digest = await crypto.subtle.digest('SHA-256', bytes);
-  const hash = new Uint8Array(digest);
-  const parts = new Array(hash.length).fill('');
-  for (let i = 0; i < hash.length; i++) {
-    const hex = hash[i].toString(16).padStart(2, '0');
-    parts[i] = hex;
-  }
-  return parts.join('');
+  const input = new TextEncoder().encode(block);
+  const digest = await crypto.subtle.digest('SHA-256', input);
+  const bytes = new Uint8Array(digest);
+  return Array.from(bytes, toHex).join('');
 };
 
 const toBase64 = (buffer) => {
@@ -594,8 +613,10 @@ const toBase64UrlSafe = (buffer) => {
   return base64.replaceAll('+', '-').replaceAll('/', '_').replaceAll('=', '');
 };
 
-const toPem = (header, footer, buffer) => {
-  const body = toBase64(buffer).match(/.{1,64}/g) ?? [];
+const toPem = (label, buffer) => {
+  const body = toBase64(buffer).match(PEM_LINE) ?? [];
+  const header = `-----BEGIN ${label}-----`;
+  const footer = `-----END ${label}-----`;
   const lines = [header].concat(body, [footer]);
   return lines.join('\n');
 };
@@ -610,9 +631,10 @@ const base64ToBytes = (base64) => {
   return bytes;
 };
 
-const cleanPemKey = (pemKey, header, footer) => {
-  const stripped = pemKey.replace(header, '').replace(footer, '');
-  return stripped.replaceAll(/\s/g, '');
+const pemToBytes = (pemKey) => {
+  const stripped = pemKey.replaceAll(PEM_BOUNDARY, '');
+  const base64 = stripped.replaceAll(/\s/g, '');
+  return base64ToBytes(base64);
 };
 
 const generateKeys = async () => {
@@ -626,22 +648,18 @@ const generateKeys = async () => {
   const exported = await Promise.all([publicExport, privateExport]);
   const publicBytes = exported[0];
   const privateBytes = exported[1];
-  const publicKey = toPem(PUBLIC_KEY_HEADER, PUBLIC_KEY_FOOTER, publicBytes);
-  const privateHeader = PRIVATE_KEY_HEADER;
-  const privateFooter = PRIVATE_KEY_FOOTER;
-  const privateKey = toPem(privateHeader, privateFooter, privateBytes);
+  const publicKey = toPem('PUBLIC KEY', publicBytes);
+  const privateKey = toPem('PRIVATE KEY', privateBytes);
   return { publicKey, privateKey };
 };
 
 const importPublicKey = memoizeLast(async (pemKey) => {
-  const base64 = cleanPemKey(pemKey, PUBLIC_KEY_HEADER, PUBLIC_KEY_FOOTER);
-  const bytes = base64ToBytes(base64);
+  const bytes = pemToBytes(pemKey);
   return crypto.subtle.importKey('spki', bytes, ALG, false, ['encrypt']);
 });
 
 const importPrivateKey = memoizeLast(async (pemKey) => {
-  const base64 = cleanPemKey(pemKey, PRIVATE_KEY_HEADER, PRIVATE_KEY_FOOTER);
-  const bytes = base64ToBytes(base64);
+  const bytes = pemToBytes(pemKey);
   return crypto.subtle.importKey('pkcs8', bytes, ALG, false, ['decrypt']);
 });
 
@@ -673,31 +691,6 @@ const CLEARED_LIMIT = 16;
 const MAX_ID_LENGTH = 128;
 const EMPTY_STATE = Object.freeze({});
 const EMPTY_SET = new Set();
-
-const follow = async (pending, task) => {
-  try {
-    await pending;
-  } catch {
-    // a failed write does not block the next one
-  }
-  return task();
-};
-
-const finish = async (result) => {
-  try {
-    await result;
-  } catch {
-    // keep the queue moving
-  }
-};
-
-const report = async (promise, emitter) => {
-  try {
-    await promise;
-  } catch (error) {
-    emitError(emitter, error);
-  }
-};
 
 const isId = (value) => {
   const isString = typeof value === 'string';
@@ -990,8 +983,7 @@ class Replica extends Emitter {
     this.#reset();
     report(this.emit('clear'), this);
     if (this.#path === '') return;
-    const removing = this.#enqueue(() => this.#removeFiles());
-    await removing;
+    await this.#enqueue(() => this.#removeFiles());
     await this.save();
   }
 
@@ -1011,7 +1003,7 @@ class Replica extends Emitter {
   #enqueue(task) {
     const pending = this.#saving;
     const result = follow(pending, task);
-    this.#saving = finish(result);
+    this.#saving = settle(result);
     return result;
   }
 
@@ -1046,7 +1038,7 @@ class Replica extends Emitter {
 
   #meta() {
     const links = Object.fromEntries(this.#links);
-    const { length: position } = this.#log;
+    const position = this.#log.length;
     const cleared = this.#cleared;
     const meta = { id: this.#id, position, cleared, links };
     return JSON.stringify(meta);
@@ -1055,9 +1047,8 @@ class Replica extends Emitter {
   // Entries merged while files were removed are written again
   async #removeFiles() {
     const names = await fsi.list(this.#logPath);
-    for (let i = 0; i < names.length; i++) {
-      await fsi.remove(this.#logPath, names[i]);
-    }
+    const removeEntry = (name) => fsi.remove(this.#logPath, name);
+    await Promise.all(names.map(removeEntry));
     await fsi.remove(this.#path, META_FILE);
     const count = segmentOf(this.#log.length - 1) + 1;
     for (let i = 0; i < count; i++) this.#dirty.add(i);
@@ -1069,31 +1060,6 @@ class Replica extends Emitter {
 
 const BATCH_SIZE = 256;
 const MAX_PUSH = 1024;
-
-const after = async (pending, task) => {
-  try {
-    await pending;
-  } catch {
-    // a failed step does not block the next one
-  }
-  return task();
-};
-
-const settled = async (result) => {
-  try {
-    await result;
-  } catch {
-    // keep the queue moving
-  }
-};
-
-const guard = async (promise, emitter) => {
-  try {
-    await promise;
-  } catch (error) {
-    emitError(emitter, error);
-  }
-};
 
 const isEntries = (entries) => {
   if (typeof entries !== 'object' || entries === null) return false;
@@ -1116,6 +1082,7 @@ class SyncService {
   #clients = new Set();
   #listener = null;
   #onClear = null;
+  api = null;
 
   constructor(replica, options = {}) {
     this.#replica = replica;
@@ -1293,8 +1260,8 @@ class Uplink extends Emitter {
   // Pulls and events change the same cursor: they run one at a time
   #serialize(task) {
     const pending = this.#queue;
-    const result = after(pending, task);
-    this.#queue = settled(result);
+    const result = follow(pending, task);
+    this.#queue = settle(result);
     return result;
   }
 
@@ -1405,7 +1372,7 @@ class Uplink extends Emitter {
   }
 
   #run(promise) {
-    return guard(promise, this);
+    return report(promise, this);
   }
 }
 
@@ -1424,13 +1391,8 @@ class Blockchain {
 
   async #init() {
     const raw = await fsi.read(this.path, BLOCKCHAIN);
-    if (raw !== null) {
-      this.tailHash = JSON.parse(raw).tailHash;
-      return this;
-    }
-    const block = { prev: '0', timestamp: Date.now(), data: {} };
-    this.tailHash = await this.writeBlock(block);
-    await this.writeChain();
+    if (raw === null) await this.#append('0', {});
+    else this.tailHash = JSON.parse(raw).tailHash;
     return this;
   }
 
@@ -1439,10 +1401,12 @@ class Blockchain {
     await fsi.write(this.path, BLOCKCHAIN, JSON.stringify(chain));
   }
 
-  async addBlock(data) {
-    const prev = this.tailHash;
-    const timestamp = Date.now();
-    const block = { prev, timestamp, data };
+  addBlock(data) {
+    return this.#append(this.tailHash, data);
+  }
+
+  async #append(prev, data) {
+    const block = { prev, timestamp: Date.now(), data };
     const hash = await this.writeBlock(block);
     this.tailHash = hash;
     await this.writeChain();
@@ -1468,8 +1432,7 @@ class Blockchain {
     while (currentHash) {
       const block = await this.readBlock(currentHash);
       const expectedHash = await calculateHash(block);
-      const valid = currentHash === expectedHash;
-      if (!valid) return false;
+      if (currentHash !== expectedHash) return false;
       count++;
       if (last && count >= last) break;
       if (block.prev === '0') break;
@@ -1498,6 +1461,15 @@ const pairsOf = (record) => {
     pairs[i] = [name, record[name]];
   }
   return pairs;
+};
+
+const matchesFields = (data, fields) => {
+  const keys = Object.keys(fields);
+  for (let i = 0; i < keys.length; i++) {
+    const key = keys[i];
+    if (data[key] !== fields[key]) return false;
+  }
+  return true;
 };
 
 const referenceNames = (entity, names) => {
@@ -1699,13 +1671,15 @@ class Storage {
     return this.#schema;
   }
 
-  #emitUpdate(id, data, delta) {
+  async #commit(id, data, delta) {
+    await this.saveData(id, data);
     this.#records.get(id)?.emit('update', { data, delta });
   }
 
-  async #commit(id, data, delta) {
-    await this.saveData(id, data);
-    this.#emitUpdate(id, data, delta);
+  async #getExisting(id) {
+    const data = await this.get(id);
+    if (!data) throw new Error(`Record ${id} not found`);
+    return data;
   }
 
   async saveData(id, data, options = {}) {
@@ -1731,9 +1705,8 @@ class Storage {
     const { data, encrypted, block } = JSON.parse(raw);
     const isValid = await this.#verify(id, data, block);
     if (!isValid) throw new Error(`Storage record ${id} is invalid`);
-    const decrypted = encrypted
-      ? await decrypt(data, this.#keys.privateKey)
-      : data;
+    const { privateKey } = this.#keys;
+    const decrypted = encrypted ? await decrypt(data, privateKey) : data;
     this.#cache.set(id, decrypted);
     return decrypted;
   }
@@ -1783,23 +1756,13 @@ class Storage {
   }
 
   async update(id, delta) {
-    const data = await this.get(id);
-    if (!data) throw new Error(`Record ${id} not found`);
+    const data = await this.#getExisting(id);
     await this.#commit(id, { ...data, ...delta }, delta);
   }
 
   async swap(id, changes, prev) {
-    const data = await this.get(id);
-    if (!data) throw new Error(`Record ${id} not found`);
-    const keys = Object.keys(prev);
-    let matches = true;
-    for (let i = 0; i < keys.length; i++) {
-      const key = keys[i];
-      if (data[key] === prev[key]) continue;
-      matches = false;
-      break;
-    }
-    if (!matches) return false;
+    const data = await this.#getExisting(id);
+    if (!matchesFields(data, prev)) return false;
     await this.#commit(id, { ...data, ...changes }, changes);
     return true;
   }
@@ -1821,6 +1784,9 @@ const open = (options) => new Storage(options);
 
 export {
   emitError,
+  follow,
+  settle,
+  report,
   diff,
   merge,
   apply,
