@@ -6,128 +6,106 @@ const { getInitialDataWithIds } = require('./data.js');
 const formatAuthor = (author) =>
   `${author.icon} ${author.name} (@${author.nick}) - ${author.bio}`;
 
+const nameOf = (authors, id) => authors.get(id)?.name ?? 'Unknown';
+
 const formatMessage = (message, authors) => {
-  const author = authors.get(message.author);
-  const authorName = author ? author.name : 'Unknown';
-  const reactions = Object.entries(message.reactions || {})
-    .map(([emoji, authorIds]) => {
-      const names = authorIds
-        .map((id) => {
-          const a = authors.get(id);
-          return a ? a.name : 'Unknown';
-        })
-        .join(', ');
-      return `${emoji} (${names})`;
-    })
-    .join(' | ');
-  const reactionsText = reactions ? `\n  Reactions: ${reactions}` : '';
+  const authorName = nameOf(authors, message.author);
+  const reactions = message.reactions ?? {};
+  const parts = [];
+  for (const emoji in reactions) {
+    const names = reactions[emoji].map((id) => nameOf(authors, id));
+    parts.push(`${emoji} (${names.join(', ')})`);
+  }
+  const list = parts.join(' | ');
+  const reactionsText = list ? `\n  Reactions: ${list}` : '';
   return `  ${authorName}: ${message.content}${reactionsText}`;
 };
 
 const formatPost = (post, authors) => {
-  const author = authors.get(post.author);
-  const authorName = author ? author.name : 'Unknown';
+  const authorName = nameOf(authors, post.author);
   const status = post.status === 'published' ? '✓' : '○';
-  const reactions = Object.entries(post.reactions || {})
-    .map(([emoji, authorIds]) => {
-      const count = authorIds ? authorIds.length : 0;
-      return `${emoji} ${count}`;
-    })
-    .join(' ');
-  const reactionsText = reactions ? ` [${reactions}]` : '';
+  const reactions = post.reactions ?? {};
+  const parts = [];
+  for (const emoji in reactions) {
+    const count = reactions[emoji]?.length ?? 0;
+    parts.push(`${emoji} ${count}`);
+  }
+  const list = parts.join(' ');
+  const reactionsText = list ? ` [${list}]` : '';
   const preview = post.content.substring(0, 100);
   const dots = post.content.length > 100 ? '...' : '';
   const byLine = `\n  by ${authorName}\n  ${preview}${dots}`;
   return `[${status}] ${post.title}${reactionsText}${byLine}`;
 };
 
+const loadAll = async (storage, ids) => {
+  const loaded = await Promise.all(ids.map((id) => storage.get(id)));
+  const records = new Map();
+  for (let i = 0; i < ids.length; i++) {
+    if (loaded[i]) records.set(ids[i], loaded[i]);
+  }
+  return records;
+};
+
+const addReaction = async (storage, id, emoji, authorId) => {
+  const record = await storage.get(id);
+  if (!record) return null;
+  const reactions = record.reactions ?? {};
+  const authorIds = reactions[emoji] ?? [];
+  if (!authorIds.includes(authorId)) authorIds.push(authorId);
+  reactions[emoji] = authorIds;
+  await storage.update(id, { reactions });
+  return record;
+};
+
 const main = async () => {
   const storage = await globalStorage.open();
 
-  const authors = new Map();
-  const posts = [];
-  const messages = [];
-  const chats = new Map();
-
   const { ids } = getInitialDataWithIds();
-
-  for (const authorId of ids.authors) {
-    const author = await storage.get(authorId);
-    if (author) authors.set(authorId, author);
-  }
-
-  for (const postId of ids.posts) {
-    const post = await storage.get(postId);
-    if (post) posts.push(post);
-  }
-
-  for (const chatId of ids.chats) {
-    const chat = await storage.get(chatId);
-    if (chat) chats.set(chatId, chat);
-  }
-
-  for (const messageId of ids.messages) {
-    const message = await storage.get(messageId);
-    if (message) messages.push(message);
-  }
+  const loading = [ids.authors, ids.posts, ids.chats, ids.messages];
+  const loaders = loading.map((list) => loadAll(storage, list));
+  const loaded = await Promise.all(loaders);
+  const authors = loaded[0];
+  const posts = Array.from(loaded[1].values());
+  const chats = loaded[2];
+  const messages = Array.from(loaded[3].values());
 
   console.log('\nIMPERIAL AUTHOR DIRECTORY\n');
 
-  authors.forEach((author) => {
-    console.log(formatAuthor(author));
-  });
+  for (const author of authors.values()) console.log(formatAuthor(author));
 
   console.log('\nRECENT POSTS\n');
 
-  posts.forEach((post) => {
+  for (const post of posts) {
     console.log(formatPost(post, authors));
     console.log('');
-  });
+  }
 
   console.log('\nMESSAGES\n');
 
-  chats.forEach((chat, chatId) => {
-    const desc = chat.description || '';
-    console.log(` conversation: ${chat.name} (${desc})`);
-    const chatMessages = messages.filter((m) => m.chat === chatId);
-    chatMessages.forEach((message) => {
+  for (const entry of chats) {
+    const chatId = entry[0];
+    const chat = entry[1];
+    const description = chat.description || '';
+    console.log(` conversation: ${chat.name} (${description})`);
+    const isInChat = (message) => message.chat === chatId;
+    for (const message of messages.filter(isInChat)) {
       console.log(formatMessage(message, authors));
-    });
+    }
     console.log('');
-  });
+  }
 
   console.log('\nADDING REACTIONS\n');
 
-  const { ids: initialIds } = getInitialDataWithIds();
-  const firstPostId = initialIds.posts[0];
-  const firstPost = await storage.get(firstPostId);
-  if (firstPost) {
-    const currentReactions = firstPost.reactions || {};
-    const marcusId = initialIds.authors[0];
-    if (!currentReactions['👏']) {
-      currentReactions['👏'] = [];
-    }
-    if (!currentReactions['👏'].includes(marcusId)) {
-      currentReactions['👏'].push(marcusId);
-    }
-    await storage.update(firstPostId, { reactions: currentReactions });
-    console.log('✅ Added 👏 reaction to post:', firstPost.title);
-  }
+  const firstPostId = ids.posts[0];
+  const marcusId = ids.authors[0];
+  const post = await addReaction(storage, firstPostId, '👏', marcusId);
+  if (post) console.log('✅ Added 👏 reaction to post:', post.title);
 
-  const firstMessageId = initialIds.messages[0];
-  const firstMessage = await storage.get(firstMessageId);
-  if (firstMessage) {
-    const currentReactions = firstMessage.reactions || {};
-    const faustinaId = initialIds.authors[1];
-    if (!currentReactions['💬']) {
-      currentReactions['💬'] = [];
-    }
-    if (!currentReactions['💬'].includes(faustinaId)) {
-      currentReactions['💬'].push(faustinaId);
-    }
-    await storage.update(firstMessageId, { reactions: currentReactions });
-    console.log('✅ Added 💬 reaction to message');
-  }
+  const firstMessageId = ids.messages[0];
+  const faustinaId = ids.authors[1];
+  const message = await addReaction(storage, firstMessageId, '💬', faustinaId);
+  if (message) console.log('✅ Added 💬 reaction to message');
 
   console.log('\nUPDATED DATA\n');
 
