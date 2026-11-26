@@ -1,5 +1,7 @@
 'use strict';
 
+const timers = require('node:timers/promises');
+
 const { Emitter } = require('metautil');
 
 const copy = (data) => {
@@ -7,12 +9,7 @@ const copy = (data) => {
   return json === undefined ? data : JSON.parse(json);
 };
 
-const tick = () => {
-  const resolveOnNext = (resolve) => {
-    setImmediate(resolve);
-  };
-  return new Promise(resolveOnNext);
-};
+const tick = () => timers.setImmediate();
 
 const until = async (check, attempts = 200) => {
   for (let i = 0; i < attempts; i++) {
