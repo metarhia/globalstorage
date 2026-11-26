@@ -8,7 +8,7 @@ const contract = require('./lib/contract.js');
 const replica = require('./lib/replica.js');
 const storage = require('./lib/storage.js');
 const sync = require('./lib/sync.js');
-const utils = require('./lib/utils.js');
+const { emitError } = require('./lib/utils.js');
 
 module.exports = {
   ...chain,
@@ -19,5 +19,5 @@ module.exports = {
   ...replica,
   ...storage,
   ...sync,
-  ...utils,
+  emitError,
 };
